@@ -1,0 +1,26 @@
+{
+  "name": "@webitel/chats-web-sdk",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "workspaces": [
+    "../../webitel-ui-sdk/packages/api-services"
+  ],
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "gen:ws": "npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^6.x",
+    "@webitel/api-services": "^0.1.10",
+    "typescript": "~5.9.3",
+    "vite": "^8.x",
+    "vue": "^3.5.x"
+  },
+  "dependencies": {
+    "axios": "^1.13.x",
+    "mitt": "^3.x"
+  }
+}
