@@ -1,3 +1,3 @@
-import { createChatsSocketClient } from './client/ChatsSoketClient';
+import { createChatsSocketClient } from './classes/ChatsSoketClient';
 
 export { createChatsSocketClient };
