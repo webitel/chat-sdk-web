@@ -15,3 +15,21 @@ export {
     type MessageModel, // Message backend response type
     type IMessage, // Message class
  } from './modules/messages';
+
+ export {  
+    // service configs
+    createServiceConfig, 
+    type ServiceConfigInputSchema, 
+    type ServiceConfig,
+
+    // socket configs
+    createSocketConfig,
+    type SocketConfigInputSchema, 
+    type SocketConfig,
+ } from './modules/configs';
+
+export {
+    createChatsSocketClient,
+    
+    ChatsSocketMessage, // enum for socket message types
+} from './modules/socket';

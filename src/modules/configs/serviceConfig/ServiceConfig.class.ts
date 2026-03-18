@@ -1,11 +1,11 @@
 import axios, { type AxiosInstance } from 'axios';
 
-export type ServiceConfigSchema = {
+export type ServiceConfigInputSchema = {
     baseUrl: string;
     accessToken: string | (() => string) | (() => Promise<string>);
 }
 
-class ServiceConfig implements ServiceConfigSchema {
+export class ServiceConfig implements ServiceConfigInputSchema {
     baseUrl: string;
     accessToken: string | (() => string) | (() => Promise<string>);
 
@@ -14,7 +14,7 @@ class ServiceConfig implements ServiceConfigSchema {
     constructor({
         baseUrl,
         accessToken,
-    }: ServiceConfigSchema) {
+    }: ServiceConfigInputSchema) {
         this.baseUrl = baseUrl;
         this.accessToken = accessToken;
 
@@ -37,6 +37,6 @@ class ServiceConfig implements ServiceConfigSchema {
     }
 }
 
-export function createServiceConfig(rawServiceConfig: ServiceConfigSchema): ServiceConfig {
+export function createServiceConfig(rawServiceConfig: ServiceConfigInputSchema): ServiceConfig {
     return new ServiceConfig(rawServiceConfig);
 }

@@ -4,34 +4,29 @@ import { EventPayload } from '../../../gen/ws/EventPayload';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
 import { getSocketMessageNameFromEvent } from '../utils/getSocketMessageNameFromEvent';
-
-export type ChatsSocketClientConfig = {
-    baseUrl: string;
-    getToken: () => string | Promise<string>;
-    onStatusChange?: (status: SocketClientConnectionStatus) => void;
-};
+import type { SocketConfig } from '../../configs';
+import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
 
 export interface IChatsSocketClient {
     connect: () => Promise<void>;
     disconnect: () => void;
+    reconnect: () => Promise<void>; // todo
     on: (event: ChatsSocketMessage, callback: IChatsSocketClientEventSubscriber) => void;
 };
 
 export type IChatsSocketClientEventSubscriber = (
-    data: unknown,
+    data: unknown, // todo
     // rawData: EventPayload, // todo: should i emit raw data too ??
 ) => unknown;
 
 class ChatsSocketClient implements IChatsSocketClient {
-    private emitter = mitt<{
-        [key in ChatsSocketMessage]: unknown; // todo: add type
-    }>();
+    private emitter = mitt<ChatsSocketClientEventPayloadMap>();
 
     private ws: WebSocket | null = null;
     
     private wsConnectionState: SocketClientConnectionStatus = SocketClientConnectionStatus.Idle;
 
-    constructor(private config: ChatsSocketClientConfig) {}
+    constructor(private config: SocketConfig) {}
     
     get connectionState(): SocketClientConnectionStatus {
         return this.wsConnectionState;
@@ -75,6 +70,6 @@ class ChatsSocketClient implements IChatsSocketClient {
     }
 }
 
-export function createChatsSocketClient(config: ChatsSocketClientConfig): ChatsSocketClient {
+export function createChatsSocketClient(config: SocketConfig): ChatsSocketClient {
     return new ChatsSocketClient(config);
 }

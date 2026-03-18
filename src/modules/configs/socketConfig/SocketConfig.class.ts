@@ -1,21 +1,21 @@
-export type SocketConfigSchema = {
+export type SocketConfigInputSchema = {
     baseUrl: string;
     accessToken: string | (() => string) | (() => Promise<string>);
 }
 
-class SocketConfig implements SocketConfigSchema {
+export class SocketConfig implements SocketConfigInputSchema {
     baseUrl: string;
     accessToken: string | (() => string) | (() => Promise<string>);
 
     constructor({
         baseUrl,
         accessToken,
-    }: SocketConfigSchema) {
+    }: SocketConfigInputSchema) {
         this.baseUrl = baseUrl;
         this.accessToken = accessToken;
     }
 }
 
-export function createSocketConfig(rawSocketConfig: SocketConfigSchema): SocketConfig {
+export function createSocketConfig(rawSocketConfig: SocketConfigInputSchema): SocketConfig {
     return new SocketConfig(rawSocketConfig);
 }
