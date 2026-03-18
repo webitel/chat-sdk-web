@@ -4,7 +4,7 @@ export {
     type IThread, // Thread class
  } from './modules/threads';
 
-export { 
+export {
     fetchContacts, // fetch + instantiate contacts
     type ContactModel, // Contact backend response type
     type IContact, // Contact class
@@ -30,6 +30,6 @@ export {
 
 export {
     createChatsSocketClient,
-    
+
     ChatsSocketMessage, // enum for socket message types
 } from './modules/socket';
