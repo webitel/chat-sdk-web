@@ -10,11 +10,12 @@
     "../../"
   ],
   "scripts": {
-    "dev": "vite",
+    "dev": "vite --force",
     "build": "run-p type-check \"build-only {@}\" --",
     "preview": "vite preview",
     "build-only": "vite build",
-    "type-check": "vue-tsc --build"
+    "type-check": "vue-tsc --build",
+    "utils:i": "npm install"
   },
   "dependencies": {
     "vue": "^3.5.22",

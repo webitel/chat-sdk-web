@@ -1,6 +1,6 @@
 import { getMessageHistory } from '../api/Messages.api';
 import { createMessage } from '../classes/Message.class';
-import { MessageModel } from '../types/Message.types';
+import type { MessageModel } from '../types/Message.types';
 
 /**
  * no instantiation, only raw data

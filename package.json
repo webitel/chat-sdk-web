@@ -1,5 +1,5 @@
 {
-  "name": "@webitel/chats-web-sdk",
+  "name": "@webitel/chat-web-sdk",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -13,12 +13,18 @@
     "gen:ws": "npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named"
   },
   "devDependencies": {
-    "@webitel/api-services": "^0.1.10",
+    "@webitel/api-services": "^0.1.13",
     "typescript": "~5.9.3",
     "vite": "^8.x"
   },
   "dependencies": {
     "axios": "^1.13.x",
     "mitt": "^3.x"
+  },
+  "exports": {
+    ".": {
+      "types": "./src/index.d.ts",
+      "import": "./src/index.ts"
+    }
   }
 }

@@ -1,5 +1,4 @@
 import type {
-    // @ts-ignore
     WebitelImApiGatewayV1Contact as ContactModel,
 } from '@webitel/api-services/gen/models';
 

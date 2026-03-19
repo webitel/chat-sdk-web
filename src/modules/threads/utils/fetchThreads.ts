@@ -1,12 +1,12 @@
-import { getList } from '../api/Threads.api';
+import { getThreadsList } from '../api/Threads.api';
 import { createThread } from '../classes/Thread.class';
-import { ThreadModel } from '../types/Thread.types';
+import type { ThreadModel } from '../types/Thread.types';
 
 /**
  * no class instantiation, only raw data
  */
 const fetchRawThreads = () => {
-    return getList();
+    return getThreadsList();
 }
 
 const instantiateThreads = (rawThreads: ThreadModel[]) => {

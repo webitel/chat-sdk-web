@@ -1,7 +1,7 @@
-import { instance } from "../../../core/http/axiosInstance";
+// import { instance } from "../../../core/http/axiosInstance";
 
 const getMessageHistory = (threadId: string) => {
-    return getMessageHistory(instance).searchThreadMessagesHistory(threadId);
+    // return getMessageHistory(instance).searchThreadMessagesHistory(threadId);
 }
 
 export {

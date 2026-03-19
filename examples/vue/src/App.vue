@@ -1,7 +1,73 @@
+<template>
+  <div class="container">
+    <header>
+      <h1>Chat Web SDK - Vue example</h1>
+      <p class="sub">
+        Minimal demo that connects via WebSocket and shows received events.
+      </p>
+    </header>
+
+    <section class="card">
+      <div class="grid">
+        <label class="field">
+          <span>WebSocket URL</span>
+          <input v-model="wsBaseUrl" placeholder="wss://your-gateway/ws" />
+        </label>
+
+        <label class="field">
+          <span>Access token (optional)</span>
+          <input v-model="accessToken" type="password" placeholder="Paste token if your backend needs it" />
+        </label>
+      </div>
+
+      <div class="actions">
+        <button class="primary" type="button" :disabled="status === 'connecting'" @click="connect">
+          Connect
+        </button>
+        <button type="button" :disabled="status === 'idle'" @click="disconnect">
+          Disconnect
+        </button>
+        <button type="button" @click="clearLogs">
+          Clear logs
+        </button>
+      </div>
+
+      <div class="status">
+        <span class="status-dot" :data-status="status" />
+        <span>
+          Status: <strong>{{ statusLabel }}</strong>
+        </span>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Socket events</h2>
+      <div v-if="logs.length === 0" class="empty">
+        No events yet. Click <strong>Connect</strong> and watch incoming messages.
+      </div>
+
+      <ul v-else class="logs">
+        <li v-for="item in logs" :key="item.id" class="log">
+          <div class="log-head">
+            <span class="pill">{{ item.event }}</span>
+            <span class="time">{{ new Date(item.at).toLocaleTimeString() }}</span>
+          </div>
+          <pre class="payload">{{ safeStringify(item.payload) }}</pre>
+        </li>
+      </ul>
+    </section>
+
+    <section class="card">
+      <TheContactsList />
+    </section>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { createSocketConfig } from '../../../src/modules/configs';
 import { createChatsSocketClient, ChatsSocketMessage } from '../../../src/modules/socket';
+import TheContactsList from './modules/contacts/the-contacts-list.vue';
 
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
 
@@ -143,67 +209,6 @@ onBeforeUnmount(() => {
   client?.disconnect();
 });
 </script>
-
-<template>
-  <div class="container">
-    <header>
-      <h1>Chat Web SDK - Vue example</h1>
-      <p class="sub">
-        Minimal demo that connects via WebSocket and shows received events.
-      </p>
-    </header>
-
-    <section class="card">
-      <div class="grid">
-        <label class="field">
-          <span>WebSocket URL</span>
-          <input v-model="wsBaseUrl" placeholder="wss://your-gateway/ws" />
-        </label>
-
-        <label class="field">
-          <span>Access token (optional)</span>
-          <input v-model="accessToken" type="password" placeholder="Paste token if your backend needs it" />
-        </label>
-      </div>
-
-      <div class="actions">
-        <button class="primary" type="button" :disabled="status === 'connecting'" @click="connect">
-          Connect
-        </button>
-        <button type="button" :disabled="status === 'idle'" @click="disconnect">
-          Disconnect
-        </button>
-        <button type="button" @click="clearLogs">
-          Clear logs
-        </button>
-      </div>
-
-      <div class="status">
-        <span class="status-dot" :data-status="status" />
-        <span>
-          Status: <strong>{{ statusLabel }}</strong>
-        </span>
-      </div>
-    </section>
-
-    <section class="card">
-      <h2>Socket events</h2>
-      <div v-if="logs.length === 0" class="empty">
-        No events yet. Click <strong>Connect</strong> and watch incoming messages.
-      </div>
-
-      <ul v-else class="logs">
-        <li v-for="item in logs" :key="item.id" class="log">
-          <div class="log-head">
-            <span class="pill">{{ item.event }}</span>
-            <span class="time">{{ new Date(item.at).toLocaleTimeString() }}</span>
-          </div>
-          <pre class="payload">{{ safeStringify(item.payload) }}</pre>
-        </li>
-      </ul>
-    </section>
-  </div>
-</template>
 
 <style scoped>
 .container {

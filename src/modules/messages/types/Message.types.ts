@@ -1,6 +1,5 @@
 import type {
-    // @ts-ignore
-    WebitelImApiGatewayV1HistoryMessage as MessageModel,
+    WebitelImServiceThreadV1HistoryMessage as MessageModel,
 } from '@webitel/api-services/gen/models';
 
 export interface IMessage extends MessageModel {
