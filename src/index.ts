@@ -5,7 +5,7 @@ export {
  } from './modules/threads';
 
 export {
-    fetchContacts, // fetch + instantiate contacts
+    useContactsService, // fetch + instantiate contacts
     type ContactModel, // Contact backend response type
     type IContact, // Contact class
  } from './modules/contacts';
