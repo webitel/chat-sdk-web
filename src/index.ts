@@ -1,5 +1,6 @@
 export { 
     fetchThreads, // fetch + instantiate threads
+    useThreadsService, // fetch + instantiate threads (service wrapper)
     type ThreadModel, // Thread backend response type
     type IThread, // Thread class
  } from './modules/threads';

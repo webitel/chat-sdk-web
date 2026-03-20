@@ -1,16 +1,14 @@
-// import { getThreadManagement } from '@webitel/api-services/gen';
-
 import type { ServiceConfig } from '../../configs';
+import type {
+    WebitelImApiGatewayV1SearchThreadResponse,
+} from '@webitel/api-services/gen/models';
 
-const getThreadsService = (serviceConfig: ServiceConfig) => {
-    
-}
-
-const getThreadsList = () => {
-    // return getThreadManagement(instance).searchThreadManagement();
-}
-
-
-export {
-    getThreadsList,
+// Threads endpoint returns a paginated list in `WebitelImApiGatewayV1SearchThreadResponse`.
+const getThreadsList = async (
+    { axiosInstance }: ServiceConfig,
+): Promise<WebitelImApiGatewayV1SearchThreadResponse> => {
+    const response = await axiosInstance.get('/v1/threads');
+    return response.data;
 };
+
+export { getThreadsList };

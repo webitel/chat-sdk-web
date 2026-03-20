@@ -60,6 +60,10 @@
     <section class="card">
       <TheContactsList />
     </section>
+
+    <section class="card">
+      <TheThreadsList />
+    </section>
   </div>
 </template>
 
@@ -68,6 +72,7 @@ import { computed, onBeforeUnmount, ref } from 'vue';
 import { createSocketConfig } from '../../../src/modules/configs';
 import { createChatsSocketClient, ChatsSocketMessage } from '../../../src/modules/socket';
 import TheContactsList from './modules/contacts/the-contacts-list.vue';
+import TheThreadsList from './modules/threads/the-threads-list.vue';
 
 type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
 

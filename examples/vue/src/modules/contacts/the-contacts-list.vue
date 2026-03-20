@@ -198,6 +198,9 @@ h2 {
     display: flex;
     flex-direction: column;
     gap: 12px;
+    max-height: 35vh;
+    overflow-y: auto;
+    min-height: 0;
 }
 
 .item {
