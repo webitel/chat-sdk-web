@@ -1,5 +1,5 @@
 import type {
-    WebitelImServiceThreadV1HistoryMessage as MessageModel,
+    WebitelImApiGatewayV1HistoryMessage as MessageModel,
 } from '@webitel/api-services/gen/models';
 
 export interface IMessage extends MessageModel {
@@ -8,4 +8,4 @@ export interface IMessage extends MessageModel {
 
 export type {
     MessageModel,
-}
+};

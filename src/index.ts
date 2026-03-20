@@ -13,6 +13,7 @@ export {
 
 export { 
     fetchMessageHistory, // fetch + instantiate messages
+    useMessagesService, // fetch + instantiate messages (service wrapper)
     type MessageModel, // Message backend response type
     type IMessage, // Message class
  } from './modules/messages';

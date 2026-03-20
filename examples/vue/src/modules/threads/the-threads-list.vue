@@ -38,28 +38,9 @@
           </div>
         </div>
 
-        <div class="item-actions">
-          <button type="button" class="btn small primary" @click="openChat(t)">
-            Open chat
-          </button>
-        </div>
+        <ThreadMessageHistoryDropdown :thread="t" />
       </li>
     </ul>
-
-    <div v-if="openedThread" class="opened">
-      <div class="opened-title">Opened chat</div>
-      <div class="opened-row">
-        <span class="k">Thread</span>
-        <span class="v">{{ openedThread.subject || openedThread.id || '—' }}</span>
-      </div>
-      <div class="opened-row">
-        <span class="k">ID</span>
-        <span class="v">{{ openedThread.id || '—' }}</span>
-      </div>
-      <button type="button" class="btn small" @click="openedThread = null">
-        Close
-      </button>
-    </div>
   </div>
 </template>
 
@@ -68,12 +49,11 @@ import { onMounted, ref } from 'vue';
 import { useThreadsService, type IThread } from '@webitel/chat-web-sdk';
 
 import { serviceConfig } from '../../configs';
+import ThreadMessageHistoryDropdown from './thread-message-history-dropdown.vue';
 
 const threads = ref<IThread[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
-
-const openedThread = ref<IThread | null>(null);
 
 const { fetchThreads } = useThreadsService(serviceConfig);
 
@@ -87,12 +67,6 @@ async function refresh() {
   } finally {
     loading.value = false;
   }
-}
-
-function openChat(thread: IThread) {
-  openedThread.value = thread;
-  // eslint-disable-next-line no-console
-  console.log('open chat thread', { id: thread.id, subject: thread.subject });
 }
 
 function formatEpochMs(value?: string) {
@@ -134,17 +108,6 @@ h2 {
   background: #f7f7f7;
   cursor: pointer;
   font-size: 14px;
-}
-
-.btn.small {
-  padding: 7px 10px;
-  font-size: 13px;
-}
-
-.btn.primary {
-  background: #1f7aff;
-  border-color: #1f7aff;
-  color: #fff;
 }
 
 .btn:disabled {
@@ -234,32 +197,4 @@ h2 {
   color: #374151;
   font-size: 13px;
 }
-
-.item-actions {
-  margin-top: 12px;
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-
-.opened {
-  padding: 14px;
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  background: #fafafa;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.opened-title {
-  font-weight: 700;
-}
-
-.opened-row {
-  display: flex;
-  gap: 8px;
-  align-items: baseline;
-}
 </style>
-
