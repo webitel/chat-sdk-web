@@ -1,11 +1,14 @@
-// import {
-    // WebitelImApiGatewayV1Contact,
-// } from '@webitel/api-services/gen';
-
 import type { ServiceConfig } from '../../configs';
+import type {
+    ContactsSearchParams,
+    WebitelImApiGatewayV1ContactList,
+} from '@webitel/api-services/gen/models';
 
-// todo: replace me with @webitel/api-services/gen
-export const getContactsList = async ({ axiosInstance }: ServiceConfig) => {
-    const response = await axiosInstance.get('/v1/contacts');
-    return response.data;
+export const getContactsService = ({ axiosInstance }: ServiceConfig) => {
+    return {
+        getContactsList: async (params: ContactsSearchParams = {}): Promise<WebitelImApiGatewayV1ContactList> => {
+            const response = await axiosInstance.get('/v1/contacts', { params });
+            return response.data;
+        },
+    };
 };

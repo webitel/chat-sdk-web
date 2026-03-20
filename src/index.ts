@@ -1,8 +1,8 @@
-export { 
-    fetchThreads, // fetch + instantiate threads
+export {
     useThreadsService, // fetch + instantiate threads (service wrapper)
     type ThreadModel, // Thread backend response type
     type IThread, // Thread class
+    type ThreadMessageHistoryResult, // message history response with `Message` instances
  } from './modules/threads';
 
 export {
@@ -11,8 +11,7 @@ export {
     type IContact, // Contact class
  } from './modules/contacts';
 
-export { 
-    fetchMessageHistory, // fetch + instantiate messages
+export {
     useMessagesService, // fetch + instantiate messages (service wrapper)
     type MessageModel, // Message backend response type
     type IMessage, // Message class

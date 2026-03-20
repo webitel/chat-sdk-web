@@ -61,7 +61,8 @@ async function refresh() {
   loading.value = true;
   error.value = null;
   try {
-    threads.value = await fetchThreads();
+    const res = await fetchThreads();
+    threads.value = res.threads ?? [];
   } catch (err) {
     error.value = err instanceof Error ? err.message : String(err);
   } finally {

@@ -56,7 +56,8 @@ async function loadHistory() {
   loading.value = true;
   loadError.value = null;
   try {
-    messages.value = await props.thread.fetchMessageHistory(serviceConfig);
+    const result = await props.thread.fetchMessageHistory(serviceConfig);
+    messages.value = result.messages;
     hasLoaded.value = true;
   } catch (err) {
     loadError.value = err instanceof Error ? err.message : String(err);

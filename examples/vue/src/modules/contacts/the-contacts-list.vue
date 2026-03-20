@@ -115,7 +115,7 @@ async function refresh() {
     error.value = null;
     try {
         const res = await fetchContacts();
-        contacts.value = (res.items ?? []) as IContact[];
+        contacts.value = res.items ?? [];
     } catch (err) {
         error.value = err instanceof Error ? err.message : String(err);
     } finally {
