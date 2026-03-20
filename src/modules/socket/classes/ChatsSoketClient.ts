@@ -36,11 +36,13 @@ class ChatsSocketClient implements IChatsSocketClient {
         this.wsConnectionState = SocketClientConnectionStatus.Connecting;
         const ws = new WebSocket(new URL(this.config.baseUrl).toString());
         this.ws = ws;
-        setTimeout(function () {
-            this.ws.send(JSON.stringify({
-                    "x-webitel-access": this.config.accessToken,
-                }));
-        }.bind(this), 1000);
+        setTimeout(() => {
+            ws.send(
+                JSON.stringify({
+                    'x-webitel-access': this.config.accessToken,
+                }),
+            );
+        }, 1000);
         this.ws.onopen = () => {
             this.wsConnectionState = SocketClientConnectionStatus.Connected;
         };
