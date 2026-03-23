@@ -1,14 +1,25 @@
 import type { ServiceConfig } from '../../configs';
 import { getContactsService } from '../api/Contacts.api';
 import { createContact } from '../classes/Contact.class';
-import type { ContactModel, ContactSearchParams, ContactSearchResult } from '../types/Contact.types';
+import type {
+    ContactModel,
+    ContactSearchParams,
+    ContactSearchRawResult,
+    ContactSearchResult,
+    IContact,
+} from '../types/Contact.types';
 
-const fetchRawContacts = (config: ServiceConfig) => async (params: ContactSearchParams = {}) => {
+const fetchRawContacts = (config: ServiceConfig) => async (
+    params: ContactSearchParams = {},
+): Promise<ContactSearchRawResult> => {
     const response = await getContactsService(config).getContactsList(params);
     return response;
 };
 
-const instantiateContacts = (rawContacts: ContactModel[], { serviceConfig }: { serviceConfig: ServiceConfig }) => {
+const instantiateContacts = (
+    rawContacts: ContactModel[],
+    { serviceConfig }: { serviceConfig: ServiceConfig },
+): IContact[] => {
     return rawContacts.map((rawContact) => createContact(rawContact, { serviceConfig }));
 };
 

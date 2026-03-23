@@ -1,8 +1,14 @@
-import type { MessageModel, IMessage } from '../types/Message.types';
+import type { ServiceConfig } from '../../configs';import type { MessageModel, IMessage } from '../types/Message.types';
 
 class Message implements IMessage {
-    constructor(rawMessage: MessageModel) {
+    private readonly _serviceConfig: ServiceConfig;
+    constructor(rawMessage: MessageModel, { serviceConfig }: { serviceConfig: ServiceConfig }) {
         Object.assign(this, rawMessage);
+        this._serviceConfig = serviceConfig;
+    }
+
+    get serviceConfig(): ServiceConfig {
+        return this._serviceConfig;
     }
 
     async markRead(): Promise<void> {
@@ -10,6 +16,6 @@ class Message implements IMessage {
     }
 }
 
-export function createMessage(rawMessage: MessageModel): Message {
-    return new Message(rawMessage);
+export function createMessage(rawMessage: MessageModel, { serviceConfig }: { serviceConfig: ServiceConfig }): IMessage {
+    return new Message(rawMessage, { serviceConfig });
 }

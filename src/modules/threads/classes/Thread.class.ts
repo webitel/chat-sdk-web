@@ -3,12 +3,12 @@ import type { ThreadModel, IThread } from '../types/Thread.types';
 import { useMessagesService, type MessageHistorySearchParams } from '../../messages';
 
 class Thread implements IThread {
+    private readonly _serviceConfig: ServiceConfig;
     id!: string;
-    serviceConfig: ServiceConfig;
 
     constructor(rawThread: ThreadModel, { serviceConfig }: { serviceConfig: ServiceConfig }) {
         Object.assign(this, rawThread);
-        this.serviceConfig = serviceConfig;
+        this._serviceConfig = serviceConfig;
     }
 
     async fetchMessageHistory(
@@ -16,9 +16,13 @@ class Thread implements IThread {
     ) {
         return useMessagesService(this.serviceConfig).fetchMessageHistory(this.id, params);
     }
+
+    get serviceConfig(): ServiceConfig {
+        return this._serviceConfig;
+    }
 }
 
-export function createThread(rawThread: ThreadModel, { serviceConfig }: { serviceConfig: ServiceConfig }): Thread {
+export function createThread(rawThread: ThreadModel, { serviceConfig }: { serviceConfig: ServiceConfig }): IThread {
     return new Thread(rawThread, { serviceConfig });
 }
  
