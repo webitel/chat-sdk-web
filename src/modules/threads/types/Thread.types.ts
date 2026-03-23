@@ -1,26 +1,21 @@
 import type {
-    MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams,
-    WebitelImApiGatewayV1SearchMessageHistoryResponse,
+    ThreadManagementSearchParams as ThreadSearchParams,
     WebitelImApiGatewayV1Thread as ThreadModel,
 } from '@webitel/api-services/gen/models';
 
-import type { ServiceConfig } from '../../configs';
-import type { IMessage } from '../../messages/types/Message.types';
+import type { ServiceConfigurable } from '../../configs';
+import type { MessageHistorySearchResult, MessageHistorySearchParams } from '../../messages/types/Message.types';
 
-/**
- * API response with `messages` replaced by instantiated SDK `Message` classes.
- */
-export type ThreadMessageHistoryResult = Omit<WebitelImApiGatewayV1SearchMessageHistoryResponse, 'messages'> & {
-    messages: IMessage[];
-};
+interface IThread extends ThreadModel, ServiceConfigurable {
+    id: string;
 
-export interface IThread extends ThreadModel {
     fetchMessageHistory: (
-        config: ServiceConfig,
-        params?: MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams,
-    ) => Promise<ThreadMessageHistoryResult>;
+        params?: MessageHistorySearchParams,
+    ) => Promise<MessageHistorySearchResult>;
 }
 
 export type {
     ThreadModel,
+    IThread,
+    ThreadSearchParams,
 };

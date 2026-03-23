@@ -1,4 +1,3 @@
-export { fetchMessageHistory, fetchRawMessageHistory } from './utils/fetchMessageHistory';
 export { createMessage } from './classes/Message.class';
-export type { MessageModel, IMessage } from './types/Message.types';
+export type { MessageModel, IMessage, MessageHistorySearchParams, MessageHistorySearchResult } from './types/Message.types';
 export { useMessagesService } from './messagesSevice';

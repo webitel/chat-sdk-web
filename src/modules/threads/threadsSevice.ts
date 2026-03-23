@@ -1,10 +1,9 @@
-import type { ThreadManagementSearchParams } from '@webitel/api-services/gen/models';
-
 import type { ServiceConfig } from '../configs';
 import { fetchThreads } from './utils/fetchThreads';
+import type { ThreadSearchParams } from './types/Thread.types';
 
 export function useThreadsService(config: ServiceConfig) {
   return {
-    fetchThreads: (params?: ThreadManagementSearchParams) => fetchThreads(config, params ?? {}),
+    fetchThreads: (params?: ThreadSearchParams) => fetchThreads(config, params ?? {}),
   };
 }

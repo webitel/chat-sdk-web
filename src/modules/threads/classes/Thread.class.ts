@@ -1,29 +1,24 @@
-import type {
-    MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams,
-} from '@webitel/api-services/gen/models';
-
 import type { ServiceConfig } from '../../configs';
-import { fetchMessageHistory } from '../../messages';
 import type { ThreadModel, IThread } from '../types/Thread.types';
+import { useMessagesService, type MessageHistorySearchParams } from '../../messages';
 
 class Thread implements IThread {
-    id?: string;
+    id!: string;
+    serviceConfig: ServiceConfig;
 
-    constructor(rawThread: ThreadModel) {
+    constructor(rawThread: ThreadModel, { serviceConfig }: { serviceConfig: ServiceConfig }) {
         Object.assign(this, rawThread);
+        this.serviceConfig = serviceConfig;
     }
 
     async fetchMessageHistory(
-        config: ServiceConfig,
-        params?: MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams,
+        params?: MessageHistorySearchParams,
     ) {
-        if (!this.id) {
-            throw new Error('Thread id is required to fetch message history');
-        }
-        return fetchMessageHistory(config, this.id, params);
+        return useMessagesService(this.serviceConfig).fetchMessageHistory(this.id, params);
     }
 }
 
-export function createThread(rawThread: ThreadModel): Thread {
-    return new Thread(rawThread);
+export function createThread(rawThread: ThreadModel, { serviceConfig }: { serviceConfig: ServiceConfig }): Thread {
+    return new Thread(rawThread, { serviceConfig });
 }
+ 

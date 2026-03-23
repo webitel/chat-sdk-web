@@ -13,8 +13,8 @@ const fetchRawThreads = (config: ServiceConfig) => async (params: ThreadManageme
     return response;
 };
 
-const instantiateThreads = (rawThreads: ThreadModel[]) => {
-    return rawThreads.map((rawThread) => createThread(rawThread));
+const instantiateThreads = (rawThreads: ThreadModel[], { serviceConfig }: { serviceConfig: ServiceConfig }) => {
+    return rawThreads.map((rawThread) => createThread(rawThread, { serviceConfig }));
 };
 
 /**
@@ -25,7 +25,9 @@ const fetchThreads = async (config: ServiceConfig, params: ThreadManagementSearc
     const rawThreadsResponse = await fetchRawThreads(config)(params);
     return {
         ...rawThreadsResponse,
-        threads: instantiateThreads(rawThreadsResponse.threads ?? []),
+        threads: instantiateThreads(rawThreadsResponse.threads ?? [], {
+            serviceConfig: config,
+        }),
     };
 };
 
