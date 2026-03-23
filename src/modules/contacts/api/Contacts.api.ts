@@ -1,14 +1,19 @@
+import { applyTransform, snakeToCamel, camelToSnake } from '@webitel/api-services/api/transformers';
+
 import type { ServiceConfig } from '../../configs';
-import type {
-    ContactsSearchParams,
-    WebitelImApiGatewayV1ContactList,
-} from '@webitel/api-services/gen/models';
+import type { ContactSearchParams, ContactSearchRawResult } from '../types/Contact.types';
 
 export const getContactsService = ({ axiosInstance }: ServiceConfig) => {
     return {
-        getContactsList: async (params: ContactsSearchParams = {}): Promise<WebitelImApiGatewayV1ContactList> => {
-            const response = await axiosInstance.get('/v1/contacts', { params });
-            return response.data;
+        getContactsList: async (params: ContactSearchParams = {}): Promise<ContactSearchRawResult> => {
+            const transformedParams = applyTransform(params, [
+                camelToSnake(),
+            ]);
+
+            const response = await axiosInstance.get('/v1/contacts', { params: transformedParams });
+            return applyTransform(response.data, [
+                snakeToCamel(),
+            ]);
         },
     };
 };

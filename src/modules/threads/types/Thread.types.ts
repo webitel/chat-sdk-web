@@ -23,5 +23,6 @@ export type {
     ThreadModel,
     IThread,
     ThreadSearchParams,
+    ThreadSearchRawResult,
     ThreadSearchResult,
 };

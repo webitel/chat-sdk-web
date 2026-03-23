@@ -18,5 +18,6 @@ export type {
     ContactModel,
     IContact,
     ContactSearchParams,
+    ContactSearchRawResult,
     ContactSearchResult,
 };
