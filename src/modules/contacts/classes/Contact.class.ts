@@ -1,23 +1,39 @@
-import type { ContactModel, IContact } from '../types/Contact.types';
 import type { ServiceConfig } from '../../configs';
+import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
-    private readonly _serviceConfig: ServiceConfig;
+	private readonly _serviceConfig: ServiceConfig;
 
-    constructor(rawContact: ContactModel, { serviceConfig }: { serviceConfig: ServiceConfig }) {
-        Object.assign(this, rawContact);
-        this._serviceConfig = serviceConfig;
-    }
+	constructor(
+		rawContact: ContactModel,
+		{
+			serviceConfig,
+		}: {
+			serviceConfig: ServiceConfig;
+		},
+	) {
+		Object.assign(this, rawContact);
+		this._serviceConfig = serviceConfig;
+	}
 
-    async sendMessage() {
-        throw new Error('Method not implemented.');
-    }
+	async sendMessage() {
+		throw new Error('Method not implemented.');
+	}
 
-    get serviceConfig(): ServiceConfig {
-        return this._serviceConfig;
-    }
+	get serviceConfig(): ServiceConfig {
+		return this._serviceConfig;
+	}
 }
 
-export function createContact(rawContact: ContactModel, { serviceConfig }: { serviceConfig: ServiceConfig }): IContact {
-    return new Contact(rawContact, { serviceConfig });
+export function createContact(
+	rawContact: ContactModel,
+	{
+		serviceConfig,
+	}: {
+		serviceConfig: ServiceConfig;
+	},
+): IContact {
+	return new Contact(rawContact, {
+		serviceConfig,
+	});
 }

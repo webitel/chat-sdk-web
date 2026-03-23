@@ -1,5 +1,5 @@
-import type { ServiceConfig } from "../serviceConfig/ServiceConfig.class";
+import type { ServiceConfig } from '../serviceConfig/ServiceConfig.class';
 
 export interface ServiceConfigurable {
-    get serviceConfig(): ServiceConfig;
+	get serviceConfig(): ServiceConfig;
 }

@@ -1,41 +1,37 @@
 export {
-    useThreadsService, // fetch + instantiate threads (service wrapper)
-    type ThreadModel, // Thread backend response type 
-    type IThread, // Thread class
-    type ThreadSearchParams,
-    type ThreadSearchResult,
- } from './modules/threads';
+	// service configs
+	createServiceConfig,
+	// socket configs
+	createSocketConfig,
+	type ServiceConfig,
+	type ServiceConfigInputSchema,
+	type SocketConfig,
+	type SocketConfigInputSchema,
+} from './modules/configs';
 
 export {
-    useContactsService, // fetch + instantiate contacts
-    type ContactModel, // Contact backend response type
-    type IContact, // Contact class
-    type ContactSearchParams,
-    type ContactSearchResult,
- } from './modules/contacts';
+	type ContactModel, // Contact backend response type
+	type ContactSearchParams,
+	type ContactSearchResult,
+	type IContact, // Contact class
+	useContactsService, // fetch + instantiate contacts
+} from './modules/contacts';
 
 export {
-    useMessagesService, // fetch + instantiate messages (service wrapper)
-    type MessageModel, // Message backend response type
-    type IMessage, // Message class
-    type MessageHistorySearchParams,
-    type MessageHistorySearchResult,
- } from './modules/messages';
-
- export {  
-    // service configs
-    createServiceConfig, 
-    type ServiceConfigInputSchema, 
-    type ServiceConfig,
-
-    // socket configs
-    createSocketConfig,
-    type SocketConfigInputSchema, 
-    type SocketConfig,
- } from './modules/configs';
-
+	type IMessage, // Message class
+	type MessageHistorySearchParams,
+	type MessageHistorySearchResult,
+	type MessageModel, // Message backend response type
+	useMessagesService, // fetch + instantiate messages (service wrapper)
+} from './modules/messages';
 export {
-    createChatsSocketClient,
-
-    ChatsSocketMessage, // enum for socket message types
+	ChatsSocketMessage, // enum for socket message types
+	createChatsSocketClient,
 } from './modules/socket';
+export {
+	type IThread, // Thread class
+	type ThreadModel, // Thread backend response type
+	type ThreadSearchParams,
+	type ThreadSearchResult,
+	useThreadsService, // fetch + instantiate threads (service wrapper)
+} from './modules/threads';

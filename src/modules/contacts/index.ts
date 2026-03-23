@@ -1,3 +1,8 @@
-export { useContactsService } from './contactsSevice';
 export { createContact } from './classes/Contact.class';
-export type { ContactModel, IContact, ContactSearchParams, ContactSearchResult } from './types/Contact.types';
+export { useContactsService } from './contactsSevice';
+export type {
+	ContactModel,
+	ContactSearchParams,
+	ContactSearchResult,
+	IContact,
+} from './types/Contact.types';

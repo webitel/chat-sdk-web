@@ -1,24 +1,27 @@
 import type {
-    WebitelImApiGatewayV1HistoryMessage as MessageModel,
-    MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
-    WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
+	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
+	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
+	WebitelImApiGatewayV1HistoryMessage as MessageModel,
 } from '@webitel/api-services/gen/models';
 
 interface IMessage extends MessageModel {
-    markRead: () => Promise<void>;
+	markRead: () => Promise<void>;
 }
 
 /**
  * API response with `messages` replaced by instantiated SDK `Message` classes.
  */
-type MessageHistorySearchResult = Omit<MessageHistorySearchRawResponse, 'messages'> & {
-    messages: IMessage[];
+type MessageHistorySearchResult = Omit<
+	MessageHistorySearchRawResponse,
+	'messages'
+> & {
+	messages: IMessage[];
 };
 
 export type {
-    MessageModel,
-    IMessage,
-    MessageHistorySearchParams,
-    MessageHistorySearchRawResponse,
-    MessageHistorySearchResult,
+	IMessage,
+	MessageHistorySearchParams,
+	MessageHistorySearchRawResponse,
+	MessageHistorySearchResult,
+	MessageModel,
 };

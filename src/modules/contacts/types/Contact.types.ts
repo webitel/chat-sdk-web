@@ -1,23 +1,23 @@
 import type {
-    WebitelImApiGatewayV1Contact as ContactModel,
-    ContactsSearchParams as ContactSearchParams,
-    WebitelImApiGatewayV1ContactList as ContactSearchRawResult,
+	WebitelImApiGatewayV1Contact as ContactModel,
+	ContactsSearchParams as ContactSearchParams,
+	WebitelImApiGatewayV1ContactList as ContactSearchRawResult,
 } from '@webitel/api-services/gen/models';
 
 import type { ServiceConfigurable } from '../../configs';
 
 interface IContact extends ContactModel, ServiceConfigurable {
-    sendMessage: () => {}; // todo
+	sendMessage: () => {}; // todo
 }
 
 type ContactSearchResult = Omit<ContactSearchRawResult, 'items'> & {
-    items: IContact[];
+	items: IContact[];
 };
 
 export type {
-    ContactModel,
-    IContact,
-    ContactSearchParams,
-    ContactSearchRawResult,
-    ContactSearchResult,
+	ContactModel,
+	ContactSearchParams,
+	ContactSearchRawResult,
+	ContactSearchResult,
+	IContact,
 };

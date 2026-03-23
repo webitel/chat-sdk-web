@@ -9,6 +9,7 @@
     "dev": "vite",
     "build": "tsc --noEmit && tsup",
     "publish": "npm publish --access public --tag latest",
+    "biome:format:all": "npx biome check --write ./src",
     "gen:ws": "npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named"
   },
   "main": "./dist/index.js",
@@ -17,6 +18,7 @@
     "dist"
   ],
   "devDependencies": {
+    "@biomejs/biome": "2.4.8",
     "@webitel/api-services": "^0.1.13",
     "tsup": "^8.5.1",
     "typescript": "~5.9.3",
