@@ -1,6 +1,5 @@
 {
   "name": "@webitel/chat-web-sdk",
-  "private": true,
   "version": "0.0.0",
   "type": "module",
   "workspaces": [
@@ -19,11 +18,11 @@
   ],
   "devDependencies": {
     "tsup": "^8.5.1",
+    "@webitel/api-services": "^0.1.13",
     "typescript": "~5.9.3",
     "vite": "^8.x"
   },
   "dependencies": {
-    "@webitel/api-services": "^0.1.13",
     "axios": "^1.13.x",
     "mitt": "^3.x"
   },
@@ -32,10 +31,5 @@
       "types": "./dist/index.d.ts",
       "import": "./dist/index.js"
     }
-  },
-  "bundleDependencies": [
-    "@webitel/api-services",
-    "axios",
-    "mitt"
-  ]
+  }
 }
