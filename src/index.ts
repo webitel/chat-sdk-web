@@ -1,20 +1,25 @@
 export {
     useThreadsService, // fetch + instantiate threads (service wrapper)
-    type ThreadModel, // Thread backend response type
+    type ThreadModel, // Thread backend response type 
     type IThread, // Thread class
-    type ThreadMessageHistoryResult, // message history response with `Message` instances
+    type ThreadSearchParams,
+    type ThreadSearchResult,
  } from './modules/threads';
 
 export {
     useContactsService, // fetch + instantiate contacts
     type ContactModel, // Contact backend response type
     type IContact, // Contact class
+    type ContactSearchParams,
+    type ContactSearchResult,
  } from './modules/contacts';
 
 export {
     useMessagesService, // fetch + instantiate messages (service wrapper)
     type MessageModel, // Message backend response type
     type IMessage, // Message class
+    type MessageHistorySearchParams,
+    type MessageHistorySearchResult,
  } from './modules/messages';
 
  export {  

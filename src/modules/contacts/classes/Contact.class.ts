@@ -1,8 +1,12 @@
 import type { ContactModel, IContact } from '../types/Contact.types';
+import type { ServiceConfig } from '../../configs';
 
 class Contact implements IContact {
-    constructor(rawContact: ContactModel) {
+    serviceConfig: ServiceConfig;
+
+    constructor(rawContact: ContactModel, { serviceConfig }: { serviceConfig: ServiceConfig }) {
         Object.assign(this, rawContact);
+        this.serviceConfig = serviceConfig;
     }
 
     async sendMessage() {
@@ -10,6 +14,6 @@ class Contact implements IContact {
     }
 }
 
-export function createContact(rawContact: ContactModel): Contact {
-    return new Contact(rawContact);
+export function createContact(rawContact: ContactModel, { serviceConfig }: { serviceConfig: ServiceConfig }): Contact {
+    return new Contact(rawContact, { serviceConfig });
 }

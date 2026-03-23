@@ -1,5 +1,6 @@
 import type {
     ThreadManagementSearchParams as ThreadSearchParams,
+    WebitelImApiGatewayV1SearchThreadResponse as ThreadSearchRawResult,
     WebitelImApiGatewayV1Thread as ThreadModel,
 } from '@webitel/api-services/gen/models';
 
@@ -14,8 +15,13 @@ interface IThread extends ThreadModel, ServiceConfigurable {
     ) => Promise<MessageHistorySearchResult>;
 }
 
+type ThreadSearchResult = Omit<ThreadSearchRawResult, 'threads'> & {
+    threads: IThread[];
+};
+
 export type {
     ThreadModel,
     IThread,
     ThreadSearchParams,
+    ThreadSearchResult,
 };
