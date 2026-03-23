@@ -19,5 +19,6 @@ export type {
     MessageModel,
     IMessage,
     MessageHistorySearchParams,
+    MessageHistorySearchRawResponse,
     MessageHistorySearchResult,
 };
