@@ -1,9 +1,11 @@
 import axios, { type AxiosInstance } from 'axios';
+import * as qs from 'qs-esm';
+
 
 export type ServiceConfigInputSchema = {
     baseUrl: string;
     accessToken: string | (() => string) | (() => Promise<string>);
-}
+};
 
 export class ServiceConfig implements ServiceConfigInputSchema {
     baseUrl: string;
@@ -20,6 +22,8 @@ export class ServiceConfig implements ServiceConfigInputSchema {
 
         this.axiosInstance = axios.create({
             baseURL: this.baseUrl,
+            paramsSerializer: (params) =>
+                qs.stringify(params, { allowDots: true })
         });
 
         this.setupAxiosTokenHandler();
@@ -39,4 +43,4 @@ export class ServiceConfig implements ServiceConfigInputSchema {
 
 export function createServiceConfig(rawServiceConfig: ServiceConfigInputSchema): ServiceConfig {
     return new ServiceConfig(rawServiceConfig);
-}
+} 
