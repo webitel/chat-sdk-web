@@ -74,18 +74,26 @@
 <script setup lang="ts">
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { createSocketConfig } from '../../../src/modules/configs';
-import { createChatsSocketClient, ChatsSocketMessage } from '../../../src/modules/socket';
+import {
+	ChatsSocketMessage,
+	createChatsSocketClient,
+} from '../../../src/modules/socket';
 import TheAccountInfo from './modules/account/the-account-info.vue';
 import TheContactsList from './modules/contacts/the-contacts-list.vue';
 import TheThreadsList from './modules/threads/the-threads-list.vue';
 
-type ConnectionStatus = 'idle' | 'connecting' | 'connected' | 'disconnected' | 'error';
+type ConnectionStatus =
+	| 'idle'
+	| 'connecting'
+	| 'connected'
+	| 'disconnected'
+	| 'error';
 
 type LogItem = {
-  id: string;
-  at: number;
-  event: ChatsSocketMessage | 'client_error' | 'client_info';
-  payload: unknown;
+	id: string;
+	at: number;
+	event: ChatsSocketMessage | 'client_error' | 'client_info';
+	payload: unknown;
 };
 
 const defaultBaseUrl = import.meta.env.VITE_WS_BASE_URL ?? '';
@@ -100,123 +108,131 @@ const logs = ref<LogItem[]>([]);
 let client: ReturnType<typeof createChatsSocketClient> | null = null;
 
 function newId() {
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const c: any = typeof crypto !== 'undefined' ? crypto : undefined;
-  return c?.randomUUID ? c.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
+	const c: any = typeof crypto !== 'undefined' ? crypto : undefined;
+	return c?.randomUUID
+		? c.randomUUID()
+		: `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
 function safeStringify(value: unknown) {
-  try {
-    return JSON.stringify(value, null, 2);
-  } catch {
-    return String(value);
-  }
+	try {
+		return JSON.stringify(value, null, 2);
+	} catch {
+		return String(value);
+	}
 }
 
 function addLog(event: LogItem['event'], payload: unknown) {
-  logs.value = [
-    ...logs.value,
-    {
-      id: newId(),
-      at: Date.now(),
-      event,
-      payload,
-    },
-  ];
+	logs.value = [
+		...logs.value,
+		{
+			id: newId(),
+			at: Date.now(),
+			event,
+			payload,
+		},
+	];
 }
 
-function attachEventHandlers(nextClient: ReturnType<typeof createChatsSocketClient>) {
-  nextClient.on(ChatsSocketMessage.Connected, (data: unknown) => {
-    status.value = 'connected';
-    addLog(ChatsSocketMessage.Connected, data);
-  });
+function attachEventHandlers(
+	nextClient: ReturnType<typeof createChatsSocketClient>,
+) {
+	nextClient.on(ChatsSocketMessage.Connected, (data: unknown) => {
+		status.value = 'connected';
+		addLog(ChatsSocketMessage.Connected, data);
+	});
 
-  nextClient.on(ChatsSocketMessage.Disconnected, (data: unknown) => {
-    status.value = 'disconnected';
-    addLog(ChatsSocketMessage.Disconnected, data);
-  });
+	nextClient.on(ChatsSocketMessage.Disconnected, (data: unknown) => {
+		status.value = 'disconnected';
+		addLog(ChatsSocketMessage.Disconnected, data);
+	});
 
-  nextClient.on(ChatsSocketMessage.Error, (data: unknown) => {
-    status.value = 'error';
-    addLog(ChatsSocketMessage.Error, data);
-  });
+	nextClient.on(ChatsSocketMessage.Error, (data: unknown) => {
+		status.value = 'error';
+		addLog(ChatsSocketMessage.Error, data);
+	});
 
-  nextClient.on(ChatsSocketMessage.ThreadCreated, (data: unknown) => {
-    addLog(ChatsSocketMessage.ThreadCreated, data);
-  });
+	nextClient.on(ChatsSocketMessage.ThreadCreated, (data: unknown) => {
+		addLog(ChatsSocketMessage.ThreadCreated, data);
+	});
 
-  nextClient.on(ChatsSocketMessage.ThreadMessage, (data: unknown) => {
-    addLog(ChatsSocketMessage.ThreadMessage, data);
-  });
+	nextClient.on(ChatsSocketMessage.ThreadMessage, (data: unknown) => {
+		addLog(ChatsSocketMessage.ThreadMessage, data);
+	});
 }
 
 const statusLabel = computed(() => {
-  switch (status.value) {
-    case 'idle':
-      return 'Idle';
-    case 'connecting':
-      return 'Connecting...';
-    case 'connected':
-      return 'Connected';
-    case 'disconnected':
-      return 'Disconnected';
-    case 'error':
-      return 'Error';
-    default:
-      return status.value;
-  }
+	switch (status.value) {
+		case 'idle':
+			return 'Idle';
+		case 'connecting':
+			return 'Connecting...';
+		case 'connected':
+			return 'Connected';
+		case 'disconnected':
+			return 'Disconnected';
+		case 'error':
+			return 'Error';
+		default:
+			return status.value;
+	}
 });
 
 async function connect() {
-  if (!wsBaseUrl.value.trim()) {
-    status.value = 'error';
-    addLog('client_error', 'Missing `VITE_WS_BASE_URL` / `wsBaseUrl`.');
-    return;
-  }
+	if (!wsBaseUrl.value.trim()) {
+		status.value = 'error';
+		addLog('client_error', 'Missing `VITE_WS_BASE_URL` / `wsBaseUrl`.');
+		return;
+	}
 
-  // Detach old client listeners by discarding it (we recreate a new client every time).
-  try {
-    await client?.disconnect();
-  } catch {
-    // ignore disconnect errors
-  }
+	// Detach old client listeners by discarding it (we recreate a new client every time).
+	try {
+		await client?.disconnect();
+	} catch {
+		// ignore disconnect errors
+	}
 
-  client = createChatsSocketClient(
-    createSocketConfig({
-      baseUrl: wsBaseUrl.value.trim(),
-      // Note: current SDK socket client does not attach this token to the WS handshake.
-      // If your backend expects auth, include it in the URL (query/header handled by your gateway).
-      accessToken: accessToken.value.trim(),
-    }),
-  );
+	client = createChatsSocketClient(
+		createSocketConfig({
+			baseUrl: wsBaseUrl.value.trim(),
+			// Note: current SDK socket client does not attach this token to the WS handshake.
+			// If your backend expects auth, include it in the URL (query/header handled by your gateway).
+			accessToken: accessToken.value.trim(),
+		}),
+	);
 
-  attachEventHandlers(client);
-  status.value = 'connecting';
+	attachEventHandlers(client);
+	status.value = 'connecting';
 
-  try {
-    await client.connect();
-    addLog('client_info', { action: 'connect() called' });
-  } catch (err) {
-    status.value = 'error';
-    addLog('client_error', err);
-  }
+	try {
+		await client.connect();
+		addLog('client_info', {
+			action: 'connect() called',
+		});
+	} catch (err) {
+		status.value = 'error';
+		addLog('client_error', err);
+	}
 }
 
 async function disconnect() {
-  try {
-    await client?.disconnect();
-  } finally {
-    status.value = 'disconnected';
-    addLog('client_info', { action: 'disconnect() called' });
-  }
+	try {
+		await client?.disconnect();
+	} finally {
+		status.value = 'disconnected';
+		addLog('client_info', {
+			action: 'disconnect() called',
+		});
+	}
 }
 
 function clearLogs() {
-  logs.value = [];
+	logs.value = [];
 }
 
 onBeforeUnmount(() => {
-  client?.disconnect();
+	client?.disconnect();
 });
 </script>
 

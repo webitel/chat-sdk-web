@@ -28,8 +28,8 @@
   setup
   lang="ts"
 >
-import { computed, ref } from 'vue';
 import { type AccountModel, useAccountService } from '@webitel/chat-web-sdk';
+import { computed, ref } from 'vue';
 
 import { serviceConfig } from '../../configs';
 
@@ -40,20 +40,20 @@ const error = ref<string | null>(null);
 const { getAccount } = useAccountService(serviceConfig);
 
 const json = computed(() =>
-  account.value ? JSON.stringify(account.value, null, 2) : '',
+	account.value ? JSON.stringify(account.value, null, 2) : '',
 );
 
 async function load() {
-  loading.value = true;
-  error.value = null;
-  try {
-    account.value = await getAccount();
-  } catch (err) {
-    account.value = null;
-    error.value = err instanceof Error ? err.message : String(err);
-  } finally {
-    loading.value = false;
-  }
+	loading.value = true;
+	error.value = null;
+	try {
+		account.value = await getAccount();
+	} catch (err) {
+		account.value = null;
+		error.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		loading.value = false;
+	}
 }
 </script>
 
