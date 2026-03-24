@@ -58,6 +58,10 @@
     </section>
 
     <section class="card">
+      <TheAccountInfo />
+    </section>
+
+    <section class="card">
       <TheContactsList />
     </section>
 
@@ -71,6 +75,7 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { createSocketConfig } from '../../../src/modules/configs';
 import { createChatsSocketClient, ChatsSocketMessage } from '../../../src/modules/socket';
+import TheAccountInfo from './modules/account/the-account-info.vue';
 import TheContactsList from './modules/contacts/the-contacts-list.vue';
 import TheThreadsList from './modules/threads/the-threads-list.vue';
 
