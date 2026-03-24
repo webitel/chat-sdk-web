@@ -1,5 +1,6 @@
 # `@webitel/chat-web-sdk` code snippets and examples
 
+
 [[toc]]
 
 ## Initialize configs
@@ -51,11 +52,24 @@ Not currently implemented
 // todo
 ```
 
-### List of availabe Services:
+### List of available Services
 
-1. Contacts (`useContactsService`)
-2. Threads (aka Dialogs) (`useThreadsService`)
-3. Messages (`useMessagesService`)
+1. Account (`useAccountService`) — current user / auth payload
+2. Contacts (`useContactsService`)
+3. Threads (aka Dialogs) (`useThreadsService`)
+4. Messages (`useMessagesService`)
+
+```js
+import { useAccountService } from '@webitel/chat-web-sdk';
+import { serviceConfig } from './configs';
+
+const { getAccount } = useAccountService(serviceConfig);
+const account = await getAccount();
+```
+
+## Vue example
+
+See [examples/vue](./vue/README.md) for a runnable app (WebSocket events plus HTTP: contacts, threads, and account).
 
 ## all pkg exports
 
