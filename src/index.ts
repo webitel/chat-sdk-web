@@ -10,6 +10,11 @@ export {
 } from './modules/configs';
 
 export {
+	type AccountModel, // current auth / user payload from GET /v1/auth/token
+	useAccountService,
+} from './modules/account';
+
+export {
 	type ContactModel, // Contact backend response type
 	type ContactSearchParams,
 	type ContactSearchResult,
