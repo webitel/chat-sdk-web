@@ -5,4 +5,6 @@ export type {
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
 	MessageModel,
+	MessageSendTextParams,
+	MessageSendTextRawResponse,
 } from './types/Message.types';

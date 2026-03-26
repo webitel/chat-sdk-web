@@ -2,6 +2,8 @@ import type {
 	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
 	WebitelImApiGatewayV1HistoryMessage as MessageModel,
+	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
+	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
 } from '@webitel/api-services/gen/models';
 
 interface IMessage extends MessageModel {
@@ -24,4 +26,6 @@ export type {
 	MessageHistorySearchRawResponse,
 	MessageHistorySearchResult,
 	MessageModel,
+	MessageSendTextParams,
+	MessageSendTextRawResponse,
 };

@@ -26,6 +26,8 @@ export {
 	type MessageHistorySearchParams,
 	type MessageHistorySearchResult,
 	type MessageModel, // Message backend response type
+	type MessageSendTextParams,
+	type MessageSendTextRawResponse,
 	useMessagesService, // fetch + instantiate messages (service wrapper)
 } from './modules/messages';
 export {

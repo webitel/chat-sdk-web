@@ -8,6 +8,8 @@ import type { ServiceConfigurable } from '../../configs';
 import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
+	MessageSendTextParams,
+	MessageSendTextRawResponse,
 } from '../../messages/types/Message.types';
 
 interface IThread extends ThreadModel, ServiceConfigurable {
@@ -16,6 +18,11 @@ interface IThread extends ThreadModel, ServiceConfigurable {
 	fetchMessageHistory: (
 		params?: MessageHistorySearchParams,
 	) => Promise<MessageHistorySearchResult>;
+
+	sendTextMessage: (
+		body: string,
+		params?: Omit<MessageSendTextParams, 'body' | 'to'>,
+	) => Promise<MessageSendTextRawResponse>;
 }
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'threads'> & {

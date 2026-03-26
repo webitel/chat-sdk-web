@@ -1,6 +1,7 @@
 import type { ServiceConfig } from '../../configs';
 import {
 	type MessageHistorySearchParams,
+	type MessageSendTextParams,
 	useMessagesService,
 } from '../../messages';
 import type { IThread, ThreadModel } from '../types/Thread.types';
@@ -26,6 +27,19 @@ class Thread implements IThread {
 			this.id,
 			params,
 		);
+	}
+
+	async sendTextMessage(
+		body: string,
+		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
+	) {
+		return useMessagesService(this.serviceConfig).sendTextMessage({
+			...params,
+			body,
+			to: {
+				threadId: this.id,
+			},
+		});
 	}
 
 	get serviceConfig(): ServiceConfig {

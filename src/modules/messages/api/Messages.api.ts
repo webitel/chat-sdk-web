@@ -7,6 +7,8 @@ import type { ServiceConfig } from '../../configs';
 import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchRawResponse,
+	MessageSendTextParams,
+	MessageSendTextRawResponse,
 } from '../types/Message.types';
 
 /**
@@ -26,6 +28,22 @@ export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
 			const response = await axiosInstance.get(`/v1/${threadId}/messages`, {
 				params: transformedParams,
 			});
+			return applyTransform(response.data, [
+				snakeToCamel(),
+			]);
+		},
+
+		sendTextMessage: async (
+			params: MessageSendTextParams,
+		): Promise<MessageSendTextRawResponse> => {
+			const transformedParams = applyTransform(params, [
+				camelToSnake(),
+			]);
+
+			const response = await axiosInstance.post(
+				'/v1/messages/text',
+				transformedParams,
+			);
 			return applyTransform(response.data, [
 				snakeToCamel(),
 			]);

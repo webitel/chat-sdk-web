@@ -1,8 +1,11 @@
 import type { ServiceConfig } from '../../configs';
+import { type MessageSendTextParams, useMessagesService } from '../../messages';
 import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
 	private readonly _serviceConfig: ServiceConfig;
+	subject?: string;
+	issId?: string;
 
 	constructor(
 		rawContact: ContactModel,
@@ -16,8 +19,24 @@ class Contact implements IContact {
 		this._serviceConfig = serviceConfig;
 	}
 
-	async sendMessage() {
-		throw new Error('Method not implemented.');
+	async sendTextMessage(
+		body: string,
+		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
+	) {
+		if (!this.subject || !this.issId) {
+			throw new Error('Contact subject and issId are required to send message');
+		}
+
+		return useMessagesService(this.serviceConfig).sendTextMessage({
+			...params,
+			body,
+			to: {
+				contact: {
+					sub: this.subject,
+					iss: this.issId,
+				},
+			},
+		});
 	}
 
 	get serviceConfig(): ServiceConfig {

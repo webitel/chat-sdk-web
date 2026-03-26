@@ -5,9 +5,16 @@ import type {
 } from '@webitel/api-services/gen/models';
 
 import type { ServiceConfigurable } from '../../configs';
+import type {
+	MessageSendTextParams,
+	MessageSendTextRawResponse,
+} from '../../messages/types/Message.types';
 
 interface IContact extends ContactModel, ServiceConfigurable {
-	sendMessage: () => {}; // todo
+	sendTextMessage: (
+		body: string,
+		params?: Omit<MessageSendTextParams, 'body' | 'to'>,
+	) => Promise<MessageSendTextRawResponse>;
 }
 
 type ContactSearchResult = Omit<ContactSearchRawResult, 'items'> & {
