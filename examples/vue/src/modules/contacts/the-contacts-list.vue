@@ -99,8 +99,8 @@
     setup
     lang="ts"
 >
+import { type IContact, useContactsService } from '@webitel/chat-web-sdk';
 import { onMounted, ref } from 'vue';
-import { useContactsService, type IContact } from '@webitel/chat-web-sdk';
 
 import { serviceConfig } from '../../configs';
 
@@ -111,27 +111,45 @@ const error = ref<string | null>(null);
 const { fetchContacts } = useContactsService(serviceConfig);
 
 async function refresh() {
-    loading.value = true;
-    error.value = null;
-    try {
-        const res = await fetchContacts();
-        contacts.value = res.items ?? [];
-    } catch (err) {
-        error.value = err instanceof Error ? err.message : String(err);
-    } finally {
-        loading.value = false;
-    }
+	loading.value = true;
+	error.value = null;
+	try {
+		const res = await fetchContacts();
+		contacts.value = res.items ?? [];
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		loading.value = false;
+	}
+}
+
+function openChat(contact: IContact) {
+	// Placeholder for app-specific routing/chat opening behavior.
+	// Keep it as a no-op demo action to avoid runtime errors.
+	// eslint-disable-next-line no-console
+	console.info('openChat', contact.subject ?? contact.username ?? contact.name);
+}
+
+async function sendMessage(contact: IContact) {
+	const body = window.prompt('Message text', 'Hello from contacts demo');
+	if (!body?.trim()) return;
+
+	try {
+		await contact.sendTextMessage(body.trim());
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	}
 }
 
 function formatEpochMs(value?: string) {
-    if (!value) return '—';
-    const n = Number(value);
-    if (!Number.isFinite(n)) return value;
-    return new Date(n).toLocaleString();
+	if (!value) return '—';
+	const n = Number(value);
+	if (!Number.isFinite(n)) return value;
+	return new Date(n).toLocaleString();
 }
 
 onMounted(() => {
-    refresh();
+	refresh();
 });
 </script>
 

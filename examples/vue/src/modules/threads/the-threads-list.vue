@@ -38,6 +38,12 @@
           </div>
         </div>
 
+        <div class="item-actions">
+          <button type="button" class="btn small" @click="sendMessage(t)">
+            Send message
+          </button>
+        </div>
+
         <ThreadMessageHistoryDropdown :thread="t" />
       </li>
     </ul>
@@ -45,8 +51,8 @@
 </template>
 
 <script setup lang="ts">
+import { type IThread, useThreadsService } from '@webitel/chat-web-sdk';
 import { onMounted, ref } from 'vue';
-import { useThreadsService, type IThread } from '@webitel/chat-web-sdk';
 
 import { serviceConfig } from '../../configs';
 import ThreadMessageHistoryDropdown from './thread-message-history-dropdown.vue';
@@ -58,33 +64,38 @@ const error = ref<string | null>(null);
 const { fetchThreads } = useThreadsService(serviceConfig);
 
 async function refresh() {
-  loading.value = true;
-  error.value = null;
-  try {
-    const res = await fetchThreads({
-      createdAt: {
-        from: '0',
-        to: 22,
-      },
-      'dotted.path': 'value',
-    });
-    threads.value = res.threads ?? [];
-  } catch (err) {
-    error.value = err instanceof Error ? err.message : String(err);
-  } finally {
-    loading.value = false;
-  }
+	loading.value = true;
+	error.value = null;
+	try {
+		const res = await fetchThreads();
+		threads.value = res.threads ?? [];
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		loading.value = false;
+	}
 }
 
 function formatEpochMs(value?: string) {
-  if (!value) return '—';
-  const n = Number(value);
-  if (!Number.isFinite(n)) return value;
-  return new Date(n).toLocaleString();
+	if (!value) return '—';
+	const n = Number(value);
+	if (!Number.isFinite(n)) return value;
+	return new Date(n).toLocaleString();
+}
+
+async function sendMessage(thread: IThread) {
+	const body = window.prompt('Message text', 'Hello from threads demo');
+	if (!body?.trim()) return;
+
+	try {
+		await thread.sendTextMessage(body.trim());
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	}
 }
 
 onMounted(() => {
-  void refresh();
+	void refresh();
 });
 </script>
 
@@ -165,6 +176,13 @@ h2 {
   flex-wrap: wrap;
 }
 
+.item-actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+  flex-wrap: wrap;
+}
+
 .title {
   font-size: 15px;
 }
@@ -178,6 +196,11 @@ h2 {
   border: 1px solid #dbeafe;
   color: #1d4ed8;
   font-size: 12px;
+}
+
+.btn.small {
+  padding: 7px 10px;
+  font-size: 13px;
 }
 
 .row {
