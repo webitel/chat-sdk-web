@@ -23,9 +23,6 @@ class Contact implements IContact {
 		body: string,
 		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
 	) {
-		if (!this.subject || !this.issId) {
-			throw new Error('Contact subject and issId are required to send message');
-		}
 
 		return useMessagesService(this.serviceConfig).sendTextMessage({
 			...params,
