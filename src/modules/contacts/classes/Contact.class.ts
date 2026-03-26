@@ -23,7 +23,6 @@ class Contact implements IContact {
 		body: string,
 		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
 	) {
-
 		return useMessagesService(this.serviceConfig).sendTextMessage({
 			...params,
 			body,
