@@ -1,96 +1,62 @@
-import { AckPayload } from './AckPayload';
-import { ConnectedPayload } from './ConnectedPayload';
-import { DisconnectedPayload } from './DisconnectedPayload';
-import { ErrorPayload } from './ErrorPayload';
-import { MessagePayload } from './MessagePayload';
-import { PingPayload } from './PingPayload';
-import { ThreadPayload } from './ThreadPayload';
-
+import {ConnectedPayload} from './ConnectedPayload';
+import {DisconnectedPayload} from './DisconnectedPayload';
+import {WsMessage} from './WsMessage';
+import {WsThread} from './WsThread';
+import {AckPayload} from './AckPayload';
+import {ErrorPayload} from './ErrorPayload';
+import {PingPayload} from './PingPayload';
 class EventPayload {
-	private _connected?: ConnectedPayload;
-	private _disconnected?: DisconnectedPayload;
-	private _message?: MessagePayload;
-	private _threadCreated?: ThreadPayload;
-	private _ack?: AckPayload;
-	private _error?: ErrorPayload;
-	private _ping?: PingPayload;
-	private _additionalProperties?: Map<string, any>;
+  private _connectedEvent?: ConnectedPayload;
+  private _disconnectedEvent?: DisconnectedPayload;
+  private _messageEvent?: WsMessage;
+  private _threadCreatedEvent?: WsThread;
+  private _ackEvent?: AckPayload;
+  private _errorEvent?: ErrorPayload;
+  private _pingEvent?: PingPayload;
+  private _additionalProperties?: Map<string, any>;
 
-	constructor(input: {
-		connected?: ConnectedPayload;
-		disconnected?: DisconnectedPayload;
-		message?: MessagePayload;
-		threadCreated?: ThreadPayload;
-		ack?: AckPayload;
-		error?: ErrorPayload;
-		ping?: PingPayload;
-		additionalProperties?: Map<string, any>;
-	}) {
-		this._connected = input.connected;
-		this._disconnected = input.disconnected;
-		this._message = input.message;
-		this._threadCreated = input.threadCreated;
-		this._ack = input.ack;
-		this._error = input.error;
-		this._ping = input.ping;
-		this._additionalProperties = input.additionalProperties;
-	}
+  constructor(input: {
+    connectedEvent?: ConnectedPayload,
+    disconnectedEvent?: DisconnectedPayload,
+    messageEvent?: WsMessage,
+    threadCreatedEvent?: WsThread,
+    ackEvent?: AckPayload,
+    errorEvent?: ErrorPayload,
+    pingEvent?: PingPayload,
+    additionalProperties?: Map<string, any>,
+  }) {
+    this._connectedEvent = input.connectedEvent;
+    this._disconnectedEvent = input.disconnectedEvent;
+    this._messageEvent = input.messageEvent;
+    this._threadCreatedEvent = input.threadCreatedEvent;
+    this._ackEvent = input.ackEvent;
+    this._errorEvent = input.errorEvent;
+    this._pingEvent = input.pingEvent;
+    this._additionalProperties = input.additionalProperties;
+  }
 
-	get connected(): ConnectedPayload | undefined {
-		return this._connected;
-	}
-	set connected(connected: ConnectedPayload | undefined) {
-		this._connected = connected;
-	}
+  get connectedEvent(): ConnectedPayload | undefined { return this._connectedEvent; }
+  set connectedEvent(connectedEvent: ConnectedPayload | undefined) { this._connectedEvent = connectedEvent; }
 
-	get disconnected(): DisconnectedPayload | undefined {
-		return this._disconnected;
-	}
-	set disconnected(disconnected: DisconnectedPayload | undefined) {
-		this._disconnected = disconnected;
-	}
+  get disconnectedEvent(): DisconnectedPayload | undefined { return this._disconnectedEvent; }
+  set disconnectedEvent(disconnectedEvent: DisconnectedPayload | undefined) { this._disconnectedEvent = disconnectedEvent; }
 
-	get message(): MessagePayload | undefined {
-		return this._message;
-	}
-	set message(message: MessagePayload | undefined) {
-		this._message = message;
-	}
+  get messageEvent(): WsMessage | undefined { return this._messageEvent; }
+  set messageEvent(messageEvent: WsMessage | undefined) { this._messageEvent = messageEvent; }
 
-	get threadCreated(): ThreadPayload | undefined {
-		return this._threadCreated;
-	}
-	set threadCreated(threadCreated: ThreadPayload | undefined) {
-		this._threadCreated = threadCreated;
-	}
+  get threadCreatedEvent(): WsThread | undefined { return this._threadCreatedEvent; }
+  set threadCreatedEvent(threadCreatedEvent: WsThread | undefined) { this._threadCreatedEvent = threadCreatedEvent; }
 
-	get ack(): AckPayload | undefined {
-		return this._ack;
-	}
-	set ack(ack: AckPayload | undefined) {
-		this._ack = ack;
-	}
+  get ackEvent(): AckPayload | undefined { return this._ackEvent; }
+  set ackEvent(ackEvent: AckPayload | undefined) { this._ackEvent = ackEvent; }
 
-	get error(): ErrorPayload | undefined {
-		return this._error;
-	}
-	set error(error: ErrorPayload | undefined) {
-		this._error = error;
-	}
+  get errorEvent(): ErrorPayload | undefined { return this._errorEvent; }
+  set errorEvent(errorEvent: ErrorPayload | undefined) { this._errorEvent = errorEvent; }
 
-	get ping(): PingPayload | undefined {
-		return this._ping;
-	}
-	set ping(ping: PingPayload | undefined) {
-		this._ping = ping;
-	}
+  get pingEvent(): PingPayload | undefined { return this._pingEvent; }
+  set pingEvent(pingEvent: PingPayload | undefined) { this._pingEvent = pingEvent; }
 
-	get additionalProperties(): Map<string, any> | undefined {
-		return this._additionalProperties;
-	}
-	set additionalProperties(additionalProperties: Map<string, any> | undefined) {
-		this._additionalProperties = additionalProperties;
-	}
+  get additionalProperties(): Map<string, any> | undefined { return this._additionalProperties; }
+  set additionalProperties(additionalProperties: Map<string, any> | undefined) { this._additionalProperties = additionalProperties; }
 }
-
 export { EventPayload };
