@@ -42,6 +42,23 @@
           <button type="button" class="btn small" @click="sendMessage(t)">
             Send message
           </button>
+          <label class="file-upload">
+            <span>Send file</span>
+            <input
+              type="file"
+              :disabled="sendingAttachmentByThreadId[t.id]"
+              @change="onFileSelected($event, t)"
+            >
+          </label>
+          <label class="file-upload">
+            <span>Send image</span>
+            <input
+              type="file"
+              accept="image/*"
+              :disabled="sendingAttachmentByThreadId[t.id]"
+              @change="onImageSelected($event, t)"
+            >
+          </label>
         </div>
 
         <ThreadMessageHistoryDropdown :thread="t" />
@@ -60,6 +77,7 @@ import ThreadMessageHistoryDropdown from './thread-message-history-dropdown.vue'
 const threads = ref<IThread[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const sendingAttachmentByThreadId = ref<Record<string, boolean>>({});
 
 const { fetchThreads } = useThreadsService(serviceConfig);
 
@@ -68,7 +86,7 @@ async function refresh() {
 	error.value = null;
 	try {
 		const res = await fetchThreads();
-		threads.value = res.threads ?? [];
+		threads.value = res.items || [];
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	} finally {
@@ -85,13 +103,52 @@ function formatEpochMs(value?: string) {
 
 async function sendMessage(thread: IThread) {
 	const body = window.prompt('Message text', 'Hello from threads demo');
-	if (!body?.trim()) return;
+	if (body === null) return;
+	const text = body.trim();
+	if (!text) return;
 
 	try {
-		await thread.sendTextMessage(body.trim());
+		await thread.sendTextMessage(text);
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	}
+}
+
+async function sendAttachment(
+	thread: IThread,
+	file: File,
+	kind: 'file' | 'image',
+) {
+	const id = thread.id;
+	sendingAttachmentByThreadId.value[id] = true;
+	error.value = null;
+	try {
+		if (kind === 'file') {
+			await thread.sendFileMessage(file);
+		} else {
+			await thread.sendImageMessage(file);
+		}
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		sendingAttachmentByThreadId.value[id] = false;
+	}
+}
+
+async function onFileSelected(e: Event, thread: IThread) {
+	const input = e.target as HTMLInputElement;
+	const files = input.files;
+	input.value = '';
+	if (!files || files.length === 0) return;
+	await sendAttachment(thread, files[0], 'file');
+}
+
+async function onImageSelected(e: Event, thread: IThread) {
+	const input = e.target as HTMLInputElement;
+	const files = input.files;
+	input.value = '';
+	if (!files || files.length === 0) return;
+	await sendAttachment(thread, files[0], 'image');
 }
 
 onMounted(() => {
@@ -201,6 +258,19 @@ h2 {
 .btn.small {
   padding: 7px 10px;
   font-size: 13px;
+}
+
+.file-upload {
+  display: inline-flex;
+  gap: 6px;
+  align-items: center;
+  font-size: 13px;
+  color: #374151;
+}
+
+.file-upload input[type="file"] {
+  max-width: 180px;
+  font-size: 12px;
 }
 
 .row {
