@@ -11,7 +11,7 @@
 		"publish": "npm publish --access public --tag latest",
 		"biome:format:all": "npx biome check --write ./src",
 		"biome:format:staged": "npx biome check --write --staged",
-		"gen:ws": "rm -rf src/gen/ws && npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named --tsModelType interface",
+		"gen:ws": "rm -rf src/gen/ws && npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named --tsModelType class",
 		"prepare": "(husky || true)"
 	},
 	"main": "./dist/index.js",
