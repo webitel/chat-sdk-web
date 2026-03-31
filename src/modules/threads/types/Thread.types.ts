@@ -8,9 +8,23 @@ import type { ServiceConfigurable } from '../../configs';
 import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
+	MessageSendFileParams,
+	MessageSendFileRawResponse,
+	MessageSendImageParams,
+	MessageSendImageRawResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 } from '../../messages/types/Message.types';
+
+type ThreadSendTextMessageParams = Omit<MessageSendTextParams, 'body' | 'to'>;
+type ThreadSendFileMessageParams = Omit<
+	MessageSendFileParams,
+	'file' | 'threadId' | 'to'
+>;
+type ThreadSendImageMessageParams = Omit<
+	MessageSendImageParams,
+	'file' | 'threadId' | 'to'
+>;
 
 interface IThread extends ThreadModel, ServiceConfigurable {
 	id: string;
@@ -21,8 +35,18 @@ interface IThread extends ThreadModel, ServiceConfigurable {
 
 	sendTextMessage: (
 		body: string,
-		params?: Omit<MessageSendTextParams, 'body' | 'to'>,
+		params?: ThreadSendTextMessageParams,
 	) => Promise<MessageSendTextRawResponse>;
+
+	sendFileMessage: (
+		file: File,
+		params?: ThreadSendFileMessageParams,
+	) => Promise<MessageSendFileRawResponse>;
+
+	sendImageMessage: (
+		file: File,
+		params?: ThreadSendImageMessageParams,
+	) => Promise<MessageSendImageRawResponse>;
 }
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'threads'> & {
@@ -35,4 +59,7 @@ export type {
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,
+	ThreadSendFileMessageParams,
+	ThreadSendImageMessageParams,
+	ThreadSendTextMessageParams,
 };

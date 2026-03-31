@@ -1,10 +1,15 @@
 import type { ServiceConfig } from '../../configs';
 import {
 	type MessageHistorySearchParams,
-	type MessageSendTextParams,
 	useMessagesService,
 } from '../../messages';
-import type { IThread, ThreadModel } from '../types/Thread.types';
+import type {
+	IThread,
+	ThreadModel,
+	ThreadSendFileMessageParams,
+	ThreadSendImageMessageParams,
+	ThreadSendTextMessageParams,
+} from '../types/Thread.types';
 
 class Thread implements IThread {
 	private readonly _serviceConfig: ServiceConfig;
@@ -31,11 +36,36 @@ class Thread implements IThread {
 
 	async sendTextMessage(
 		body: string,
-		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
+		params: ThreadSendTextMessageParams = {},
 	) {
 		return useMessagesService(this.serviceConfig).sendTextMessage({
 			...params,
 			body,
+			to: {
+				threadId: this.id,
+			},
+		});
+	}
+
+	async sendFileMessage(file: File, params: ThreadSendFileMessageParams = {}) {
+		return useMessagesService(this.serviceConfig).sendFileMessage({
+			...params,
+			file,
+			threadId: this.id,
+			to: {
+				threadId: this.id,
+			},
+		});
+	}
+
+	async sendImageMessage(
+		file: File,
+		params: ThreadSendImageMessageParams = {},
+	) {
+		return useMessagesService(this.serviceConfig).sendImageMessage({
+			...params,
+			file,
+			threadId: this.id,
 			to: {
 				threadId: this.id,
 			},
