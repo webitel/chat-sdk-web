@@ -1,6 +1,6 @@
 {
 	"name": "@webitel/chat-web-sdk",
-	"version": "0.0.4",
+	"version": "0.0.4-1",
 	"type": "module",
 	"workspaces": [
 		"../../webitel-ui-sdk/packages/api-services"
