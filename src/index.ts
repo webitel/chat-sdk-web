@@ -40,3 +40,12 @@ export {
 	type ThreadSearchResult,
 	useThreadsService, // fetch + instantiate threads (service wrapper)
 } from './modules/threads';
+
+export {
+	defaultChatUiElements,
+	registerChatUiCustomElements,
+	WtChatAvatarElement,
+	type WtChatAvatarProps,
+	WtChatMessageBubbleElement,
+	type WtChatMessageBubbleProps,
+} from './modules/ui';

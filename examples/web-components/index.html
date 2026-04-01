@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>chat-web-sdk web components example</title>
+		<link rel="stylesheet" href="./styles.css" />
+	</head>
+	<body>
+		<main class="page">
+			<h1>Webitel Chat Web Components</h1>
+
+			<section class="card">
+				<h2>Avatar</h2>
+				<div class="row">
+					<wt-chat-avatar name="Jane Doe" size="48"></wt-chat-avatar>
+					<wt-chat-avatar
+						name="John Smith"
+						size="48"
+						src="https://i.pravatar.cc/96?img=12"
+					></wt-chat-avatar>
+				</div>
+			</section>
+
+			<section class="card">
+				<h2>Message Bubble</h2>
+				<wt-chat-message-bubble
+					sender="Support Agent"
+					time="10:42"
+					text="Hello! How can I help you today?"
+				></wt-chat-message-bubble>
+
+				<wt-chat-message-bubble outgoing sender="You" time="10:43">
+					I need help with my account.
+				</wt-chat-message-bubble>
+			</section>
+		</main>
+
+		<script type="module" src="./main.js"></script>
+	</body>
+</html>
