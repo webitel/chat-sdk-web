@@ -15,10 +15,48 @@
           class="msg"
         >
           <div class="msg-meta">
-            <span class="msg-time">{{ formatEpochMs(m.createdAt) }}</span>
+            <span class="msg-time">{{ m.createdAt ? formatEpochMs(m.createdAt) : '—' }}</span>
             <span v-if="m.sender?.username" class="msg-from">{{ m.sender.username }}</span>
           </div>
           <div class="msg-body">{{ m.body || '—' }}</div>
+          <div v-if="m.images && m.images.length" class="msg-attachments">
+            <div class="label">Images</div>
+            <div class="image-grid">
+              <a
+                v-for="(img, imageIdx) in m.images"
+                :key="imageIdx"
+                class="image-link"
+                :href="img.url"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                <img
+                  class="image-preview"
+                  :src="img.url"
+                  :alt="img.fileId"
+                >
+                <span>{{ img.mime }}</span>
+              </a>
+            </div>
+          </div>
+          <div v-if="m.documents && m.documents.length" class="msg-attachments">
+            <div class="label">Files</div>
+            <ul class="file-list">
+              <li
+                v-for="(doc, docIdx) in m.documents"
+                :key="docIdx"
+              >
+                <a
+                  :href="doc.url"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {{ doc.name }}
+                </a>
+                <span class="muted"> ({{ doc.size }} bytes, {{ doc.mime }})</span>
+              </li>
+            </ul>
+          </div>
         </li>
       </ul>
       <div v-else class="state muted">No messages in history.</div>
@@ -27,13 +65,11 @@
 </template>
 
 <script setup lang="ts">
+import type { IMessage, IThread } from '@webitel/chat-web-sdk';
 import { ref } from 'vue';
-import type { IThread, IMessage } from '@webitel/chat-web-sdk';
-
-import { serviceConfig } from '../../configs';
 
 const props = defineProps<{
-  thread: IThread;
+	thread: IThread;
 }>();
 
 const messages = ref<IMessage[]>([]);
@@ -41,35 +77,29 @@ const loading = ref(false);
 const loadError = ref<string | null>(null);
 const hasLoaded = ref(false);
 
-function formatEpochMs(value?: string) {
-  if (!value) return '—';
-  const n = Number(value);
-  if (!Number.isFinite(n)) return value;
-  return new Date(n).toLocaleString();
+function formatEpochMs(value: string) {
+	const n = Number(value);
+	return new Date(n).toLocaleString();
 }
 
 async function loadHistory() {
-  if (!props.thread.id) {
-    loadError.value = 'Thread has no id';
-    return;
-  }
-  loading.value = true;
-  loadError.value = null;
-  try {
-    const result = await props.thread.fetchMessageHistory(serviceConfig);
-    messages.value = result.messages;
-    hasLoaded.value = true;
-  } catch (err) {
-    loadError.value = err instanceof Error ? err.message : String(err);
-  } finally {
-    loading.value = false;
-  }
+	loading.value = true;
+	loadError.value = null;
+	try {
+		const result = await props.thread.fetchMessageHistory();
+		messages.value = result.items;
+		hasLoaded.value = true;
+	} catch (err) {
+		loadError.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		loading.value = false;
+	}
 }
 
 function onToggle(e: Event) {
-  const el = e.target as HTMLDetailsElement;
-  if (!el.open || hasLoaded.value || loading.value) return;
-  void loadHistory();
+	const el = e.target as HTMLDetailsElement;
+	if (!el.open || hasLoaded.value || loading.value) return;
+	void loadHistory();
 }
 </script>
 
@@ -169,5 +199,50 @@ function onToggle(e: Event) {
 .msg-body {
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.msg-attachments {
+  margin-top: 8px;
+}
+
+.label {
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.image-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.image-link {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 4px;
+  max-width: 160px;
+  text-decoration: none;
+  color: #1f2937;
+  font-size: 12px;
+}
+
+.image-preview {
+  width: 100%;
+  max-width: 160px;
+  max-height: 100px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #e5e7eb;
+}
+
+.file-list {
+  margin: 0;
+  padding-left: 16px;
+  font-size: 12px;
+}
+
+.muted {
+  color: #6b7280;
 }
 </style>

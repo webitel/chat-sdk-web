@@ -4,8 +4,8 @@ import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
 	private readonly _serviceConfig: ServiceConfig;
-	subject?: string;
-	issId?: string;
+	sub!: string;
+	iss!: string;
 
 	constructor(
 		rawContact: ContactModel,
@@ -28,8 +28,8 @@ class Contact implements IContact {
 			body,
 			to: {
 				contact: {
-					sub: this.subject,
-					iss: this.issId,
+					sub: this.sub,
+					iss: this.iss,
 				},
 			},
 		});

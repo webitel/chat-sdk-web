@@ -48,7 +48,7 @@ const fetchMessageHistory = async (
 	const rawResponse = await fetchRawMessageHistory(config)(threadId, params);
 	return {
 		...rawResponse,
-		messages: instantiateMessages(rawResponse.messages ?? [], {
+		items: instantiateMessages(rawResponse.items ?? [], {
 			serviceConfig: config,
 		}),
 	};

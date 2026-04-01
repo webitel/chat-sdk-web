@@ -2,8 +2,13 @@ import type {
 	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
 	WebitelImApiGatewayV1HistoryMessage as MessageModel,
+	WebitelImApiGatewayV1SendDocumentResponse as MessageSendFileRawResponse,
+	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
 	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
+	StorageUploadFileResponse as MessageUploadFileRawResponse,
+	WebitelImApiGatewayV1SendDocumentRequest,
+	WebitelImApiGatewayV1SendImageRequest,
 } from '@webitel/api-services/gen/models';
 
 interface IMessage extends MessageModel {
@@ -15,9 +20,27 @@ interface IMessage extends MessageModel {
  */
 type MessageHistorySearchResult = Omit<
 	MessageHistorySearchRawResponse,
-	'messages'
+	'items'
 > & {
-	messages: IMessage[];
+	items: IMessage[];
+};
+
+type MessageSendFileParams = Omit<
+	WebitelImApiGatewayV1SendDocumentRequest,
+	'document'
+> & {
+	document?: NonNullable<WebitelImApiGatewayV1SendDocumentRequest['document']>;
+	file: File;
+	threadId: string;
+};
+
+type MessageSendImageParams = Omit<
+	WebitelImApiGatewayV1SendImageRequest,
+	'image'
+> & {
+	image?: NonNullable<WebitelImApiGatewayV1SendImageRequest['image']>;
+	file: File;
+	threadId: string;
 };
 
 export type {
@@ -26,6 +49,11 @@ export type {
 	MessageHistorySearchRawResponse,
 	MessageHistorySearchResult,
 	MessageModel,
+	MessageSendFileParams,
+	MessageSendFileRawResponse,
+	MessageSendImageParams,
+	MessageSendImageRawResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
+	MessageUploadFileRawResponse,
 };
