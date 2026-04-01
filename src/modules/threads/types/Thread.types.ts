@@ -49,8 +49,8 @@ interface IThread extends ThreadModel, ServiceConfigurable {
 	) => Promise<MessageSendImageRawResponse>;
 }
 
-type ThreadSearchResult = Omit<ThreadSearchRawResult, 'threads'> & {
-	threads: IThread[];
+type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
+	items: IThread[];
 };
 
 export type {

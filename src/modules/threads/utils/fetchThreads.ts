@@ -10,7 +10,7 @@ import type {
 } from '../types/Thread.types';
 
 /**
- * Raw threads from `GET /v1/threads` (`WebitelImApiGatewayV1SearchThreadResponse.threads`).
+ * Raw threads from `GET /v1/threads`
  */
 const fetchRawThreads =
 	(config: ServiceConfig) =>
@@ -45,7 +45,7 @@ const fetchThreads = async (
 	const rawThreadsResponse = await fetchRawThreads(config)(params);
 	return {
 		...rawThreadsResponse,
-		threads: instantiateThreads(rawThreadsResponse.threads ?? [], {
+		items: instantiateThreads(rawThreadsResponse.items ?? [], {
 			serviceConfig: config,
 		}),
 	};

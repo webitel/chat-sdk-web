@@ -13,7 +13,7 @@
 
     <ul v-else class="list">
       <li
-        v-for="(t, idx) in threads"
+        v-for="(t, idx) of threads"
         :key="t.id || idx"
         class="item"
       >
@@ -85,7 +85,9 @@ async function refresh() {
 	loading.value = true;
 	error.value = null;
 	try {
-		const res = await fetchThreads();
+		const res = await fetchThreads({
+      size: 10,
+    });
 		threads.value = res.items || [];
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);

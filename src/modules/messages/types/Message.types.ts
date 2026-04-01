@@ -20,9 +20,9 @@ interface IMessage extends MessageModel {
  */
 type MessageHistorySearchResult = Omit<
 	MessageHistorySearchRawResponse,
-	'messages'
+	'items'
 > & {
-	messages: IMessage[];
+	items: IMessage[];
 };
 
 type MessageSendFileParams = Omit<
