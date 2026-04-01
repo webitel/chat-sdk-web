@@ -7,4 +7,5 @@ export interface WtChatAvatarProps {
 	size?: number | string;
 }
 
-export const WtChatAvatarElement: CustomElementConstructor = defineCustomElement(WtChatAvatar);
+export const WtChatAvatarElement: CustomElementConstructor =
+	defineCustomElement(WtChatAvatar);

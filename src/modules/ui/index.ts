@@ -1,10 +1,9 @@
 import { WtChatAvatarElement } from './components/WtChatAvatar.ce';
 import { WtChatMessageBubbleElement } from './components/WtChatMessageBubble.ce';
 
-export { WtChatAvatarElement, WtChatMessageBubbleElement };
-
 export type { WtChatAvatarProps } from './components/WtChatAvatar.ce';
 export type { WtChatMessageBubbleProps } from './components/WtChatMessageBubble.ce';
+export { WtChatAvatarElement, WtChatMessageBubbleElement };
 
 export const defaultChatUiElements: Record<string, CustomElementConstructor> = {
 	'wt-chat-avatar': WtChatAvatarElement,

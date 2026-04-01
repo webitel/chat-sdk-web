@@ -25,14 +25,15 @@ const props = withDefaults(defineProps<WtChatAvatarProps>(), {
 	size: 40,
 });
 
-const initials = computed(() =>
-	props.name
-		.trim()
-		.split(/\s+/)
-		.map((chunk) => chunk[0] ?? '')
-		.slice(0, 2)
-		.join('')
-		.toUpperCase() || '?',
+const initials = computed(
+	() =>
+		props.name
+			.trim()
+			.split(/\s+/)
+			.map((chunk) => chunk[0] ?? '')
+			.slice(0, 2)
+			.join('')
+			.toUpperCase() || '?',
 );
 
 const avatarStyle = computed(() => {
