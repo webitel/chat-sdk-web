@@ -11,6 +11,7 @@
 		"publish": "npm publish --access public --tag latest",
 		"biome:format:all": "npx biome check --write ./src",
 		"biome:format:staged": "npx biome check --write --staged",
+		"lint:fix-staged": "npx lint-staged",
 		"gen:ws": "rm -rf src/gen/ws && npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named --tsModelType class",
 		"prepare": "(husky || true)"
 	},
@@ -24,6 +25,7 @@
 		"@biomejs/biome": "2.4.8",
 		"@webitel/api-services": "^0.1.13",
 		"husky": "^9.1.7",
+		"lint-staged": "^16.x",
 		"typescript": "~5.9.3",
 		"vite": "^8.x",
 		"vite-plugin-dts": "^4.5.4",

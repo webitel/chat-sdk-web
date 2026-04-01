@@ -1,1 +1,1 @@
-(npm run biome:format:staged || true)
+npx lint-staged
