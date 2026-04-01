@@ -86,8 +86,8 @@ async function refresh() {
 	error.value = null;
 	try {
 		const res = await fetchThreads({
-      size: 10,
-    });
+			size: 10,
+		});
 		threads.value = res.items || [];
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);

@@ -30,7 +30,7 @@ class Contact implements IContact {
 				contact: {
 					sub: this.sub,
 					iss: this.iss,
-				 },
+				},
 			},
 		});
 	}
