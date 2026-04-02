@@ -67,11 +67,12 @@
             Send message
           </button>
           <label class="file-upload">
-            <span>Send file</span>
+            <span>Send document(s)</span>
             <input
               type="file"
+              multiple
               :disabled="sendingAttachmentByThreadId[t.id]"
-              @change="onFileSelected($event, t)"
+              @change="onDocumentSelected($event, t)"
             >
           </label>
           <label class="file-upload">
@@ -137,20 +138,12 @@ async function sendMessage(thread: IThread) {
 	}
 }
 
-async function sendAttachment(
-	thread: IThread,
-	file: File,
-	kind: 'file' | 'image',
-) {
+async function sendDocuments(thread: IThread, files: File[]) {
 	const id = thread.id;
 	sendingAttachmentByThreadId.value[id] = true;
 	error.value = null;
 	try {
-		if (kind === 'file') {
-			await thread.sendFileMessage(file);
-		} else {
-			await thread.sendImageMessage(file);
-		}
+		await thread.sendDocumentMessage(files);
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	} finally {
@@ -158,17 +151,45 @@ async function sendAttachment(
 	}
 }
 
-async function onFileSelected(e: Event, thread: IThread) {
+async function sendImage(thread: IThread, file: File) {
+	const id = thread.id;
+	sendingAttachmentByThreadId.value[id] = true;
+	error.value = null;
+	try {
+		await thread.sendImageMessage(file);
+	} catch (err) {
+		error.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		sendingAttachmentByThreadId.value[id] = false;
+	}
+}
+
+async function onDocumentSelected(e: Event, thread: IThread) {
 	const input = e.target as HTMLInputElement;
-	const files = input.files;
-	await sendAttachment(thread, files[0], 'file');
+	const list = input.files;
+	if (!list?.length) {
+		input.value = '';
+		return;
+	}
+	await sendDocuments(thread, [
+		...list,
+	]);
 	input.value = '';
 }
 
 async function onImageSelected(e: Event, thread: IThread) {
 	const input = e.target as HTMLInputElement;
 	const files = input.files;
-	await sendAttachment(thread, files[0], 'image');
+	if (!files?.length) {
+		input.value = '';
+		return;
+	}
+	const imageFile = files[0];
+	if (!imageFile) {
+		input.value = '';
+		return;
+	}
+	await sendImage(thread, imageFile);
 	input.value = '';
 }
 </script>

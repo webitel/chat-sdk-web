@@ -7,8 +7,8 @@ import type { ServiceConfig } from '../../configs';
 import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchRawResponse,
-	MessageSendFileParams,
-	MessageSendFileRawResponse,
+	MessageSendDocumentParams,
+	MessageSendDocumentRawResponse,
 	MessageSendImageParams,
 	MessageSendImageRawResponse,
 	MessageSendTextParams,
@@ -80,9 +80,9 @@ export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
 			]) as MessageStorageUploadedFile;
 		},
 
-		sendFileMessage: async (
-			params: Omit<MessageSendFileParams, 'file' | 'threadId'>,
-		): Promise<MessageSendFileRawResponse> => {
+		sendDocumentMessage: async (
+			params: Omit<MessageSendDocumentParams, 'files' | 'threadId'>,
+		): Promise<MessageSendDocumentRawResponse> => {
 			const transformedParams = applyTransform(params, [
 				camelToSnake(),
 			]);

@@ -6,7 +6,7 @@ import {
 import type {
 	IThread,
 	ThreadModel,
-	ThreadSendFileMessageParams,
+	ThreadSendDocumentMessageParams,
 	ThreadSendImageMessageParams,
 	ThreadSendTextMessageParams,
 } from '../types/Thread.types';
@@ -47,10 +47,18 @@ class Thread implements IThread {
 		});
 	}
 
-	async sendFileMessage(file: File, params: ThreadSendFileMessageParams = {}) {
-		return useMessagesService(this.serviceConfig).sendFileMessage({
+	async sendDocumentMessage(
+		files: File | readonly File[],
+		params: ThreadSendDocumentMessageParams = {},
+	) {
+		const list = Array.isArray(files)
+			? files
+			: [
+					files,
+				];
+		return useMessagesService(this.serviceConfig).sendDocumentMessage({
 			...params,
-			file,
+			files: list,
 			threadId: this.id,
 			to: {
 				threadId: this.id,

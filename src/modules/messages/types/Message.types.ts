@@ -2,7 +2,7 @@ import type {
 	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
 	WebitelImApiGatewayV1HistoryMessage as MessageModel,
-	WebitelImApiGatewayV1SendDocumentResponse as MessageSendFileRawResponse,
+	WebitelImApiGatewayV1SendDocumentResponse as MessageSendDocumentRawResponse,
 	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
 	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
@@ -36,12 +36,12 @@ type MessageHistorySearchResult = Omit<
 	items: IMessage[];
 };
 
-type MessageSendFileParams = Omit<
+type MessageSendDocumentParams = Omit<
 	WebitelImApiGatewayV1SendDocumentRequest,
 	'document'
 > & {
 	document?: NonNullable<WebitelImApiGatewayV1SendDocumentRequest['document']>;
-	file: File;
+	files: readonly File[];
 	threadId: string;
 };
 
@@ -60,8 +60,8 @@ export type {
 	MessageHistorySearchRawResponse,
 	MessageHistorySearchResult,
 	MessageModel,
-	MessageSendFileParams,
-	MessageSendFileRawResponse,
+	MessageSendDocumentParams,
+	MessageSendDocumentRawResponse,
 	MessageSendImageParams,
 	MessageSendImageRawResponse,
 	MessageSendTextParams,
