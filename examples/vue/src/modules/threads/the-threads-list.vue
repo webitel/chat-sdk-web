@@ -76,10 +76,11 @@
             >
           </label>
           <label class="file-upload">
-            <span>Send image</span>
+            <span>Send image(s)</span>
             <input
               type="file"
               accept="image/*"
+              multiple
               :disabled="sendingAttachmentByThreadId[t.id]"
               @change="onImageSelected($event, t)"
             >
@@ -151,12 +152,12 @@ async function sendDocuments(thread: IThread, files: File[]) {
 	}
 }
 
-async function sendImage(thread: IThread, file: File) {
+async function sendImages(thread: IThread, files: File[]) {
 	const id = thread.id;
 	sendingAttachmentByThreadId.value[id] = true;
 	error.value = null;
 	try {
-		await thread.sendImageMessage(file);
+		await thread.sendImageMessage(files);
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	} finally {
@@ -179,17 +180,14 @@ async function onDocumentSelected(e: Event, thread: IThread) {
 
 async function onImageSelected(e: Event, thread: IThread) {
 	const input = e.target as HTMLInputElement;
-	const files = input.files;
-	if (!files?.length) {
+	const list = input.files;
+	if (!list?.length) {
 		input.value = '';
 		return;
 	}
-	const imageFile = files[0];
-	if (!imageFile) {
-		input.value = '';
-		return;
-	}
-	await sendImage(thread, imageFile);
+	await sendImages(thread, [
+		...list,
+	]);
 	input.value = '';
 }
 </script>

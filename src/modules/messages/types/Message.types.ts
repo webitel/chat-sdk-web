@@ -50,7 +50,7 @@ type MessageSendImageParams = Omit<
 	'image'
 > & {
 	image?: NonNullable<WebitelImApiGatewayV1SendImageRequest['image']>;
-	file: File;
+	files: readonly File[];
 	threadId: string;
 };
 

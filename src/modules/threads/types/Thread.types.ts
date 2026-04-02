@@ -23,7 +23,7 @@ type ThreadSendDocumentMessageParams = Omit<
 >;
 type ThreadSendImageMessageParams = Omit<
 	MessageSendImageParams,
-	'file' | 'threadId' | 'to'
+	'files' | 'threadId' | 'to'
 >;
 
 interface IThread extends ThreadModel, ServiceConfigurable {
@@ -44,7 +44,7 @@ interface IThread extends ThreadModel, ServiceConfigurable {
 	) => Promise<MessageSendDocumentRawResponse>;
 
 	sendImageMessage: (
-		file: File,
+		files: File | readonly File[],
 		params?: ThreadSendImageMessageParams,
 	) => Promise<MessageSendImageRawResponse>;
 }

@@ -67,12 +67,17 @@ class Thread implements IThread {
 	}
 
 	async sendImageMessage(
-		file: File,
+		files: File | readonly File[],
 		params: ThreadSendImageMessageParams = {},
 	) {
+		const list = Array.isArray(files)
+			? files
+			: [
+					files,
+				];
 		return useMessagesService(this.serviceConfig).sendImageMessage({
 			...params,
-			file,
+			files: list,
 			threadId: this.id,
 			to: {
 				threadId: this.id,

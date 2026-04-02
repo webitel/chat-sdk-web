@@ -9,21 +9,31 @@ const sendImageMessage = async (
 	config: ServiceConfig,
 	params: MessageSendImageParams,
 ): Promise<MessageSendImageRawResponse> => {
-	const { file, threadId, image, ...restParams } = params;
+	const { files, threadId, image, ...restParams } = params;
 
-	const uploaded = await getMessagesService(config).uploadFile(threadId, file);
+	if (files.length === 0) {
+		throw new Error('At least one file is required to send an image message');
+	}
 
-	return getMessagesService(config).sendImageMessage({
+	const messages = getMessagesService(config);
+	const uploaded = await Promise.all(
+		files.map((file) => messages.uploadFile(threadId, file)),
+	);
+
+	const uploadedImages = uploaded.map((u) => ({
+		id: `${u.id}`,
+		// link: u.shared,
+		mimeType: u.mime,
+		name: u.name,
+	}));
+
+	return messages.sendImageMessage({
 		...restParams,
 		image: {
 			...image,
 			images: [
-				{
-					id: `${uploaded.id}`,
-					// link: uploaded.shared,
-					mimeType: uploaded.mime,
-					name: uploaded.name,
-				},
+				...(image?.images ?? []),
+				...uploadedImages,
 			],
 		},
 	});

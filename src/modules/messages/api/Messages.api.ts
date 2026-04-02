@@ -97,7 +97,7 @@ export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
 		},
 
 		sendImageMessage: async (
-			params: Omit<MessageSendImageParams, 'file' | 'threadId'>,
+			params: Omit<MessageSendImageParams, 'files' | 'threadId'>,
 		): Promise<MessageSendImageRawResponse> => {
 			const transformedParams = applyTransform(params, [
 				camelToSnake(),
