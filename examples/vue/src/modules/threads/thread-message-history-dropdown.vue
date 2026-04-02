@@ -86,7 +86,12 @@ async function loadHistory() {
 	loading.value = true;
 	loadError.value = null;
 	try {
-		const result = await props.thread.fetchMessageHistory();
+		const result = await props.thread.fetchMessageHistory({
+			fields: [
+				'documents',
+				'images',
+			],
+		});
 		messages.value = result.items;
 		hasLoaded.value = true;
 	} catch (err) {

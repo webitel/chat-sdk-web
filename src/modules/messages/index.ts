@@ -11,4 +11,5 @@ export type {
 	MessageSendImageRawResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
+	MessageStorageUploadedFile,
 } from './types/Message.types';

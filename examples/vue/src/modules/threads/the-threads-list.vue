@@ -2,16 +2,33 @@
   <div class="threads">
     <div class="header">
       <h2>Threads</h2>
-      <button type="button" class="btn" :disabled="loading" @click="refresh">
+      <button
+        type="button"
+        class="btn"
+        :disabled="loading"
+        @click="refresh"
+      >
         {{ loading ? 'Loading...' : 'Refresh' }}
       </button>
     </div>
 
-    <div v-if="error" class="error">{{ error }}</div>
-    <div v-else-if="loading" class="empty">Loading threads...</div>
-    <div v-else-if="threads.length === 0" class="empty">No threads found.</div>
+    <div
+      v-if="error"
+      class="error"
+    >{{ error }}</div>
+    <div
+      v-else-if="loading"
+      class="empty"
+    >Loading threads...</div>
+    <div
+      v-else-if="threads.length === 0"
+      class="empty"
+    >No threads found.</div>
 
-    <ul v-else class="list">
+    <ul
+      v-else
+      class="list"
+    >
       <li
         v-for="(t, idx) of threads"
         :key="t.id || idx"
@@ -19,7 +36,10 @@
       >
         <div class="item-top">
           <strong class="title">{{ t.subject || 'Untitled thread' }}</strong>
-          <span v-if="t.kind" class="badge">{{ t.kind }}</span>
+          <span
+            v-if="t.kind"
+            class="badge"
+          >{{ t.kind }}</span>
         </div>
 
         <div class="row">
@@ -30,16 +50,20 @@
         <div class="timestamps">
           <div class="row">
             <span class="k">Created</span>
-            <span class="v">{{ formatEpochMs(t.createdAt) }}</span>
+            <span class="v">{{ new Date(+t.createdAt).toLocaleString() }}</span>
           </div>
           <div class="row">
             <span class="k">Updated</span>
-            <span class="v">{{ formatEpochMs(t.updatedAt) }}</span>
+            <span class="v">{{ new Date(+t.updatedAt).toLocaleString() }}</span>
           </div>
         </div>
 
         <div class="item-actions">
-          <button type="button" class="btn small" @click="sendMessage(t)">
+          <button
+            type="button"
+            class="btn small"
+            @click="sendMessage(t)"
+          >
             Send message
           </button>
           <label class="file-upload">
@@ -67,9 +91,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script
+  setup
+  lang="ts"
+>
 import { type IThread, useThreadsService } from '@webitel/chat-web-sdk';
-import { onMounted, ref } from 'vue';
+import { ref } from 'vue';
 
 import { serviceConfig } from '../../configs';
 import ThreadMessageHistoryDropdown from './thread-message-history-dropdown.vue';
@@ -96,16 +123,10 @@ async function refresh() {
 	}
 }
 
-function formatEpochMs(value?: string) {
-	if (!value) return '—';
-	const n = Number(value);
-	if (!Number.isFinite(n)) return value;
-	return new Date(n).toLocaleString();
-}
+refresh();
 
 async function sendMessage(thread: IThread) {
 	const body = window.prompt('Message text', 'Hello from threads demo');
-	if (body === null) return;
 	const text = body.trim();
 	if (!text) return;
 
@@ -140,22 +161,16 @@ async function sendAttachment(
 async function onFileSelected(e: Event, thread: IThread) {
 	const input = e.target as HTMLInputElement;
 	const files = input.files;
-	input.value = '';
-	if (!files || files.length === 0) return;
 	await sendAttachment(thread, files[0], 'file');
+	input.value = '';
 }
 
 async function onImageSelected(e: Event, thread: IThread) {
 	const input = e.target as HTMLInputElement;
 	const files = input.files;
-	input.value = '';
-	if (!files || files.length === 0) return;
 	await sendAttachment(thread, files[0], 'image');
+	input.value = '';
 }
-
-onMounted(() => {
-	void refresh();
-});
 </script>
 
 <style scoped>

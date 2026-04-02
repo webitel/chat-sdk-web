@@ -11,20 +11,7 @@ const sendFileMessage = async (
 ): Promise<MessageSendFileRawResponse> => {
 	const { file, threadId, document, ...restParams } = params;
 
-	const uploadResponse = await getMessagesService(config).uploadFile(
-		threadId,
-		file,
-	);
-	const fileId =
-		(
-			uploadResponse as {
-				id?: string;
-			}
-		).id ?? uploadResponse.fileId;
-
-	if (!fileId) {
-		throw new Error('Storage upload did not return file id');
-	}
+	const uploaded = await getMessagesService(config).uploadFile(threadId, file);
 
 	return getMessagesService(config).sendFileMessage({
 		...restParams,
@@ -32,11 +19,11 @@ const sendFileMessage = async (
 			...document,
 			documents: [
 				{
-					fileName: file.name,
-					id: fileId,
-					mimeType: file.type,
-					sizeBytes: String(file.size),
-					url: uploadResponse.fileUrl,
+					fileName: uploaded.name,
+					id: `${uploaded.id}`,
+					mimeType: uploaded.mime,
+					sizeBytes: `${uploaded.size}`,
+					// url: uploaded.shared,
 				},
 			],
 		},

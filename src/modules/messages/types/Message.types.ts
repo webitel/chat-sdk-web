@@ -6,10 +6,21 @@ import type {
 	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
 	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
-	StorageUploadFileResponse as MessageUploadFileRawResponse,
 	WebitelImApiGatewayV1SendDocumentRequest,
 	WebitelImApiGatewayV1SendImageRequest,
 } from '@webitel/api-services/gen/models';
+
+/**
+ * One element from storage upload `POST …/upload` body: `[{ id, name, size, mime, shared }]`.
+ */
+interface MessageStorageUploadedFile {
+	id: number;
+	name: string;
+	size: number;
+	mime: string;
+	/** Signed download path / URL */
+	shared: string;
+}
 
 interface IMessage extends MessageModel {
 	markRead: () => Promise<void>;
@@ -55,5 +66,5 @@ export type {
 	MessageSendImageRawResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
-	MessageUploadFileRawResponse,
+	MessageStorageUploadedFile,
 };

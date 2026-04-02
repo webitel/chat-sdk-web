@@ -13,7 +13,7 @@ import type {
 	MessageSendImageRawResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
-	MessageUploadFileRawResponse,
+	MessageStorageUploadedFile,
 } from '../types/Message.types';
 
 /**
@@ -57,17 +57,27 @@ export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
 		uploadFile: async (
 			threadId: string,
 			file: File,
-		): Promise<MessageUploadFileRawResponse> => {
+		): Promise<MessageStorageUploadedFile> => {
 			const formData = new FormData();
 			formData.append('file', file);
 
 			const response = await axiosInstance.post(
-				`/api/storage/file/${threadId}/upload`,
+				`/storage/file/${threadId}/upload`,
 				formData,
 			);
-			return applyTransform(response.data, [
+			const list = response.data;
+			const items = Array.isArray(list)
+				? list
+				: [
+						list,
+					];
+			const first = items[0];
+			if (!first) {
+				throw new Error('Storage upload returned empty response');
+			}
+			return applyTransform(first, [
 				snakeToCamel(),
-			]);
+			]) as MessageStorageUploadedFile;
 		},
 
 		sendFileMessage: async (
@@ -78,7 +88,7 @@ export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
 			]);
 
 			const response = await axiosInstance.post(
-				'/v1/messages/file',
+				'/v1/messages/document',
 				transformedParams,
 			);
 			return applyTransform(response.data, [
