@@ -2,13 +2,14 @@ export {
 	type AccountModel, // current auth / user payload from GET /v1/auth/token
 	useAccountService,
 } from './modules/account';
+
 export {
 	// service configs
 	createServiceConfig,
-	// socket configs
-	createSocketConfig,
 	type ServiceConfig,
 	type ServiceConfigInputSchema,
+	// socket configs
+	createSocketConfig,
 	type SocketConfig,
 	type SocketConfigInputSchema,
 } from './modules/configs';
@@ -41,11 +42,13 @@ export {
 	useThreadsService, // fetch + instantiate threads (service wrapper)
 } from './modules/threads';
 
-export {
-	defaultChatUiElements,
-	registerChatUiCustomElements,
-	WtChatAvatarElement,
-	type WtChatAvatarProps,
-	WtChatMessageBubbleElement,
-	type WtChatMessageBubbleProps,
-} from './modules/ui';
+// custom-elements:
+
+// export {
+// 	defaultChatUiElements,
+// 	registerChatUiCustomElements,
+// 	WtChatAvatarElement,
+// 	type WtChatAvatarProps,
+// 	WtChatMessageBubbleElement,
+// 	type WtChatMessageBubbleProps,
+// } from './modules/ui';

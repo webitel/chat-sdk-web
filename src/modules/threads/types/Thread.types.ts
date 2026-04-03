@@ -19,11 +19,11 @@ import type {
 type ThreadSendTextMessageParams = Omit<MessageSendTextParams, 'body' | 'to'>;
 type ThreadSendDocumentMessageParams = Omit<
 	MessageSendDocumentParams,
-	'files' | 'threadId' | 'to'
+	'files' | 'to'
 >;
 type ThreadSendImageMessageParams = Omit<
 	MessageSendImageParams,
-	'files' | 'threadId' | 'to'
+	'files' | 'to'
 >;
 
 interface IThread extends ThreadModel, ServiceConfigurable {

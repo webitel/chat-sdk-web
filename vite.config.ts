@@ -26,4 +26,9 @@ export default defineConfig({
 			fileName: 'index',
 		},
 	},
+	resolve: {
+		alias: {
+			lodash: 'lodash-es',
+		},
+	},
 });

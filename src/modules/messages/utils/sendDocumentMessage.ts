@@ -1,3 +1,5 @@
+import castArray from 'lodash/castArray';
+
 import type { ServiceConfig } from '../../configs';
 import { getMessagesService } from '../api/Messages.api';
 import type {
@@ -9,33 +11,27 @@ const sendDocumentMessage = async (
 	config: ServiceConfig,
 	params: MessageSendDocumentParams,
 ): Promise<MessageSendDocumentRawResponse> => {
-	const { files, threadId, document, ...restParams } = params;
+	const filesArr = castArray(params.files);
+	const threadId = params.to.threadId!;
 
-	if (files.length === 0) {
+	if (filesArr.length === 0) {
 		throw new Error('At least one file is required to send a document message');
 	}
 
-	const messages = getMessagesService(config);
-	const uploaded = await Promise.all(
-		files.map((file) => messages.uploadFile(threadId, file)),
-	);
+	const messagesService = getMessagesService(config);
+	const uploadedFiles = await messagesService.uploadFiles(threadId, filesArr);
 
-	const uploadedDocs = uploaded.map((u) => ({
-		fileName: u.name,
-		id: `${u.id}`,
-		mimeType: u.mime,
-		sizeBytes: `${u.size}`,
-		// url: u.shared,
+	const uploadedDocuments = uploadedFiles.map((file) => ({
+		fileName: file.name,
+		id: `${file.id}`,
+		mimeType: file.mime,
+		sizeBytes: `${file.size}`,
 	}));
 
-	return messages.sendDocumentMessage({
-		...restParams,
+	return messagesService.sendDocumentMessage({
+		...params,
 		document: {
-			...document,
-			documents: [
-				...(document?.documents ?? []),
-				...uploadedDocs,
-			],
+			documents: uploadedDocuments,
 		},
 	});
 };

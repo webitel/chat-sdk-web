@@ -1,3 +1,5 @@
+import castArray from 'lodash/castArray';
+
 import type { ServiceConfig } from '../../configs';
 import { getMessagesService } from '../api/Messages.api';
 import type {
@@ -9,32 +11,30 @@ const sendImageMessage = async (
 	config: ServiceConfig,
 	params: MessageSendImageParams,
 ): Promise<MessageSendImageRawResponse> => {
-	const { files, threadId, image, ...restParams } = params;
+	const filesArr = castArray(params.files);
+	const { threadId } = params.to;
 
-	if (files.length === 0) {
+	if (!threadId) {
+		throw new Error('threadId is required to send an image message');
+	}
+
+	if (filesArr.length === 0) {
 		throw new Error('At least one file is required to send an image message');
 	}
 
-	const messages = getMessagesService(config);
-	const uploaded = await Promise.all(
-		files.map((file) => messages.uploadFile(threadId, file)),
-	);
+	const messagesService = getMessagesService(config);
+	const uploadedFiles = await messagesService.uploadFiles(threadId, filesArr);
 
-	const uploadedImages = uploaded.map((u) => ({
-		id: `${u.id}`,
-		// link: u.shared,
-		mimeType: u.mime,
-		name: u.name,
+	const uploadedImages = uploadedFiles.map((file) => ({
+		id: `${file.id}`,
+		mimeType: file.mime,
+		name: file.name,
 	}));
 
-	return messages.sendImageMessage({
-		...restParams,
+	return messagesService.sendImageMessage({
+		...params,
 		image: {
-			...image,
-			images: [
-				...(image?.images ?? []),
-				...uploadedImages,
-			],
+			images: uploadedImages,
 		},
 	});
 };

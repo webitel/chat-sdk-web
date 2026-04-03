@@ -1,3 +1,5 @@
+import castArray from 'lodash/castArray';
+
 import type { ServiceConfig } from '../../configs';
 import {
 	type MessageHistorySearchParams,
@@ -51,15 +53,9 @@ class Thread implements IThread {
 		files: File | readonly File[],
 		params: ThreadSendDocumentMessageParams = {},
 	) {
-		const list = Array.isArray(files)
-			? files
-			: [
-					files,
-				];
 		return useMessagesService(this.serviceConfig).sendDocumentMessage({
 			...params,
-			files: list,
-			threadId: this.id,
+			files: castArray(files),
 			to: {
 				threadId: this.id,
 			},
@@ -70,15 +66,9 @@ class Thread implements IThread {
 		files: File | readonly File[],
 		params: ThreadSendImageMessageParams = {},
 	) {
-		const list = Array.isArray(files)
-			? files
-			: [
-					files,
-				];
 		return useMessagesService(this.serviceConfig).sendImageMessage({
 			...params,
-			files: list,
-			threadId: this.id,
+			files: castArray(files),
 			to: {
 				threadId: this.id,
 			},

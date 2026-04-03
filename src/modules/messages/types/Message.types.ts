@@ -6,12 +6,12 @@ import type {
 	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
 	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
-	WebitelImApiGatewayV1SendDocumentRequest,
-	WebitelImApiGatewayV1SendImageRequest,
+	WebitelImApiGatewayV1SendDocumentRequest as MessageSendDocumentRequest,
+	WebitelImApiGatewayV1SendImageRequest as MessageSendImageRequest,
 } from '@webitel/api-services/gen/models';
 
 /**
- * One element from storage upload `POST …/upload` body: `[{ id, name, size, mime, shared }]`.
+ * One element from storage upload `POST …/upload` response
  */
 interface MessageStorageUploadedFile {
 	id: number;
@@ -22,6 +22,10 @@ interface MessageStorageUploadedFile {
 	shared: string;
 }
 
+/**
+ * Represents chat-web-sdk message interface: `MessageModel` + Message methods
+ * @extends MessageModel
+ */
 interface IMessage extends MessageModel {
 	markRead: () => Promise<void>;
 }
@@ -36,23 +40,23 @@ type MessageHistorySearchResult = Omit<
 	items: IMessage[];
 };
 
-type MessageSendDocumentParams = Omit<
-	WebitelImApiGatewayV1SendDocumentRequest,
-	'document'
-> & {
-	document?: NonNullable<WebitelImApiGatewayV1SendDocumentRequest['document']>;
-	files: readonly File[];
-	threadId: string;
-};
+/**
+ * `sendDocument` message wrapper method params.
+ * Wraps both uploading files to storage and sending document message.
+ */
+type MessageSendDocumentParams = Omit<MessageSendDocumentRequest, 'document'> &
+	Pick<Required<MessageSendDocumentRequest>, 'to'> & {
+		files: File | readonly File[];
+	};
 
-type MessageSendImageParams = Omit<
-	WebitelImApiGatewayV1SendImageRequest,
-	'image'
-> & {
-	image?: NonNullable<WebitelImApiGatewayV1SendImageRequest['image']>;
-	files: readonly File[];
-	threadId: string;
-};
+/**
+ * `sendImage` message wrapper method params.
+ * Wraps both uploading files to storage and sending image message.
+ */
+type MessageSendImageParams = Omit<MessageSendImageRequest, 'image'> &
+	Pick<Required<MessageSendImageRequest>, 'to'> & {
+		files: File | readonly File[];
+	};
 
 export type {
 	IMessage,
@@ -67,4 +71,6 @@ export type {
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 	MessageStorageUploadedFile,
+	MessageSendDocumentRequest,
+	MessageSendImageRequest,
 };
