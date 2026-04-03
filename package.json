@@ -7,7 +7,7 @@
 	],
 	"scripts": {
 		"dev": "vite",
-		"build": "vue-tsc --noEmit && vite build",
+		"build": "npm run test && vue-tsc --noEmit && vite build",
 		"publish": "npm publish --access public --tag latest",
 		"biome:format:all": "npx biome check --write ./src",
 		"biome:format:staged": "npx biome check --write --staged",
