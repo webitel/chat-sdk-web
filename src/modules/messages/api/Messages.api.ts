@@ -7,10 +7,10 @@ import type { ServiceConfig } from '../../configs';
 import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchRawResponse,
-	MessageSendDocumentRequest,
 	MessageSendDocumentRawResponse,
-	MessageSendImageRequest,
+	MessageSendDocumentRequest,
 	MessageSendImageRawResponse,
+	MessageSendImageRequest,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 	MessageStorageUploadedFile,

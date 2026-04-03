@@ -3,11 +3,11 @@ import type {
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
 	WebitelImApiGatewayV1HistoryMessage as MessageModel,
 	WebitelImApiGatewayV1SendDocumentResponse as MessageSendDocumentRawResponse,
+	WebitelImApiGatewayV1SendDocumentRequest as MessageSendDocumentRequest,
 	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
+	WebitelImApiGatewayV1SendImageRequest as MessageSendImageRequest,
 	WebitelImApiGatewayV1SendTextRequest as MessageSendTextParams,
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
-	WebitelImApiGatewayV1SendDocumentRequest as MessageSendDocumentRequest,
-	WebitelImApiGatewayV1SendImageRequest as MessageSendImageRequest,
 } from '@webitel/api-services/gen/models';
 
 /**
@@ -66,11 +66,11 @@ export type {
 	MessageModel,
 	MessageSendDocumentParams,
 	MessageSendDocumentRawResponse,
+	MessageSendDocumentRequest,
 	MessageSendImageParams,
 	MessageSendImageRawResponse,
+	MessageSendImageRequest,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 	MessageStorageUploadedFile,
-	MessageSendDocumentRequest,
-	MessageSendImageRequest,
 };

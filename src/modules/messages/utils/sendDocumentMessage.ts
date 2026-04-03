@@ -12,7 +12,11 @@ const sendDocumentMessage = async (
 	params: MessageSendDocumentParams,
 ): Promise<MessageSendDocumentRawResponse> => {
 	const filesArr = castArray(params.files);
-	const threadId = params.to.threadId!;
+	const { threadId } = params.to;
+
+	if (!threadId) {
+		throw new Error('threadId is required to send a document message');
+	}
 
 	if (filesArr.length === 0) {
 		throw new Error('At least one file is required to send a document message');

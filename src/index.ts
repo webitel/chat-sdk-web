@@ -6,10 +6,10 @@ export {
 export {
 	// service configs
 	createServiceConfig,
-	type ServiceConfig,
-	type ServiceConfigInputSchema,
 	// socket configs
 	createSocketConfig,
+	type ServiceConfig,
+	type ServiceConfigInputSchema,
 	type SocketConfig,
 	type SocketConfigInputSchema,
 } from './modules/configs';
