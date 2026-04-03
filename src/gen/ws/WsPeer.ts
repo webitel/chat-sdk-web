@@ -23,15 +23,24 @@ class WsPeer {
     this._additionalProperties = input.additionalProperties;
   }
 
+  /**
+   * Subject identifier (p.Sub)
+   */
   get sub(): string | undefined { return this._sub; }
   set sub(sub: string | undefined) { this._sub = sub; }
 
+  /**
+   * Issuer (p.Issuer)
+   */
   get iss(): string | undefined { return this._iss; }
   set iss(iss: string | undefined) { this._iss = iss; }
 
   get reservedName(): string | undefined { return this._reservedName; }
   set reservedName(reservedName: string | undefined) { this._reservedName = reservedName; }
 
+  /**
+   * Normalized type (e.g. user, bot, agent)
+   */
   get reservedType(): string | undefined { return this._reservedType; }
   set reservedType(reservedType: string | undefined) { this._reservedType = reservedType; }
 
