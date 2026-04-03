@@ -10,6 +10,8 @@ import type {
 	WebitelImApiGatewayV1SendTextResponse as MessageSendTextRawResponse,
 } from '@webitel/api-services/gen/models';
 
+import type { ServiceConfigurable } from '../../configs';
+
 /**
  * One element from storage upload `POST …/upload` response
  */
@@ -26,7 +28,7 @@ interface MessageStorageUploadedFile {
  * Represents chat-web-sdk message interface: `MessageModel` + Message methods
  * @extends MessageModel
  */
-interface IMessage extends MessageModel {
+interface IMessage extends MessageModel, ServiceConfigurable {
 	markRead: () => Promise<void>;
 }
 

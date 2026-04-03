@@ -1,0 +1,15 @@
+import { defineConfig } from 'vitest/config';
+
+export default defineConfig({
+	resolve: {
+		alias: {
+			lodash: 'lodash-es',
+		},
+	},
+	test: {
+		environment: 'node',
+		include: [
+			'src/**/__tests__/**/*.test.ts',
+		],
+	},
+});

@@ -13,7 +13,9 @@
 		"biome:format:staged": "npx biome check --write --staged",
 		"lint:fix-staged": "npx lint-staged",
 		"gen:ws": "rm -rf src/gen/ws && npx asyncapi generate models typescript https://raw.githubusercontent.com/webitel/im-delivery-service/refs/heads/main/api/asyncapi/asyncapi.yaml -o src/gen/ws --tsIncludeComments --tsExportType named --tsModelType class",
-		"prepare": "(husky || true)"
+		"prepare": "(husky || true)",
+		"test": "vitest run",
+		"test:watch": "vitest"
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
@@ -30,6 +32,7 @@
 		"typescript": "~5.9.3",
 		"vite": "^8.x",
 		"vite-plugin-dts": "^4.5.4",
+		"vitest": "^3.2.4",
 		"vue-tsc": "^3.1.1"
 	},
 	"dependencies": {
