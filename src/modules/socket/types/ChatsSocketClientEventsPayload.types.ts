@@ -1,10 +1,11 @@
+import type { IMessage } from '../../messages/types/Message.types';
+import type { IThread } from '../../threads/types/Thread.types';
 import type { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
-import type { SocketMessageModel } from './models/SocketMessageModel.types';
-import type { SocketThreadModel } from './models/SocketThreadModel.types';
 
+/** Emitted payloads: message/thread socket events are upgraded to SDK entities. */
 export type ChatsSocketClientEventPayloadMap = {
-	[ChatsSocketMessage.ThreadMessage]: SocketMessageModel;
-	[ChatsSocketMessage.ThreadCreated]: SocketThreadModel;
+	[ChatsSocketMessage.ThreadMessage]: IMessage;
+	[ChatsSocketMessage.ThreadCreated]: IThread;
 	[ChatsSocketMessage.Connected]: {
 		ok: boolean;
 		connectionId: string;

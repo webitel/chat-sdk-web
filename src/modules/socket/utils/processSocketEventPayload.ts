@@ -2,6 +2,8 @@ import { EventPayload } from '../../../gen/ws/EventPayload';
 import { type ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import type { ServiceConfig } from '../../configs';
+import type { MessageModel } from '../../messages/types/Message.types';
+import type { ThreadModel } from '../../threads/types/Thread.types';
 import { instantiateSocketEventEntities } from './instantiateSocketEventEntities';
 
 function getSocketMessageNameFromEvent(
@@ -31,14 +33,27 @@ function getSocketMessageNameFromEvent(
 	throw new Error(`Unknown event: ${JSON.stringify(sourceEvent)}`);
 }
 
-const getSocketEventPayload = (
+function extractRawPayload(
 	sourceEvent: EventPayload,
 	eventName: ChatsSocketMessage,
-): ChatsSocketClientEventPayloadMap[ChatsSocketMessage] => {
-	return sourceEvent[
-		eventName
-	] as ChatsSocketClientEventPayloadMap[ChatsSocketMessage];
-};
+): unknown {
+	switch (eventName) {
+		case ChatsSocketMessage.Connected:
+			return sourceEvent.connectedEvent;
+		case ChatsSocketMessage.Disconnected:
+			return sourceEvent.disconnectedEvent;
+		case ChatsSocketMessage.Error:
+			return sourceEvent.errorEvent;
+		case ChatsSocketMessage.ThreadMessage:
+			return sourceEvent.messageEvent;
+		case ChatsSocketMessage.ThreadCreated:
+			return sourceEvent.threadCreatedEvent;
+		case ChatsSocketMessage.Ack:
+			return sourceEvent.ackEvent;
+		case ChatsSocketMessage.Ping:
+			return sourceEvent.pingEvent;
+	}
+}
 
 export function processSocketEventPayload(
 	sourceEvent: EventPayload,
@@ -52,11 +67,11 @@ export function processSocketEventPayload(
 	eventPayload: ChatsSocketClientEventPayloadMap[ChatsSocketMessage];
 } {
 	const eventName = getSocketMessageNameFromEvent(sourceEvent);
-	const eventPayload = getSocketEventPayload(sourceEvent, eventName);
-	const processedPayload = processEventPayload<ChatsSocketMessage[eventName]>(
+	const rawPayload = extractRawPayload(sourceEvent, eventName);
+	const eventPayload = processEventPayload(
 		{
 			name: eventName,
-			payload: eventPayload,
+			payload: rawPayload,
 		},
 		{
 			serviceConfig,
@@ -64,46 +79,40 @@ export function processSocketEventPayload(
 	);
 	return {
 		eventName,
-		eventPayload: processedPayload,
+		eventPayload,
 	};
 }
 
-function processEventPayload<EventName extends keyof typeof ChatsSocketMessage>(
+function processEventPayload(
 	{
 		name,
 		payload,
 	}: {
-		name: EventName;
-		payload: ChatsSocketClientEventPayloadMap[(typeof ChatsSocketMessage)[EventName]];
+		name: ChatsSocketMessage;
+		payload: unknown;
 	},
 	{
 		serviceConfig,
 	}: {
 		serviceConfig: ServiceConfig;
 	},
-) {
-	if (ChatsSocketMessage.ThreadMessage === name) {
-		return instantiateSocketEventEntities<
-			typeof ChatsSocketMessage.ThreadMessage
-		>(
+): ChatsSocketClientEventPayloadMap[ChatsSocketMessage] {
+	if (name === ChatsSocketMessage.ThreadMessage) {
+		return instantiateSocketEventEntities(
 			{
 				name,
-				payload:
-					payload as ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.ThreadMessage],
+				payload: payload as MessageModel,
 			},
 			{
 				serviceConfig,
 			},
 		);
 	}
-	if (ChatsSocketMessage.ThreadCreated === name) {
-		return instantiateSocketEventEntities<
-			typeof ChatsSocketMessage.ThreadCreated
-		>(
+	if (name === ChatsSocketMessage.ThreadCreated) {
+		return instantiateSocketEventEntities(
 			{
 				name,
-				payload:
-					payload as ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.ThreadCreated],
+				payload: payload as ThreadModel,
 			},
 			{
 				serviceConfig,
@@ -111,5 +120,5 @@ function processEventPayload<EventName extends keyof typeof ChatsSocketMessage>(
 		);
 	}
 
-	return payload;
+	return payload as ChatsSocketClientEventPayloadMap[ChatsSocketMessage];
 }
