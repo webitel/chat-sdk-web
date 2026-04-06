@@ -1,6 +1,6 @@
 {
 	"name": "@webitel/chat-web-sdk",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"type": "module",
 	"workspaces": [
 		"../../webitel-ui-sdk/packages/api-services"
@@ -8,6 +8,7 @@
 	"scripts": {
 		"dev": "vite",
 		"build": "npm run test && vue-tsc --noEmit && vite build",
+		"build:watch": "vite build --watch",
 		"publish": "npm publish --access public --tag latest",
 		"biome:format:all": "npx biome check --write ./src",
 		"biome:format:staged": "npx biome check --write --staged",

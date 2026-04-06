@@ -1,11 +1,15 @@
 import mitt from 'mitt';
+import {
+	applyTransform,
+	snakeToCamel,
+} from '@webitel/api-services/api/transformers';
 
 import { EventPayload } from '../../../gen/ws/EventPayload';
 import type { SocketConfig } from '../../configs';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
-import { getSocketMessageNameFromEvent } from '../utils/getSocketMessageNameFromEvent';
+import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
@@ -58,12 +62,18 @@ class ChatsSocketClient implements IChatsSocketClient {
 			this.ws = null;
 		};
 		this.ws.onmessage = (event) => {
-			const data = JSON.parse(event.data) as EventPayload;
+			const eventData = applyTransform(JSON.parse(event.data), [
+				snakeToCamel(),
+			]) as {
+				payload: EventPayload;
+			};
 
-			const eventName = getSocketMessageNameFromEvent(data);
-			const processEvent = (event: unknown) => event; // todo: implement event processing
+			const { eventName, eventPayload } = processSocketEventPayload(
+				eventData.payload,
+			);
+			// const processEvent = (event: unknown) => event; // todo: implement event processing
 
-			this.emitter.emit(eventName, processEvent(data));
+			this.emitter.emit(eventName, eventPayload);
 		};
 	}
 
