@@ -8,5 +8,5 @@ export interface SocketThreadModel
 	extends Pick<ThreadModel, 'id' | 'createdAt' | 'subject' | 'kind'> {
 	domainId: unknown; // no need
 	type: ThreadModel['kind']; // todo: remove "kind", use "type"
-	// members: SocketContactModel[];
+	members: SocketContactModel[];
 }
