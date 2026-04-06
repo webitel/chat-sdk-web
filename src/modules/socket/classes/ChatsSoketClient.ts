@@ -5,7 +5,7 @@ import {
 } from '@webitel/api-services/api/transformers';
 
 import { EventPayload } from '../../../gen/ws/EventPayload';
-import type { SocketConfig } from '../../configs';
+import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
@@ -29,12 +29,24 @@ export type IChatsSocketClientEventSubscriber = (
 class ChatsSocketClient implements IChatsSocketClient {
 	private emitter = mitt<ChatsSocketClientEventPayloadMap>();
 
+	private socketConfig: SocketConfig;
+	private serviceConfig: ServiceConfig;
+
 	private ws: WebSocket | null = null;
 
 	private wsConnectionState: SocketClientConnectionStatus =
 		SocketClientConnectionStatus.Idle;
 
-	constructor(private config: SocketConfig) {}
+	constructor({
+		socketConfig,
+		serviceConfig,
+	}: {
+		socketConfig: SocketConfig;
+		serviceConfig: ServiceConfig;
+	}) {
+		this.socketConfig = socketConfig;
+		this.serviceConfig = serviceConfig;
+	}
 
 	get connectionState(): SocketClientConnectionStatus {
 		return this.wsConnectionState;
@@ -42,12 +54,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	async connect(): Promise<void> {
 		this.wsConnectionState = SocketClientConnectionStatus.Connecting;
-		const ws = new WebSocket(new URL(this.config.baseUrl).toString());
+		const ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
 		this.ws = ws;
 		setTimeout(() => {
 			ws.send(
 				JSON.stringify({
-					'x-webitel-access': this.config.accessToken,
+					'x-webitel-access': this.socketConfig.accessToken,
 				}),
 			);
 		}, 1000);
@@ -70,6 +82,9 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 			const { eventName, eventPayload } = processSocketEventPayload(
 				eventData.payload,
+				{
+					serviceConfig: this.serviceConfig,
+				},
 			);
 			// const processEvent = (event: unknown) => event; // todo: implement event processing
 
@@ -95,8 +110,15 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 }
 
-export function createChatsSocketClient(
-	config: SocketConfig,
-): ChatsSocketClient {
-	return new ChatsSocketClient(config);
+export function createChatsSocketClient({
+	socketConfig,
+	serviceConfig,
+}: {
+	socketConfig: SocketConfig;
+	serviceConfig: ServiceConfig;
+}): ChatsSocketClient {
+	return new ChatsSocketClient({
+		socketConfig,
+		serviceConfig,
+	});
 }
