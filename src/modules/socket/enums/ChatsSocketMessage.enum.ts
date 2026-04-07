@@ -7,6 +7,8 @@ export const ChatsSocketMessage = {
 	Error: 'errorEvent',
 	ThreadMessage: 'messageEvent',
 	ThreadCreated: 'threadCreatedEvent',
+	Ack: 'ackEvent',
+	Ping: 'pingEvent',
 } as const;
 
 export type ChatsSocketMessage =

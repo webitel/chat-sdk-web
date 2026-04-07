@@ -33,6 +33,9 @@ export {
 export {
 	ChatsSocketMessage, // enum for socket message types
 	createChatsSocketClient,
+	// type SocketMessageModel,
+	// type SocketThreadModel,
+	// type SocketContactModel,
 } from './modules/socket';
 export {
 	type IThread, // Thread class

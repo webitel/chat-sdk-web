@@ -1,9 +1,31 @@
+import type { IMessage } from '../../messages/types/Message.types';
+import type { IThread } from '../../threads/types/Thread.types';
 import type { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 
+/** Emitted payloads: message/thread socket events are upgraded to SDK entities. */
 export type ChatsSocketClientEventPayloadMap = {
-	[ChatsSocketMessage.ThreadMessage]: unknown; // todo
-	[ChatsSocketMessage.ThreadCreated]: unknown; // todo
-	[ChatsSocketMessage.Connected]: unknown; // todo
-	[ChatsSocketMessage.Disconnected]: unknown; // todo
-	[ChatsSocketMessage.Error]: unknown; // todo
+	[ChatsSocketMessage.ThreadMessage]: IMessage;
+	[ChatsSocketMessage.ThreadCreated]: IThread;
+	[ChatsSocketMessage.Connected]: {
+		ok: boolean;
+		connectionId: string;
+		serverVersion: string;
+	};
+	[ChatsSocketMessage.Disconnected]: {
+		code: number;
+		reason: string;
+		status: string;
+	};
+	[ChatsSocketMessage.Error]: {
+		code: number;
+		message: string;
+		details: Record<string, unknown>;
+	};
+	[ChatsSocketMessage.Ack]: {
+		id: string;
+		status: string;
+	};
+	[ChatsSocketMessage.Ping]: {
+		timestamp: number;
+	};
 };

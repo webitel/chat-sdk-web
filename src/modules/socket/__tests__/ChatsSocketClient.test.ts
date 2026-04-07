@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createSocketConfig } from '../../configs';
+import { createServiceConfig, createSocketConfig } from '../../configs';
 import { createChatsSocketClient } from '../classes/ChatsSoketClient';
 import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
 
@@ -40,9 +40,17 @@ const socketInput = () =>
 		accessToken: 'token-123',
 	});
 
+const clientConfigs = () => ({
+	socketConfig: socketInput(),
+	serviceConfig: createServiceConfig({
+		baseUrl: 'https://api.example.test',
+		accessToken: 'svc-token',
+	}),
+});
+
 describe('createChatsSocketClient', () => {
 	it('moves to Connected when the socket opens and sends the access payload after the delay', async () => {
-		const client = createChatsSocketClient(socketInput());
+		const client = createChatsSocketClient(clientConfigs());
 		const finished = client.connect();
 
 		const ws = MockWebSocket.instances[0];
@@ -64,7 +72,7 @@ describe('createChatsSocketClient', () => {
 	});
 
 	it('sets Error when the socket errors', async () => {
-		const client = createChatsSocketClient(socketInput());
+		const client = createChatsSocketClient(clientConfigs());
 		await client.connect();
 		const ws = MockWebSocket.instances[0];
 		ws.onerror?.();
@@ -72,7 +80,7 @@ describe('createChatsSocketClient', () => {
 	});
 
 	it('disconnect closes the socket and clears state', async () => {
-		const client = createChatsSocketClient(socketInput());
+		const client = createChatsSocketClient(clientConfigs());
 		await client.connect();
 		const ws = MockWebSocket.instances[0];
 		ws.onopen?.();
@@ -84,7 +92,7 @@ describe('createChatsSocketClient', () => {
 	});
 
 	it('reconnect is not implemented', async () => {
-		const client = createChatsSocketClient(socketInput());
+		const client = createChatsSocketClient(clientConfigs());
 		await expect(client.reconnect()).rejects.toThrow('Not implemented');
 	});
 });
