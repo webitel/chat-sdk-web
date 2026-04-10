@@ -4,7 +4,7 @@ This is a small, clean Vue 3 app that demonstrates how to connect to Webitel IM 
 
 - `createSocketConfig(...)`
 - `createChatsSocketClient(...)`
-- event subscription via `client.on(...)`
+- event subscription via `client.onMessage(...)`
 
 ## Prerequisites
 

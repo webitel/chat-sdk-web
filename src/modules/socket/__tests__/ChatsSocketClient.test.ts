@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig, createSocketConfig } from '../../configs';
 import { createChatsSocketClient } from '../classes/ChatsSoketClient';
-import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
+import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 
 class MockWebSocket {
 	static instances: MockWebSocket[] = [];
@@ -48,6 +48,19 @@ const clientConfigs = () => ({
 	}),
 });
 
+/** Minimal wire payload so `connect()` resolves after `connectedEvent` from the server. */
+function connectedEventWireJson() {
+	return JSON.stringify({
+		payload: {
+			connected_event: {
+				ok: true,
+				connection_id: 'test-conn',
+				server_version: '1.0.0',
+			},
+		},
+	});
+}
+
 describe('createChatsSocketClient', () => {
 	it('moves to Connected when the socket opens and sends the access payload after the delay', async () => {
 		const client = createChatsSocketClient(clientConfigs());
@@ -55,44 +68,82 @@ describe('createChatsSocketClient', () => {
 
 		const ws = MockWebSocket.instances[0];
 		expect(ws).toBeDefined();
-		expect(client.connectionState).toBe(
-			SocketClientConnectionStatus.Connecting,
-		);
+		expect(client.connectionState).toBe(ChatsSocketConnectionStatus.Connecting);
 
 		ws.onopen?.();
-		await finished;
-		expect(client.connectionState).toBe(SocketClientConnectionStatus.Connected);
-
-		await vi.advanceTimersByTimeAsync(1000);
+		expect(client.connectionState).toBe(ChatsSocketConnectionStatus.Connected);
 		expect(ws.send).toHaveBeenCalledWith(
 			JSON.stringify({
 				'x-webitel-access': 'token-123',
 			}),
 		);
+
+		ws.onmessage?.({
+			data: connectedEventWireJson(),
+		});
+		await finished;
 	});
 
 	it('sets Error when the socket errors', async () => {
 		const client = createChatsSocketClient(clientConfigs());
-		await client.connect();
+		const finished = client.connect();
 		const ws = MockWebSocket.instances[0];
 		ws.onerror?.();
-		expect(client.connectionState).toBe(SocketClientConnectionStatus.Error);
+		await expect(finished).rejects.toThrow('failed to connect to socket');
+		expect(client.connectionState).toBe(ChatsSocketConnectionStatus.Error);
 	});
 
 	it('disconnect closes the socket and clears state', async () => {
 		const client = createChatsSocketClient(clientConfigs());
-		await client.connect();
+		const finished = client.connect();
 		const ws = MockWebSocket.instances[0];
 		ws.onopen?.();
+		ws.onmessage?.({
+			data: connectedEventWireJson(),
+		});
+		await finished;
 		await client.disconnect();
 		expect(ws.close).toHaveBeenCalled();
 		expect(client.connectionState).toBe(
-			SocketClientConnectionStatus.Disconnected,
+			ChatsSocketConnectionStatus.Disconnected,
 		);
 	});
 
 	it('reconnect is not implemented', async () => {
 		const client = createChatsSocketClient(clientConfigs());
 		await expect(client.reconnect()).rejects.toThrow('Not implemented');
+	});
+
+	it('notifies onState subscribers when connection state changes', () => {
+		const transitions: Array<{
+			state: ChatsSocketConnectionStatus;
+			previous: ChatsSocketConnectionStatus;
+		}> = [];
+		const client = createChatsSocketClient(clientConfigs());
+		client.onState(ChatsSocketConnectionStatus.Connecting, ({ previous }) => {
+			transitions.push({
+				state: ChatsSocketConnectionStatus.Connecting,
+				previous,
+			});
+		});
+		client.onState(ChatsSocketConnectionStatus.Connected, ({ previous }) => {
+			transitions.push({
+				state: ChatsSocketConnectionStatus.Connected,
+				previous,
+			});
+		});
+
+		void client.connect();
+		expect(transitions[0]).toEqual({
+			state: ChatsSocketConnectionStatus.Connecting,
+			previous: ChatsSocketConnectionStatus.Idle,
+		});
+
+		const ws = MockWebSocket.instances[0];
+		ws.onopen?.();
+		expect(transitions[1]).toEqual({
+			state: ChatsSocketConnectionStatus.Connected,
+			previous: ChatsSocketConnectionStatus.Connecting,
+		});
 	});
 });

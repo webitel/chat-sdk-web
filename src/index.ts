@@ -33,6 +33,7 @@ export {
 export {
 	ChatsSocketMessage, // enum for socket message types
 	createChatsSocketClient,
+	ChatsSocketConnectionStatus,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
 	// type SocketContactModel,

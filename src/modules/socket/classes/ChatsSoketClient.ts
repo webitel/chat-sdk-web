@@ -7,17 +7,25 @@ import {
 import { EventPayload } from '../../../gen/ws/EventPayload';
 import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
-import { SocketClientConnectionStatus } from '../enums/SocketClientConnectionStatus.enum';
+import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
+import type {
+	ChatsSocketConnectionStatePayloadMap,
+	IChatsSocketClientStateSubscriber,
+} from '../types/ChatsSocketConnectionState.types';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
 	disconnect: () => void;
 	reconnect: () => Promise<void>; // todo
-	on: (
+	onMessage: (
 		event: ChatsSocketMessage,
 		callback: IChatsSocketClientEventSubscriber,
+	) => void;
+	onState: (
+		state: ChatsSocketConnectionStatus,
+		callback: IChatsSocketClientStateSubscriber,
 	) => void;
 }
 
@@ -28,14 +36,15 @@ export type IChatsSocketClientEventSubscriber = (
 
 class ChatsSocketClient implements IChatsSocketClient {
 	private emitter = mitt<ChatsSocketClientEventPayloadMap>();
+	private stateEmitter = mitt<ChatsSocketConnectionStatePayloadMap>();
 
 	private socketConfig: SocketConfig;
 	private serviceConfig: ServiceConfig;
 
 	private ws: WebSocket | null = null;
 
-	private wsConnectionState: SocketClientConnectionStatus =
-		SocketClientConnectionStatus.Idle;
+	private wsConnectionState: ChatsSocketConnectionStatus =
+		ChatsSocketConnectionStatus.Idle;
 
 	constructor({
 		socketConfig,
@@ -48,18 +57,29 @@ class ChatsSocketClient implements IChatsSocketClient {
 		this.serviceConfig = serviceConfig;
 	}
 
-	get connectionState(): SocketClientConnectionStatus {
+	get connectionState(): ChatsSocketConnectionStatus {
 		return this.wsConnectionState;
+	}
+
+	private setConnectionState(next: ChatsSocketConnectionStatus): void {
+		const previous = this.wsConnectionState;
+		if (previous === next) {
+			return;
+		}
+		this.wsConnectionState = next;
+		this.stateEmitter.emit(next, {
+			previous,
+		});
 	}
 
 	async connect(): Promise<void> {
 		return new Promise((resolve, reject) => {
-			this.wsConnectionState = SocketClientConnectionStatus.Connecting;
+			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 
 			this.ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
 
 			this.ws.onopen = () => {
-				this.wsConnectionState = SocketClientConnectionStatus.Connected;
+				this.setConnectionState(ChatsSocketConnectionStatus.Connected);
 				this.ws!.send(
 					JSON.stringify({
 						'x-webitel-access': this.socketConfig.accessToken,
@@ -67,11 +87,11 @@ class ChatsSocketClient implements IChatsSocketClient {
 				);
 			};
 			this.ws.onerror = () => {
-				this.wsConnectionState = SocketClientConnectionStatus.Error;
+				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 				reject(new Error('failed to connect to socket'));
 			};
 			this.ws.onclose = () => {
-				this.wsConnectionState = SocketClientConnectionStatus.Disconnected;
+				this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 				this.ws = null;
 				reject(new Error('socket disconnected'));
 			};
@@ -104,15 +124,22 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	async disconnect(): Promise<void> {
 		this.ws?.close();
-		this.wsConnectionState = SocketClientConnectionStatus.Disconnected;
+		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 		this.ws = null;
 	}
 
-	on(
+	onMessage(
 		event: ChatsSocketMessage,
 		callback: IChatsSocketClientEventSubscriber,
 	): void {
 		this.emitter.on(event, callback);
+	}
+
+	onState(
+		state: ChatsSocketConnectionStatus,
+		callback: IChatsSocketClientStateSubscriber,
+	): void {
+		this.stateEmitter.on(state, callback);
 	}
 }
 

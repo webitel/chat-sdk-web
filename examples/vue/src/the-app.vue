@@ -173,26 +173,26 @@ function addLog(event: LogItem['event'], payload: unknown) {
 function attachEventHandlers(
 	nextClient: ReturnType<typeof createChatsSocketClient>,
 ) {
-	nextClient.on(ChatsSocketMessage.Connected, (data: unknown) => {
+	nextClient.onMessage(ChatsSocketMessage.Connected, (data: unknown) => {
 		status.value = 'connected';
 		addLog(ChatsSocketMessage.Connected, data);
 	});
 
-	nextClient.on(ChatsSocketMessage.Disconnected, (data: unknown) => {
+	nextClient.onMessage(ChatsSocketMessage.Disconnected, (data: unknown) => {
 		status.value = 'disconnected';
 		addLog(ChatsSocketMessage.Disconnected, data);
 	});
 
-	nextClient.on(ChatsSocketMessage.Error, (data: unknown) => {
+	nextClient.onMessage(ChatsSocketMessage.Error, (data: unknown) => {
 		status.value = 'error';
 		addLog(ChatsSocketMessage.Error, data);
 	});
 
-	nextClient.on(ChatsSocketMessage.ThreadCreated, (data: unknown) => {
+	nextClient.onMessage(ChatsSocketMessage.ThreadCreated, (data: unknown) => {
 		addLog(ChatsSocketMessage.ThreadCreated, data);
 	});
 
-	nextClient.on(ChatsSocketMessage.ThreadMessage, (data: unknown) => {
+	nextClient.onMessage(ChatsSocketMessage.ThreadMessage, (data: unknown) => {
 		addLog(ChatsSocketMessage.ThreadMessage, data);
 	});
 }
