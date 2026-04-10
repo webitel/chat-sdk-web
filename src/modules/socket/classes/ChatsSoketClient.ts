@@ -46,6 +46,13 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
 
+	private browserOfflineListening = false;
+
+	private readonly onBrowserOffline = (): void => {
+		// Do not gate on `readyState === OPEN`: mocks and edge cases may omit it; closing is safe.
+		this.ws?.close();
+	};
+
 	constructor({
 		socketConfig,
 		serviceConfig,
@@ -59,6 +66,26 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	get connectionState(): ChatsSocketConnectionStatus {
 		return this.wsConnectionState;
+	}
+
+	private bindBrowserOfflineListener(): void {
+		if (
+			!this.socketConfig.closeOnBrowserOffline ||
+			typeof window === 'undefined' ||
+			this.browserOfflineListening
+		) {
+			return;
+		}
+		window.addEventListener('offline', this.onBrowserOffline);
+		this.browserOfflineListening = true;
+	}
+
+	private unbindBrowserOfflineListener(): void {
+		if (!this.browserOfflineListening || typeof window === 'undefined') {
+			return;
+		}
+		window.removeEventListener('offline', this.onBrowserOffline);
+		this.browserOfflineListening = false;
 	}
 
 	private setConnectionState(next: ChatsSocketConnectionStatus): void {
@@ -77,6 +104,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 
 			this.ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
+			this.bindBrowserOfflineListener();
 
 			this.ws.onopen = () => {
 				this.setConnectionState(ChatsSocketConnectionStatus.Connected);
@@ -87,10 +115,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 				);
 			};
 			this.ws.onerror = () => {
+				this.unbindBrowserOfflineListener();
 				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 				reject(new Error('failed to connect to socket'));
 			};
 			this.ws.onclose = () => {
+				this.unbindBrowserOfflineListener();
 				this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 				this.ws = null;
 				reject(new Error('socket disconnected'));
@@ -123,6 +153,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async disconnect(): Promise<void> {
+		this.unbindBrowserOfflineListener();
 		this.ws?.close();
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 		this.ws = null;
