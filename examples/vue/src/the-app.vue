@@ -51,14 +51,49 @@
         </button>
       </div>
 
-      <div class="status">
-        <span
-          class="status-dot"
-          :data-status="status"
-        />
-        <span>
-          Status: <strong>{{ statusLabel }}</strong>
-        </span>
+      <div class="status-stack">
+        <div class="status">
+          <span
+            class="status-dot"
+            :data-status="status"
+          />
+          <span>
+            App status (backend events): <strong>{{ statusLabel }}</strong>
+          </span>
+        </div>
+
+        <div class="status status-sdk">
+          <span
+            class="status-dot"
+            :data-socket-state="socketState"
+          />
+          <span>
+            SDK <code>connectionState</code>:
+            <strong>{{ socketStateLabel }}</strong>
+          </span>
+        </div>
+
+        <div
+          v-if="socketStateTransitions.length > 0"
+          class="socket-transitions"
+        >
+          <div class="socket-transitions-title">
+            Recent SDK state transitions
+          </div>
+          <ul class="socket-transitions-list">
+            <li
+              v-for="row in socketTransitionsView"
+              :key="row.id"
+            >
+              <span class="socket-transitions-time">{{ row.time }}</span>
+              <span class="socket-transitions-arrow">
+                <code>{{ row.previous }}</code>
+                →
+                <code>{{ row.state }}</code>
+              </span>
+            </li>
+          </ul>
+        </div>
       </div>
     </section>
 
@@ -110,9 +145,10 @@
 import { computed, onBeforeUnmount, ref } from 'vue';
 import { serviceConfig, socketConfig } from './configs';
 import {
+	ChatsSocketConnectionStatus,
 	ChatsSocketMessage,
 	createChatsSocketClient,
-} from '../../../src/modules/socket';
+} from '@webitel/chat-web-sdk';
 import TheAccountInfo from './modules/account/the-account-info.vue';
 import TheContactsList from './modules/contacts/the-contacts-list.vue';
 import TheThreadsList from './modules/threads/the-threads-list.vue';
@@ -139,6 +175,20 @@ const accessToken = ref<string>(defaultAccessToken);
 
 const status = ref<ConnectionStatus>('idle');
 const logs = ref<LogItem[]>([]);
+
+/** Tracks the SDK transport state (`connectionState` / `onState`), not backend message events. */
+const socketState = ref<ChatsSocketConnectionStatus>(
+	ChatsSocketConnectionStatus.Idle,
+);
+
+type SocketStateTransitionRow = {
+	id: string;
+	at: number;
+	state: ChatsSocketConnectionStatus;
+	previous: ChatsSocketConnectionStatus;
+};
+
+const socketStateTransitions = ref<SocketStateTransitionRow[]>([]);
 
 let client: ReturnType<typeof createChatsSocketClient> | null = null;
 
@@ -170,6 +220,27 @@ function addLog(event: LogItem['event'], payload: unknown) {
 	];
 }
 
+function attachSocketStateHandlers(
+	nextClient: ReturnType<typeof createChatsSocketClient>,
+) {
+	(
+		Object.values(ChatsSocketConnectionStatus) as ChatsSocketConnectionStatus[]
+	).forEach((state) => {
+		nextClient.onState(state, ({ previous }) => {
+			socketState.value = state;
+			socketStateTransitions.value = [
+				...socketStateTransitions.value.slice(-24),
+				{
+					id: newId(),
+					at: Date.now(),
+					state,
+					previous,
+				},
+			];
+		});
+	});
+}
+
 function attachEventHandlers(
 	nextClient: ReturnType<typeof createChatsSocketClient>,
 ) {
@@ -196,6 +267,25 @@ function attachEventHandlers(
 		addLog(ChatsSocketMessage.ThreadMessage, data);
 	});
 }
+
+const socketStateLabel = computed(() => {
+	const s = socketState.value;
+	return s.charAt(0).toUpperCase() + s.slice(1);
+});
+
+const socketTransitionsView = computed(() =>
+	[
+		...socketStateTransitions.value,
+	]
+		.slice(-8)
+		.reverse()
+		.map((row) => ({
+			id: row.id,
+			time: new Date(row.at).toLocaleTimeString(),
+			previous: row.previous,
+			state: row.state,
+		})),
+);
 
 const statusLabel = computed(() => {
 	switch (status.value) {
@@ -227,6 +317,7 @@ async function connect() {
 		serviceConfig,
 	});
 
+	attachSocketStateHandlers(client);
 	attachEventHandlers(client);
 	status.value = 'connecting';
 
@@ -254,6 +345,7 @@ async function disconnect() {
 
 function clearLogs() {
 	logs.value = [];
+	socketStateTransitions.value = [];
 }
 
 onBeforeUnmount(() => {
@@ -341,13 +433,26 @@ button:disabled {
   cursor: not-allowed;
 }
 
-.status {
+.status-stack {
   margin-top: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.status {
   display: flex;
   align-items: center;
   gap: 10px;
   color: #222;
   font-size: 14px;
+}
+
+.status-sdk code {
+  font-size: 12px;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 6px;
 }
 
 .status-dot {
@@ -372,6 +477,73 @@ button:disabled {
 
 .status-dot[data-status='disconnected'] {
   background: #94a3b8;
+}
+
+.status-dot[data-socket-state='idle'] {
+  background: #9ca3af;
+}
+
+.status-dot[data-socket-state='connecting'] {
+  background: #f59e0b;
+}
+
+.status-dot[data-socket-state='connected'] {
+  background: #0bbf5b;
+}
+
+.status-dot[data-socket-state='disconnected'] {
+  background: #94a3b8;
+}
+
+.status-dot[data-socket-state='error'] {
+  background: #ef4444;
+}
+
+.socket-transitions {
+  margin-top: 4px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  font-size: 12px;
+}
+
+.socket-transitions-title {
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 8px;
+}
+
+.socket-transitions-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.socket-transitions-list li {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+  padding: 4px 0;
+  border-top: 1px solid #e5e7eb;
+}
+
+.socket-transitions-list li:first-child {
+  border-top: none;
+  padding-top: 0;
+}
+
+.socket-transitions-time {
+  color: #6b7280;
+  min-width: 7.5rem;
+}
+
+.socket-transitions-arrow code {
+  font-size: 11px;
+  background: #fff;
+  padding: 1px 5px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
 }
 
 .logs {
