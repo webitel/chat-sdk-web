@@ -114,6 +114,45 @@ describe('createChatsSocketClient', () => {
 		await expect(client.reconnect()).rejects.toThrow('Not implemented');
 	});
 
+	it('closes the socket when window fires offline and closeOnBrowserOffline is true', async () => {
+		let offlineCb: (() => void) | null = null;
+		const add = vi.fn((event: string, cb: () => void) => {
+			if (event === 'offline') {
+				offlineCb = cb;
+			}
+		});
+		const remove = vi.fn();
+		vi.stubGlobal('window', {
+			addEventListener: add,
+			removeEventListener: remove,
+		});
+
+		const client = createChatsSocketClient({
+			socketConfig: createSocketConfig({
+				baseUrl: 'ws://example.test/ws',
+				accessToken: 'token-123',
+				closeOnBrowserOffline: true,
+			}),
+			serviceConfig: createServiceConfig({
+				baseUrl: 'https://api.example.test',
+				accessToken: 'svc-token',
+			}),
+		});
+
+		const p = client.connect();
+		const ws = MockWebSocket.instances[0];
+		ws.onopen?.();
+		ws.onmessage?.({
+			data: connectedEventWireJson(),
+		});
+		await p;
+
+		expect(add).toHaveBeenCalledWith('offline', expect.any(Function));
+		expect(offlineCb).toBeTypeOf('function');
+		offlineCb?.();
+		expect(ws.close).toHaveBeenCalled();
+	});
+
 	it('notifies onState subscribers when connection state changes', () => {
 		const transitions: Array<{
 			state: ChatsSocketConnectionStatus;

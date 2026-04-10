@@ -8,4 +8,6 @@ export const serviceConfig = createServiceConfig({
 export const socketConfig = createSocketConfig({
 	baseUrl: import.meta.env.VITE_WS_BASE_URL,
 	accessToken: import.meta.env.VITE_WS_ACCESS_TOKEN,
+	/** Demo: move to `Disconnected` promptly when DevTools / OS reports offline (TCP alone often lags). */
+	closeOnBrowserOffline: true,
 });
