@@ -53,43 +53,49 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
-		this.wsConnectionState = SocketClientConnectionStatus.Connecting;
-		const ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
-		this.ws = ws;
-		setTimeout(() => {
-			ws.send(
-				JSON.stringify({
-					'x-webitel-access': this.socketConfig.accessToken,
-				}),
-			);
-		}, 1000);
-		this.ws.onopen = () => {
-			this.wsConnectionState = SocketClientConnectionStatus.Connected;
-		};
-		this.ws.onerror = () => {
-			this.wsConnectionState = SocketClientConnectionStatus.Error;
-		};
-		this.ws.onclose = () => {
-			this.wsConnectionState = SocketClientConnectionStatus.Disconnected;
-			this.ws = null;
-		};
-		this.ws.onmessage = (event) => {
-			const eventData = applyTransform(JSON.parse(event.data), [
-				snakeToCamel(),
-			]) as {
-				payload: EventPayload;
+		return new Promise((resolve, reject) => {
+			this.wsConnectionState = SocketClientConnectionStatus.Connecting;
+
+			this.ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
+
+			this.ws.onopen = () => {
+				this.wsConnectionState = SocketClientConnectionStatus.Connected;
+				this.ws!.send(
+					JSON.stringify({
+						'x-webitel-access': this.socketConfig.accessToken,
+					}),
+				);
 			};
+			this.ws.onerror = () => {
+				this.wsConnectionState = SocketClientConnectionStatus.Error;
+				reject(new Error('failed to connect to socket'));
+			};
+			this.ws.onclose = () => {
+				this.wsConnectionState = SocketClientConnectionStatus.Disconnected;
+				this.ws = null;
+				reject(new Error('socket disconnected'));
+			};
+			this.ws.onmessage = (event) => {
+				const eventData = applyTransform(JSON.parse(event.data), [
+					snakeToCamel(),
+				]) as {
+					payload: EventPayload;
+				};
 
-			const { eventName, eventPayload } = processSocketEventPayload(
-				eventData.payload,
-				{
-					serviceConfig: this.serviceConfig,
-				},
-			);
-			// const processEvent = (event: unknown) => event; // todo: implement event processing
+				const { eventName, eventPayload } = processSocketEventPayload(
+					eventData.payload,
+					{
+						serviceConfig: this.serviceConfig,
+					},
+				);
 
-			this.emitter.emit(eventName, eventPayload);
-		};
+				if (eventName === ChatsSocketMessage.Connected) {
+					resolve();
+				}
+
+				this.emitter.emit(eventName, eventPayload);
+			};
+		});
 	}
 
 	async reconnect(): Promise<void> {

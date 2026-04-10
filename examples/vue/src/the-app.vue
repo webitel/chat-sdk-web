@@ -11,29 +11,51 @@
       <div class="grid">
         <label class="field">
           <span>WebSocket URL</span>
-          <input v-model="wsBaseUrl" placeholder="wss://your-gateway/ws" />
+          <input
+            v-model="wsBaseUrl"
+            placeholder="wss://your-gateway/ws"
+          />
         </label>
 
         <label class="field">
           <span>Access token (optional)</span>
-          <input v-model="accessToken" type="password" placeholder="Paste token if your backend needs it" />
+          <input
+            v-model="accessToken"
+            type="password"
+            placeholder="Paste token if your backend needs it"
+          />
         </label>
       </div>
 
       <div class="actions">
-        <button class="primary" type="button" :disabled="status === 'connecting'" @click="connect">
+        <button
+          class="primary"
+          type="button"
+          :disabled="status === 'connecting'"
+          @click="connect"
+        >
           Connect
         </button>
-        <button type="button" :disabled="status === 'idle'" @click="disconnect">
+        <button
+          type="button"
+          :disabled="status === 'idle'"
+          @click="disconnect"
+        >
           Disconnect
         </button>
-        <button type="button" @click="clearLogs">
+        <button
+          type="button"
+          @click="clearLogs"
+        >
           Clear logs
         </button>
       </div>
 
       <div class="status">
-        <span class="status-dot" :data-status="status" />
+        <span
+          class="status-dot"
+          :data-status="status"
+        />
         <span>
           Status: <strong>{{ statusLabel }}</strong>
         </span>
@@ -42,12 +64,22 @@
 
     <section class="card">
       <h2>Socket events</h2>
-      <div v-if="logs.length === 0" class="empty">
+      <div
+        v-if="logs.length === 0"
+        class="empty"
+      >
         No events yet. Click <strong>Connect</strong> and watch incoming messages.
       </div>
 
-      <ul v-else class="logs">
-        <li v-for="item in logs" :key="item.id" class="log">
+      <ul
+        v-else
+        class="logs"
+      >
+        <li
+          v-for="item in logs"
+          :key="item.id"
+          class="log"
+        >
           <div class="log-head">
             <span class="pill">{{ item.event }}</span>
             <span class="time">{{ new Date(item.at).toLocaleTimeString() }}</span>
@@ -71,9 +103,12 @@
   </div>
 </template>
 
-<script setup lang="ts">
+<script
+  setup
+  lang="ts"
+>
 import { computed, onBeforeUnmount, ref } from 'vue';
-import { createSocketConfig } from '../../../src/modules/configs';
+import { serviceConfig, socketConfig } from './configs';
 import {
 	ChatsSocketMessage,
 	createChatsSocketClient,
@@ -180,12 +215,6 @@ const statusLabel = computed(() => {
 });
 
 async function connect() {
-	if (!wsBaseUrl.value.trim()) {
-		status.value = 'error';
-		addLog('client_error', 'Missing `VITE_WS_BASE_URL` / `wsBaseUrl`.');
-		return;
-	}
-
 	// Detach old client listeners by discarding it (we recreate a new client every time).
 	try {
 		await client?.disconnect();
@@ -193,14 +222,10 @@ async function connect() {
 		// ignore disconnect errors
 	}
 
-	client = createChatsSocketClient(
-		createSocketConfig({
-			baseUrl: wsBaseUrl.value.trim(),
-			// Note: current SDK socket client does not attach this token to the WS handshake.
-			// If your backend expects auth, include it in the URL (query/header handled by your gateway).
-			accessToken: accessToken.value.trim(),
-		}),
-	);
+	client = createChatsSocketClient({
+		socketConfig,
+		serviceConfig,
+	});
 
 	attachEventHandlers(client);
 	status.value = 'connecting';
@@ -336,12 +361,15 @@ button:disabled {
 .status-dot[data-status='connected'] {
   background: #0bbf5b;
 }
+
 .status-dot[data-status='connecting'] {
   background: #f59e0b;
 }
+
 .status-dot[data-status='error'] {
   background: #ef4444;
 }
+
 .status-dot[data-status='disconnected'] {
   background: #94a3b8;
 }
