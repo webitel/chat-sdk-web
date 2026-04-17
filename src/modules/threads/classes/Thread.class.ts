@@ -1,5 +1,3 @@
-import castArray from 'lodash/castArray';
-
 import type { ServiceConfig } from '../../configs';
 import {
 	type MessageHistorySearchParams,
@@ -8,9 +6,8 @@ import {
 import type {
 	IThread,
 	ThreadModel,
-	ThreadSendDocumentMessageParams,
-	ThreadSendImageMessageParams,
-	ThreadSendTextMessageParams,
+	ThreadSendMessageParams,
+	ThreadSendMessageResponse,
 } from '../types/Thread.types';
 
 class Thread implements IThread {
@@ -36,42 +33,39 @@ class Thread implements IThread {
 		);
 	}
 
-	async sendTextMessage(
-		body: string,
-		params: ThreadSendTextMessageParams = {},
-	) {
-		return useMessagesService(this.serviceConfig).sendTextMessage({
-			...params,
-			body,
-			to: {
-				threadId: this.id,
-			},
-		});
-	}
+	async sendMessage({
+		body,
+		documents,
+		images,
+		sendId,
+	}: ThreadSendMessageParams): Promise<ThreadSendMessageResponse> {
+		const messagesService = useMessagesService(this.serviceConfig);
+		const to = {
+			threadId: this.id,
+		};
 
-	async sendDocumentMessage(
-		files: File | readonly File[],
-		params: ThreadSendDocumentMessageParams = {},
-	) {
-		return useMessagesService(this.serviceConfig).sendDocumentMessage({
-			...params,
-			files: castArray(files),
-			to: {
-				threadId: this.id,
-			},
-		});
-	}
+		if (images) {
+			return messagesService.sendImageMessage({
+				files: images,
+				body,
+				sendId,
+				to,
+			});
+		}
 
-	async sendImageMessage(
-		files: File | readonly File[],
-		params: ThreadSendImageMessageParams = {},
-	) {
-		return useMessagesService(this.serviceConfig).sendImageMessage({
-			...params,
-			files: castArray(files),
-			to: {
-				threadId: this.id,
-			},
+		if (documents) {
+			return messagesService.sendDocumentMessage({
+				files: documents,
+				body,
+				sendId,
+				to,
+			});
+		}
+
+		return messagesService.sendTextMessage({
+			body: body ?? '',
+			sendId,
+			to,
 		});
 	}
 
