@@ -11,8 +11,9 @@ const sendDocumentMessage = async (
 	config: ServiceConfig,
 	params: MessageSendDocumentParams,
 ): Promise<MessageSendDocumentRawResponse> => {
-	const filesArr = castArray(params.files);
-	const { threadId } = params.to;
+	const { files, body, ...rest } = params;
+	const filesArr = castArray(files);
+	const { threadId } = rest.to;
 
 	if (!threadId) {
 		throw new Error('threadId is required to send a document message');
@@ -33,8 +34,9 @@ const sendDocumentMessage = async (
 	}));
 
 	return messagesService.sendDocumentMessage({
-		...params,
+		...rest,
 		document: {
+			body,
 			documents: uploadedDocuments,
 		},
 	});
