@@ -11,8 +11,9 @@ const sendImageMessage = async (
 	config: ServiceConfig,
 	params: MessageSendImageParams,
 ): Promise<MessageSendImageRawResponse> => {
-	const filesArr = castArray(params.files);
-	const { threadId } = params.to;
+	const { files, body, ...rest } = params;
+	const filesArr = castArray(files);
+	const { threadId } = rest.to;
 
 	if (!threadId) {
 		throw new Error('threadId is required to send an image message');
@@ -32,8 +33,9 @@ const sendImageMessage = async (
 	}));
 
 	return messagesService.sendImageMessage({
-		...params,
+		...rest,
 		image: {
+			body,
 			images: uploadedImages,
 		},
 	});

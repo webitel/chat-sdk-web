@@ -67,22 +67,22 @@
             Send message
           </button>
           <label class="file-upload">
-            <span>Send document(s)</span>
+            <span>Send document(s) + caption</span>
             <input
               type="file"
               multiple
               :disabled="sendingAttachmentByThreadId[t.id]"
-              @change="onDocumentSelected($event, t)"
+              @change="onFileSelected($event, t, 'documents')"
             >
           </label>
           <label class="file-upload">
-            <span>Send image(s)</span>
+            <span>Send image(s) + caption</span>
             <input
               type="file"
               accept="image/*"
               multiple
               :disabled="sendingAttachmentByThreadId[t.id]"
-              @change="onImageSelected($event, t)"
+              @change="onFileSelected($event, t, 'images')"
             >
           </label>
         </div>
@@ -127,24 +127,40 @@ async function refresh() {
 
 refresh();
 
+function promptCaption(kind: 'document' | 'image', count: number) {
+	const label = `Caption for ${count} ${kind}${count > 1 ? 's' : ''} (optional)`;
+	return window.prompt(label, '')?.trim() || undefined;
+}
+
 async function sendMessage(thread: IThread) {
-	const body = window.prompt('Message text', 'Hello from threads demo');
-	const text = body.trim();
-	if (!text) return;
+	const body = window.prompt('Message text', 'Hello from threads demo')?.trim();
+	if (!body) return;
 
 	try {
-		await thread.sendTextMessage(text);
+		await thread.sendMessage({
+			body,
+		});
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	}
 }
 
-async function sendDocuments(thread: IThread, files: File[]) {
+async function sendAttachments(
+	thread: IThread,
+	kind: 'documents' | 'images',
+	files: File[],
+) {
 	const id = thread.id;
 	sendingAttachmentByThreadId.value[id] = true;
 	error.value = null;
 	try {
-		await thread.sendDocumentMessage(files);
+		await thread.sendMessage({
+			[kind]: files,
+			body: promptCaption(
+				kind === 'documents' ? 'document' : 'image',
+				files.length,
+			),
+		});
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	} finally {
@@ -152,40 +168,18 @@ async function sendDocuments(thread: IThread, files: File[]) {
 	}
 }
 
-async function sendImages(thread: IThread, files: File[]) {
-	const id = thread.id;
-	sendingAttachmentByThreadId.value[id] = true;
-	error.value = null;
-	try {
-		await thread.sendImageMessage(files);
-	} catch (err) {
-		error.value = err instanceof Error ? err.message : String(err);
-	} finally {
-		sendingAttachmentByThreadId.value[id] = false;
-	}
-}
-
-async function onDocumentSelected(e: Event, thread: IThread) {
+async function onFileSelected(
+	e: Event,
+	thread: IThread,
+	kind: 'documents' | 'images',
+) {
 	const input = e.target as HTMLInputElement;
 	const list = input.files;
 	if (!list?.length) {
 		input.value = '';
 		return;
 	}
-	await sendDocuments(thread, [
-		...list,
-	]);
-	input.value = '';
-}
-
-async function onImageSelected(e: Event, thread: IThread) {
-	const input = e.target as HTMLInputElement;
-	const list = input.files;
-	if (!list?.length) {
-		input.value = '';
-		return;
-	}
-	await sendImages(thread, [
+	await sendAttachments(thread, kind, [
 		...list,
 	]);
 	input.value = '';

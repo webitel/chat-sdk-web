@@ -71,6 +71,54 @@ describe('sendImageMessage', () => {
 		expect(mockUploadFiles).not.toHaveBeenCalled();
 	});
 
+	it('forwards body as image caption and does not leak it at top level', async () => {
+		const img = new File([], 'cap.png', {
+			type: 'image/png',
+		});
+		mockUploadFiles.mockResolvedValue([
+			{
+				id: 55,
+				name: 'cap.png',
+				size: 4,
+				mime: 'image/png',
+				shared: '/s/55',
+			},
+		]);
+		mockSendImageMessageApi.mockResolvedValue(
+			{} as MessageSendImageRawResponse,
+		);
+
+		const params: MessageSendImageParams = {
+			files: img,
+			to: {
+				threadId: 'thread-img',
+			},
+			body: 'look at this',
+		};
+
+		await sendImageMessage(serviceConfig, params);
+
+		expect(mockSendImageMessageApi).toHaveBeenCalledTimes(1);
+		const call = mockSendImageMessageApi.mock.calls[0][0];
+		expect(call).toMatchObject({
+			to: {
+				threadId: 'thread-img',
+			},
+			image: {
+				body: 'look at this',
+				images: [
+					{
+						id: '55',
+						mimeType: 'image/png',
+						name: 'cap.png',
+					},
+				],
+			},
+		});
+		expect(call).not.toHaveProperty('body');
+		expect(call).not.toHaveProperty('files');
+	});
+
 	it('uploads files then sends an image payload built from storage metadata', async () => {
 		const img = new File([], 'pic.png', {
 			type: 'image/png',
@@ -96,9 +144,10 @@ describe('sendImageMessage', () => {
 		expect(mockUploadFiles).toHaveBeenCalledWith('thread-img', [
 			img,
 		]);
+		const { files: _files, ...expectedRest } = params;
 		expect(mockSendImageMessageApi).toHaveBeenCalledWith(
 			expect.objectContaining({
-				...params,
+				...expectedRest,
 				image: {
 					images: [
 						{
@@ -109,6 +158,9 @@ describe('sendImageMessage', () => {
 					],
 				},
 			}),
+		);
+		expect(mockSendImageMessageApi.mock.calls[0][0]).not.toHaveProperty(
+			'files',
 		);
 	});
 });

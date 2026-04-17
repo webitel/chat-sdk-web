@@ -45,19 +45,27 @@ type MessageHistorySearchResult = Omit<
 /**
  * `sendDocument` message wrapper method params.
  * Wraps both uploading files to storage and sending document message.
+ *
+ * `body` is an optional caption attached to the document message
+ * (forwarded to `document.body` in the underlying request).
  */
 type MessageSendDocumentParams = Omit<MessageSendDocumentRequest, 'document'> &
 	Pick<Required<MessageSendDocumentRequest>, 'to'> & {
 		files: File | readonly File[];
+		body?: string;
 	};
 
 /**
  * `sendImage` message wrapper method params.
  * Wraps both uploading files to storage and sending image message.
+ *
+ * `body` is an optional caption attached to the image message
+ * (forwarded to `image.body` in the underlying request).
  */
 type MessageSendImageParams = Omit<MessageSendImageRequest, 'image'> &
 	Pick<Required<MessageSendImageRequest>, 'to'> & {
 		files: File | readonly File[];
+		body?: string;
 	};
 
 export type {

@@ -123,9 +123,10 @@ describe('sendDocumentMessage', () => {
 			f1,
 			f2,
 		]);
+		const { files: _files, ...expectedRest } = params;
 		expect(mockSendDocumentMessageApi).toHaveBeenCalledWith(
 			expect.objectContaining({
-				...params,
+				...expectedRest,
 				document: {
 					documents: [
 						{
@@ -144,6 +145,58 @@ describe('sendDocumentMessage', () => {
 				},
 			}),
 		);
+		expect(mockSendDocumentMessageApi.mock.calls[0][0]).not.toHaveProperty(
+			'files',
+		);
+	});
+
+	it('forwards body as document caption and does not leak it at top level', async () => {
+		const file = new File([], 'cap.pdf', {
+			type: 'application/pdf',
+		});
+		mockUploadFiles.mockResolvedValue([
+			{
+				id: 7,
+				name: 'cap.pdf',
+				size: 2,
+				mime: 'application/pdf',
+				shared: '/s/7',
+			},
+		]);
+		mockSendDocumentMessageApi.mockResolvedValue(
+			{} as MessageSendDocumentRawResponse,
+		);
+
+		const params: MessageSendDocumentParams = {
+			files: file,
+			to: {
+				threadId: 'thread-doc',
+			},
+			body: 'see attached',
+		};
+
+		await sendDocumentMessage(serviceConfig, params);
+
+		expect(mockSendDocumentMessageApi).toHaveBeenCalledTimes(1);
+		const call = mockSendDocumentMessageApi.mock.calls[0][0];
+		expect(call).toMatchObject({
+			to: {
+				threadId: 'thread-doc',
+			},
+			document: {
+				body: 'see attached',
+				documents: [
+					{
+						fileName: 'cap.pdf',
+						id: '7',
+						mimeType: 'application/pdf',
+						sizeBytes: '2',
+					},
+				],
+			},
+		});
+		expect(call).not.toHaveProperty('body');
+		expect(call).not.toHaveProperty('files');
 	});
 
 	it('normalises a single File into an array for upload', async () => {
