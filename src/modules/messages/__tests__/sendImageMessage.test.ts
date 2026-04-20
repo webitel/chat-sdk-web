@@ -52,7 +52,7 @@ describe('sendImageMessage', () => {
 		} as MessageSendImageParams;
 
 		await expect(sendImageMessage(serviceConfig, params)).rejects.toThrow(
-			'to.threadId or to.contact.{sub,iss} is required to send an image message',
+			'to.threadId or to.contact.{sub,iss} is required to resolve a storage upload key',
 		);
 		expect(mockUploadFiles).not.toHaveBeenCalled();
 	});

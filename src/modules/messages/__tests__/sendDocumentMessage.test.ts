@@ -53,7 +53,7 @@ describe('sendDocumentMessage', () => {
 		} as MessageSendDocumentParams;
 
 		await expect(sendDocumentMessage(serviceConfig, params)).rejects.toThrow(
-			'to.threadId or to.contact.{sub,iss} is required to send a document message',
+			'to.threadId or to.contact.{sub,iss} is required to resolve a storage upload key',
 		);
 		expect(mockUploadFiles).not.toHaveBeenCalled();
 	});

@@ -13,11 +13,7 @@
         </div>
 
         <div
-            v-if="error"
-            class="error"
-        >{{ error }}</div>
-        <div
-            v-else-if="loading"
+            v-if="loading"
             class="empty"
         >Loading contacts...</div>
         <div
@@ -61,6 +57,23 @@
                     >
                         Send message
                     </button>
+                    <label class="file-upload">
+                        <span>Send document(s) + caption</span>
+                        <input
+                            type="file"
+                            multiple
+                            @change="onFileSelected($event, c, 'documents')"
+                        >
+                    </label>
+                    <label class="file-upload">
+                        <span>Send image(s) + caption</span>
+                        <input
+                            type="file"
+                            accept="image/*"
+                            multiple
+                            @change="onFileSelected($event, c, 'images')"
+                        >
+                    </label>
                 </div>
 
                 <div class="row">
@@ -106,28 +119,26 @@ import { serviceConfig } from '../../configs';
 
 const contacts = ref<IContact[]>([]);
 const loading = ref(false);
-const error = ref<string | null>(null);
 
 const { fetchContacts } = useContactsService(serviceConfig);
 
 async function refresh() {
 	loading.value = true;
-	error.value = null;
 	try {
 		const res = await fetchContacts();
 		contacts.value = res.items ?? [];
-	} catch (err) {
-		error.value = err instanceof Error ? err.message : String(err);
 	} finally {
 		loading.value = false;
 	}
 }
 
-function openChat(contact: IContact) {
-	// Placeholder for app-specific routing/chat opening behavior.
-	// Keep it as a no-op demo action to avoid runtime errors.
-	// eslint-disable-next-line no-console
-	console.info('openChat', contact.subject ?? contact.username ?? contact.name);
+function openChat(_contact: IContact) {}
+
+function promptCaption(kind: 'documents' | 'images', count: number) {
+	return (
+		window.prompt(`Caption for ${count} ${kind} (optional)`, '')?.trim() ||
+		undefined
+	);
 }
 
 async function sendMessage(contact: IContact) {
@@ -135,26 +146,35 @@ async function sendMessage(contact: IContact) {
 		.prompt('Message text', 'Hello from contacts demo')
 		?.trim();
 	if (!body) return;
+	await contact.sendMessage({
+		body,
+	});
+}
 
-	try {
-		await contact.sendMessage({
-			body,
-		});
-	} catch (err) {
-		error.value = err instanceof Error ? err.message : String(err);
-	}
+async function onFileSelected(
+	e: Event,
+	contact: IContact,
+	kind: 'documents' | 'images',
+) {
+	const input = e.target as HTMLInputElement;
+	const files = input.files
+		? [
+				...input.files,
+			]
+		: [];
+	input.value = '';
+	if (!files.length) return;
+	await contact.sendMessage({
+		[kind]: files,
+		body: promptCaption(kind, files.length),
+	});
 }
 
 function formatEpochMs(value?: string) {
-	if (!value) return '—';
-	const n = Number(value);
-	if (!Number.isFinite(n)) return value;
-	return new Date(n).toLocaleString();
+	return value ? new Date(+value).toLocaleString() : '—';
 }
 
-onMounted(() => {
-	refresh();
-});
+onMounted(refresh);
 </script>
 
 <style scoped>
@@ -181,15 +201,6 @@ onMounted(() => {
 .btn:disabled {
     opacity: 0.6;
     cursor: not-allowed;
-}
-
-.error {
-    padding: 12px;
-    border: 1px solid #fecaca;
-    background: #fff1f2;
-    border-radius: 12px;
-    color: #b91c1c;
-    font-size: 14px;
 }
 
 .empty {
@@ -244,6 +255,19 @@ h2 {
     gap: 10px;
     margin-top: 10px;
     flex-wrap: wrap;
+}
+
+.file-upload {
+    display: inline-flex;
+    gap: 6px;
+    align-items: center;
+    font-size: 13px;
+    color: #374151;
+}
+
+.file-upload input[type="file"] {
+    max-width: 180px;
+    font-size: 12px;
 }
 
 .badge {

@@ -34,22 +34,24 @@ describe('resolveUploadKey', () => {
 		).toBe('sub-1:iss-1');
 	});
 
-	it('returns undefined when peer is missing required fields', () => {
-		expect(resolveUploadKey(undefined)).toBeUndefined();
-		expect(resolveUploadKey({})).toBeUndefined();
-		expect(
+	it('throws when peer is missing required fields', () => {
+		const expected =
+			'to.threadId or to.contact.{sub,iss} is required to resolve a storage upload key';
+		expect(() => resolveUploadKey(undefined)).toThrow(expected);
+		expect(() => resolveUploadKey({})).toThrow(expected);
+		expect(() =>
 			resolveUploadKey({
 				contact: {
 					sub: 's',
 				},
 			}),
-		).toBeUndefined();
-		expect(
+		).toThrow(expected);
+		expect(() =>
 			resolveUploadKey({
 				contact: {
 					iss: 'i',
 				},
 			}),
-		).toBeUndefined();
+		).toThrow(expected);
 	});
 });

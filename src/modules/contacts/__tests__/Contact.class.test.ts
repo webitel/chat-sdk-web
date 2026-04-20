@@ -10,6 +10,8 @@ vi.mock('../../messages', () => ({
 }));
 
 const mockSendTextMessage = vi.fn();
+const mockSendDocumentMessage = vi.fn();
+const mockSendImageMessage = vi.fn();
 
 const serviceConfig = createServiceConfig({
 	baseUrl: 'https://example.test',
@@ -25,10 +27,12 @@ beforeEach(() => {
 	vi.mocked(useMessagesService).mockReturnValue({
 		fetchMessageHistory: vi.fn(),
 		sendTextMessage: mockSendTextMessage,
-		sendDocumentMessage: vi.fn(),
-		sendImageMessage: vi.fn(),
+		sendDocumentMessage: mockSendDocumentMessage,
+		sendImageMessage: mockSendImageMessage,
 	});
 	mockSendTextMessage.mockReset();
+	mockSendDocumentMessage.mockReset();
+	mockSendImageMessage.mockReset();
 });
 
 describe('createContact', () => {
@@ -47,10 +51,14 @@ describe('createContact', () => {
 			serviceConfig,
 		});
 
-		await contact.sendMessage({
-			body: 'ping',
-			sendId: 'c1',
-		});
+		await contact.sendMessage(
+			{
+				body: 'ping',
+			},
+			{
+				sendId: 'c1',
+			},
+		);
 
 		expect(useMessagesService).toHaveBeenCalledWith(serviceConfig);
 		expect(mockSendTextMessage).toHaveBeenCalledWith({
@@ -82,5 +90,88 @@ describe('createContact', () => {
 				},
 			},
 		});
+	});
+
+	it('routes sendMessage with documents to sendDocumentMessage', async () => {
+		const contact = createContact(rawContact, {
+			serviceConfig,
+		});
+		const file = new File(
+			[
+				'a',
+			],
+			'a.pdf',
+			{
+				type: 'application/pdf',
+			},
+		);
+
+		await contact.sendMessage(
+			{
+				body: 'see attached',
+				documents: file,
+			},
+			{
+				sendId: 'doc-1',
+			},
+		);
+
+		expect(mockSendDocumentMessage).toHaveBeenCalledWith({
+			files: file,
+			body: 'see attached',
+			sendId: 'doc-1',
+			to: {
+				contact: {
+					sub: 'contact-sub',
+					iss: 'contact-iss',
+				},
+			},
+		});
+		expect(mockSendTextMessage).not.toHaveBeenCalled();
+		expect(mockSendImageMessage).not.toHaveBeenCalled();
+	});
+
+	it('routes sendMessage with images to sendImageMessage (precedence over documents)', async () => {
+		const contact = createContact(rawContact, {
+			serviceConfig,
+		});
+		const image = new File(
+			[
+				'i',
+			],
+			'i.png',
+			{
+				type: 'image/png',
+			},
+		);
+		const doc = new File(
+			[
+				'd',
+			],
+			'd.pdf',
+			{
+				type: 'application/pdf',
+			},
+		);
+
+		await contact.sendMessage({
+			body: 'cap',
+			documents: doc,
+			images: image,
+		});
+
+		expect(mockSendImageMessage).toHaveBeenCalledWith({
+			files: image,
+			body: 'cap',
+			sendId: undefined,
+			to: {
+				contact: {
+					sub: 'contact-sub',
+					iss: 'contact-iss',
+				},
+			},
+		});
+		expect(mockSendDocumentMessage).not.toHaveBeenCalled();
+		expect(mockSendTextMessage).not.toHaveBeenCalled();
 	});
 });
