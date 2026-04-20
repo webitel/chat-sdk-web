@@ -2,12 +2,11 @@ import type { ServiceConfig } from '../../configs';
 import { useMessagesService } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
-	ContactModel,
-	ContactSendMessageOptions,
-	ContactSendMessageParams,
-	ContactSendMessageResponse,
-	IContact,
-} from '../types/Contact.types';
+	MessageSendOptions,
+	MessageSendParams,
+	MessageSendResponse,
+} from '../../messages/types/Message.types';
+import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
 	private readonly _serviceConfig: ServiceConfig;
@@ -27,9 +26,9 @@ class Contact implements IContact {
 	}
 
 	async sendMessage(
-		{ body, attachments }: ContactSendMessageParams,
-		{ sendId }: ContactSendMessageOptions = {},
-	): Promise<ContactSendMessageResponse> {
+		{ body, attachments }: MessageSendParams,
+		{ sendId }: MessageSendOptions = {},
+	): Promise<MessageSendResponse> {
 		const messagesService = useMessagesService(this.serviceConfig);
 		const to = {
 			contact: {

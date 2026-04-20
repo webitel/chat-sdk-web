@@ -87,8 +87,50 @@ type MessageSendImageParams = Omit<MessageSendImageRequest, 'image'> &
 		body?: string;
 	};
 
+/**
+ * Unified `sendMessage` params shared by every peer type (threads,
+ * contacts, …).
+ *
+ * A message carries an optional text `body` and at most one `attachments`
+ * payload (tagged by `type`). Text-only messages omit `attachments`.
+ */
+interface MessageSendParams {
+	body?: string;
+	attachments?: MessageSendAttachments;
+}
+
+/**
+ * Transport-level options for `sendMessage` that are independent of the
+ * message payload itself.
+ */
+interface MessageSendOptions {
+	sendId?: string;
+}
+
+/**
+ * Union of every possible raw response returned by `sendMessage`,
+ * depending on which concrete send-* endpoint was dispatched.
+ */
+type MessageSendResponse =
+	| MessageSendTextRawResponse
+	| MessageSendDocumentRawResponse
+	| MessageSendImageRawResponse;
+
+/**
+ * Contract implemented by any peer that can be used as the "to" target of
+ * a message (currently `IThread` and `IContact`). Keeping a single shape
+ * lets call-sites work polymorphically with either peer.
+ */
+interface IMessageSender {
+	sendMessage: (
+		params: MessageSendParams,
+		options?: MessageSendOptions,
+	) => Promise<MessageSendResponse>;
+}
+
 export type {
 	IMessage,
+	IMessageSender,
 	MessageHistorySearchParams,
 	MessageHistorySearchRawResponse,
 	MessageHistorySearchResult,
@@ -100,6 +142,9 @@ export type {
 	MessageSendImageParams,
 	MessageSendImageRawResponse,
 	MessageSendImageRequest,
+	MessageSendOptions,
+	MessageSendParams,
+	MessageSendResponse,
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 	MessageStorageUploadedFile,

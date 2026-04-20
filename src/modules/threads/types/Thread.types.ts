@@ -6,46 +6,17 @@ import type {
 
 import type { ServiceConfigurable } from '../../configs';
 import type {
+	IMessageSender,
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
-	MessageSendAttachments,
-	MessageSendDocumentRawResponse,
-	MessageSendImageRawResponse,
-	MessageSendTextRawResponse,
 } from '../../messages/types/Message.types';
 
-/**
- * Unified thread send-message params.
- *
- * A message carries an optional text `body` and at most one
- * `attachments` payload (tagged by `type`). Text-only messages omit
- * `attachments`.
- */
-interface ThreadSendMessageParams {
-	body?: string;
-	attachments?: MessageSendAttachments;
-}
-
-interface ThreadSendMessageOptions {
-	sendId?: string;
-}
-
-type ThreadSendMessageResponse =
-	| MessageSendTextRawResponse
-	| MessageSendDocumentRawResponse
-	| MessageSendImageRawResponse;
-
-interface IThread extends ThreadModel, ServiceConfigurable {
+interface IThread extends ThreadModel, ServiceConfigurable, IMessageSender {
 	id: string;
 
 	fetchMessageHistory: (
 		params?: MessageHistorySearchParams,
 	) => Promise<MessageHistorySearchResult>;
-
-	sendMessage: (
-		params: ThreadSendMessageParams,
-		options?: ThreadSendMessageOptions,
-	) => Promise<ThreadSendMessageResponse>;
 }
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
@@ -58,7 +29,4 @@ export type {
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,
-	ThreadSendMessageOptions,
-	ThreadSendMessageParams,
-	ThreadSendMessageResponse,
 };
