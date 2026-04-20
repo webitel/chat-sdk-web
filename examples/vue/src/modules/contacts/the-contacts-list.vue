@@ -112,7 +112,11 @@
     setup
     lang="ts"
 >
-import { type IContact, useContactsService } from '@webitel/chat-web-sdk';
+import {
+	type IContact,
+	MessageAttachmentType,
+	useContactsService,
+} from '@webitel/chat-web-sdk';
 import { onMounted, ref } from 'vue';
 
 import { serviceConfig } from '../../configs';
@@ -134,7 +138,7 @@ async function refresh() {
 
 function openChat(_contact: IContact) {}
 
-function promptCaption(kind: 'documents' | 'images', count: number) {
+function promptCaption(kind: MessageAttachmentType, count: number) {
 	return (
 		window.prompt(`Caption for ${count} ${kind} (optional)`, '')?.trim() ||
 		undefined
@@ -154,7 +158,7 @@ async function sendMessage(contact: IContact) {
 async function onFileSelected(
 	e: Event,
 	contact: IContact,
-	kind: 'documents' | 'images',
+	kind: MessageAttachmentType,
 ) {
 	const input = e.target as HTMLInputElement;
 	const files = input.files
@@ -165,7 +169,10 @@ async function onFileSelected(
 	input.value = '';
 	if (!files.length) return;
 	await contact.sendMessage({
-		[kind]: files,
+		attachments: {
+			type: kind,
+			files,
+		},
 		body: promptCaption(kind, files.length),
 	});
 }

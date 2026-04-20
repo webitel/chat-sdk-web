@@ -3,6 +3,7 @@ import {
 	type MessageHistorySearchParams,
 	useMessagesService,
 } from '../../messages';
+import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	IThread,
 	ThreadModel,
@@ -35,7 +36,7 @@ class Thread implements IThread {
 	}
 
 	async sendMessage(
-		{ body, documents, images }: ThreadSendMessageParams,
+		{ body, attachments }: ThreadSendMessageParams,
 		{ sendId }: ThreadSendMessageOptions = {},
 	): Promise<ThreadSendMessageResponse> {
 		const messagesService = useMessagesService(this.serviceConfig);
@@ -43,29 +44,28 @@ class Thread implements IThread {
 			threadId: this.id,
 		};
 
-		if (images) {
-			return messagesService.sendImageMessage({
-				files: images,
-				body,
-				sendId,
-				to,
-			});
+		switch (attachments?.type) {
+			case MessageAttachmentType.Images:
+				return messagesService.sendImageMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			case MessageAttachmentType.Documents:
+				return messagesService.sendDocumentMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			default:
+				return messagesService.sendTextMessage({
+					body: body ?? '',
+					sendId,
+					to,
+				});
 		}
-
-		if (documents) {
-			return messagesService.sendDocumentMessage({
-				files: documents,
-				body,
-				sendId,
-				to,
-			});
-		}
-
-		return messagesService.sendTextMessage({
-			body: body ?? '',
-			sendId,
-			to,
-		});
 	}
 
 	get serviceConfig(): ServiceConfig {

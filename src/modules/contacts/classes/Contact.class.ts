@@ -1,5 +1,6 @@
 import type { ServiceConfig } from '../../configs';
 import { useMessagesService } from '../../messages';
+import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	ContactModel,
 	ContactSendMessageOptions,
@@ -26,7 +27,7 @@ class Contact implements IContact {
 	}
 
 	async sendMessage(
-		{ body, documents, images }: ContactSendMessageParams,
+		{ body, attachments }: ContactSendMessageParams,
 		{ sendId }: ContactSendMessageOptions = {},
 	): Promise<ContactSendMessageResponse> {
 		const messagesService = useMessagesService(this.serviceConfig);
@@ -37,29 +38,28 @@ class Contact implements IContact {
 			},
 		};
 
-		if (images) {
-			return messagesService.sendImageMessage({
-				files: images,
-				body,
-				sendId,
-				to,
-			});
+		switch (attachments?.type) {
+			case MessageAttachmentType.Images:
+				return messagesService.sendImageMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			case MessageAttachmentType.Documents:
+				return messagesService.sendDocumentMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			default:
+				return messagesService.sendTextMessage({
+					body: body ?? '',
+					sendId,
+					to,
+				});
 		}
-
-		if (documents) {
-			return messagesService.sendDocumentMessage({
-				files: documents,
-				body,
-				sendId,
-				to,
-			});
-		}
-
-		return messagesService.sendTextMessage({
-			body: body ?? '',
-			sendId,
-			to,
-		});
 	}
 
 	get serviceConfig(): ServiceConfig {

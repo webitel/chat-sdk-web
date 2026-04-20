@@ -97,7 +97,11 @@
   setup
   lang="ts"
 >
-import { type IThread, useThreadsService } from '@webitel/chat-web-sdk';
+import {
+	type IThread,
+	MessageAttachmentType,
+	useThreadsService,
+} from '@webitel/chat-web-sdk';
 import { ref } from 'vue';
 
 import { serviceConfig } from '../../configs';
@@ -147,7 +151,7 @@ async function sendMessage(thread: IThread) {
 
 async function sendAttachments(
 	thread: IThread,
-	kind: 'documents' | 'images',
+	kind: MessageAttachmentType,
 	files: File[],
 ) {
 	const id = thread.id;
@@ -155,9 +159,12 @@ async function sendAttachments(
 	error.value = null;
 	try {
 		await thread.sendMessage({
-			[kind]: files,
+			attachments: {
+				type: kind,
+				files,
+			},
 			body: promptCaption(
-				kind === 'documents' ? 'document' : 'image',
+				kind === MessageAttachmentType.Documents ? 'document' : 'image',
 				files.length,
 			),
 		});
@@ -171,7 +178,7 @@ async function sendAttachments(
 async function onFileSelected(
 	e: Event,
 	thread: IThread,
-	kind: 'documents' | 'images',
+	kind: MessageAttachmentType,
 ) {
 	const input = e.target as HTMLInputElement;
 	const list = input.files;

@@ -6,6 +6,7 @@ import type {
 
 import type { ServiceConfigurable } from '../../configs';
 import type {
+	MessageSendAttachments,
 	MessageSendDocumentRawResponse,
 	MessageSendImageRawResponse,
 	MessageSendTextRawResponse,
@@ -14,16 +15,13 @@ import type {
 /**
  * Unified contact send-message params.
  *
- * - text-only message: pass `body`
- * - document message (optionally with caption): pass `documents` + optional `body`
- * - image message (optionally with caption): pass `images` + optional `body`
- *
- * `images` take precedence over `documents` when both are provided.
+ * A message carries an optional text `body` and at most one
+ * `attachments` payload (tagged by `type`). Text-only messages omit
+ * `attachments`.
  */
 interface ContactSendMessageParams {
 	body?: string;
-	documents?: File | readonly File[];
-	images?: File | readonly File[];
+	attachments?: MessageSendAttachments;
 }
 
 interface ContactSendMessageOptions {

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig } from '../../configs';
 import { useMessagesService } from '../../messages';
+import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import { createContact } from '../classes/Contact.class';
 import type { ContactModel } from '../types/Contact.types';
 
@@ -92,7 +93,7 @@ describe('createContact', () => {
 		});
 	});
 
-	it('routes sendMessage with documents to sendDocumentMessage', async () => {
+	it('routes document attachments to sendDocumentMessage', async () => {
 		const contact = createContact(rawContact, {
 			serviceConfig,
 		});
@@ -109,7 +110,10 @@ describe('createContact', () => {
 		await contact.sendMessage(
 			{
 				body: 'see attached',
-				documents: file,
+				attachments: {
+					type: MessageAttachmentType.Documents,
+					files: file,
+				},
 			},
 			{
 				sendId: 'doc-1',
@@ -131,7 +135,7 @@ describe('createContact', () => {
 		expect(mockSendImageMessage).not.toHaveBeenCalled();
 	});
 
-	it('routes sendMessage with images to sendImageMessage (precedence over documents)', async () => {
+	it('routes image attachments to sendImageMessage', async () => {
 		const contact = createContact(rawContact, {
 			serviceConfig,
 		});
@@ -144,20 +148,13 @@ describe('createContact', () => {
 				type: 'image/png',
 			},
 		);
-		const doc = new File(
-			[
-				'd',
-			],
-			'd.pdf',
-			{
-				type: 'application/pdf',
-			},
-		);
 
 		await contact.sendMessage({
 			body: 'cap',
-			documents: doc,
-			images: image,
+			attachments: {
+				type: MessageAttachmentType.Images,
+				files: image,
+			},
 		});
 
 		expect(mockSendImageMessage).toHaveBeenCalledWith({

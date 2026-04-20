@@ -11,6 +11,7 @@ import type {
 } from '@webitel/api-services/gen/models';
 
 import type { ServiceConfigurable } from '../../configs';
+import type { MessageAttachmentType } from '../enums/MessageAttachmentType.enum';
 
 /**
  * One element from storage upload `POST …/upload` response
@@ -41,6 +42,24 @@ type MessageHistorySearchResult = Omit<
 > & {
 	items: IMessage[];
 };
+
+/**
+ * Tagged union describing a single attachment payload attached to a message.
+ *
+ * A message carries **at most one** attachment kind alongside its optional
+ * text `body`. The union is intentionally open-ended so future kinds
+ * (location, interactive, sticker, …) can be added without reshaping
+ * `sendMessage` call-sites.
+ */
+type MessageSendAttachments =
+	| {
+			type: typeof MessageAttachmentType.Documents;
+			files: File | readonly File[];
+	  }
+	| {
+			type: typeof MessageAttachmentType.Images;
+			files: File | readonly File[];
+	  };
 
 /**
  * `sendDocument` message wrapper method params.
@@ -74,6 +93,7 @@ export type {
 	MessageHistorySearchRawResponse,
 	MessageHistorySearchResult,
 	MessageModel,
+	MessageSendAttachments,
 	MessageSendDocumentParams,
 	MessageSendDocumentRawResponse,
 	MessageSendDocumentRequest,
