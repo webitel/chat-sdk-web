@@ -41,7 +41,12 @@ export {
 } from './modules/socket';
 export {
 	type IThread, // Thread class
+	type ThreadAddMemberParams,
+	type ThreadMember,
+	type ThreadMemberContact,
+	ThreadMemberRole, // enum for thread member roles
 	type ThreadModel, // Thread backend response type
+	type ThreadRemoveMemberParams,
 	type ThreadSearchParams,
 	type ThreadSearchResult,
 	useThreadsService, // fetch + instantiate threads (service wrapper)
