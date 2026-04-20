@@ -13,7 +13,7 @@
 - ADDED `Contact.sendMessage({ body, attachments }, { sendId? })` — mirrors `Thread.sendMessage` but targets a contact peer (uploads file via `${sub}:${iss}` storage key, no thread required)
 - ADDED public `MessageAttachmentType` const-enum (`Documents` / `Images`) for typing/switching on attachment kinds
 
-### Updates
+### Internals
 
 - shared `IMessageSender` interface extracted to `modules/messages`; both `IThread` and `IContact` now implement it, guaranteeing a single `sendMessage` contract across peer types
 - internal `resolveUploadKey` utility extracted — picks `threadId` or `${sub}:${iss}` for the storage upload endpoint
