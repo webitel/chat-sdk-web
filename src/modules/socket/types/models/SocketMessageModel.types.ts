@@ -10,7 +10,7 @@ import type { SocketContactModel } from './SocketContactModel.types';
 export interface SocketMessageModel
 	extends Pick<
 		MessageModel,
-		'id' | 'threadId' | 'createdAt' | 'updatedAt' | 'body' | 'type'
+		'id' | 'threadId' | 'createdAt' | 'editedAt' | 'body' | 'type'
 	> {
 	sendId: MessageSendTextParams['sendId']; // "echo" from sendMessage request
 	to: SocketContactModel;

@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig } from '../../configs';
 import { useMessagesService } from '../../messages';
+import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import { createThread } from '../classes/Thread.class';
 import type { ThreadModel } from '../types/Thread.types';
 
@@ -65,10 +66,14 @@ describe('createThread', () => {
 			serviceConfig,
 		});
 
-		await thread.sendMessage({
-			body: 'hi',
-			sendId: 'client-msg-1',
-		});
+		await thread.sendMessage(
+			{
+				body: 'hi',
+			},
+			{
+				sendId: 'client-msg-1',
+			},
+		);
 
 		expect(mockSendTextMessage).toHaveBeenCalledWith({
 			body: 'hi',
@@ -81,7 +86,7 @@ describe('createThread', () => {
 		expect(mockSendImageMessage).not.toHaveBeenCalled();
 	});
 
-	it('routes sendMessage with documents (+ caption) to sendDocumentMessage', async () => {
+	it('routes document attachments (+ caption) to sendDocumentMessage', async () => {
 		const thread = createThread(rawThread, {
 			serviceConfig,
 		});
@@ -89,11 +94,18 @@ describe('createThread', () => {
 			type: 'application/pdf',
 		});
 
-		await thread.sendMessage({
-			documents: file,
-			body: 'see attached',
-			sendId: 'client-doc-1',
-		});
+		await thread.sendMessage(
+			{
+				attachments: {
+					type: MessageAttachmentType.Documents,
+					files: file,
+				},
+				body: 'see attached',
+			},
+			{
+				sendId: 'client-doc-1',
+			},
+		);
 
 		expect(mockSendDocumentMessage).toHaveBeenCalledWith({
 			files: file,
@@ -104,9 +116,10 @@ describe('createThread', () => {
 			},
 		});
 		expect(mockSendTextMessage).not.toHaveBeenCalled();
+		expect(mockSendImageMessage).not.toHaveBeenCalled();
 	});
 
-	it('routes sendMessage with images (+ caption) to sendImageMessage', async () => {
+	it('routes image attachments (+ caption) to sendImageMessage', async () => {
 		const thread = createThread(rawThread, {
 			serviceConfig,
 		});
@@ -115,9 +128,12 @@ describe('createThread', () => {
 		});
 
 		await thread.sendMessage({
-			images: [
-				img,
-			],
+			attachments: {
+				type: MessageAttachmentType.Images,
+				files: [
+					img,
+				],
+			},
 			body: 'look',
 		});
 
@@ -131,25 +147,7 @@ describe('createThread', () => {
 				threadId: 'thread-abc',
 			},
 		});
-	});
-
-	it('prefers images over documents when both provided', async () => {
-		const thread = createThread(rawThread, {
-			serviceConfig,
-		});
-		const doc = new File([], 'a.pdf', {
-			type: 'application/pdf',
-		});
-		const img = new File([], 'a.png', {
-			type: 'image/png',
-		});
-
-		await thread.sendMessage({
-			documents: doc,
-			images: img,
-		});
-
-		expect(mockSendImageMessage).toHaveBeenCalledTimes(1);
 		expect(mockSendDocumentMessage).not.toHaveBeenCalled();
+		expect(mockSendTextMessage).not.toHaveBeenCalled();
 	});
 });

@@ -3,12 +3,13 @@ import {
 	type MessageHistorySearchParams,
 	useMessagesService,
 } from '../../messages';
+import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
-	IThread,
-	ThreadModel,
-	ThreadSendMessageParams,
-	ThreadSendMessageResponse,
-} from '../types/Thread.types';
+	MessageSendOptions,
+	MessageSendParams,
+	MessageSendResponse,
+} from '../../messages/types/Message.types';
+import type { IThread, ThreadModel } from '../types/Thread.types';
 
 class Thread implements IThread {
 	private readonly _serviceConfig: ServiceConfig;
@@ -33,40 +34,37 @@ class Thread implements IThread {
 		);
 	}
 
-	async sendMessage({
-		body,
-		documents,
-		images,
-		sendId,
-	}: ThreadSendMessageParams): Promise<ThreadSendMessageResponse> {
+	async sendMessage(
+		{ body, attachments }: MessageSendParams,
+		{ sendId }: MessageSendOptions = {},
+	): Promise<MessageSendResponse> {
 		const messagesService = useMessagesService(this.serviceConfig);
 		const to = {
 			threadId: this.id,
 		};
 
-		if (images) {
-			return messagesService.sendImageMessage({
-				files: images,
-				body,
-				sendId,
-				to,
-			});
+		switch (attachments?.type) {
+			case MessageAttachmentType.Images:
+				return messagesService.sendImageMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			case MessageAttachmentType.Documents:
+				return messagesService.sendDocumentMessage({
+					files: attachments.files,
+					body,
+					sendId,
+					to,
+				});
+			default:
+				return messagesService.sendTextMessage({
+					body: body ?? '',
+					sendId,
+					to,
+				});
 		}
-
-		if (documents) {
-			return messagesService.sendDocumentMessage({
-				files: documents,
-				body,
-				sendId,
-				to,
-			});
-		}
-
-		return messagesService.sendTextMessage({
-			body: body ?? '',
-			sendId,
-			to,
-		});
 	}
 
 	get serviceConfig(): ServiceConfig {

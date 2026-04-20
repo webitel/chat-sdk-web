@@ -24,6 +24,7 @@ export {
 
 export {
 	type IMessage, // Message class
+	MessageAttachmentType, // enum for message attachment kinds
 	type MessageHistorySearchParams,
 	type MessageHistorySearchResult,
 	type MessageModel, // Message backend response type
