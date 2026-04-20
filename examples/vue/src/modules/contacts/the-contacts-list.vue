@@ -131,11 +131,15 @@ function openChat(contact: IContact) {
 }
 
 async function sendMessage(contact: IContact) {
-	const body = window.prompt('Message text', 'Hello from contacts demo');
-	if (!body?.trim()) return;
+	const body = window
+		.prompt('Message text', 'Hello from contacts demo')
+		?.trim();
+	if (!body) return;
 
 	try {
-		await contact.sendTextMessage(body.trim());
+		await contact.sendMessage({
+			body,
+		});
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
 	}

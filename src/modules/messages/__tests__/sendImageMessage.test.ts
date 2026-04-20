@@ -40,7 +40,7 @@ const baseParams = (files: File | File[]): MessageSendImageParams => ({
 });
 
 describe('sendImageMessage', () => {
-	it('rejects when threadId is missing', async () => {
+	it('rejects when neither threadId nor contact.sub is provided', async () => {
 		const file = new File([], 'a.png', {
 			type: 'image/png',
 		});
@@ -52,9 +52,43 @@ describe('sendImageMessage', () => {
 		} as MessageSendImageParams;
 
 		await expect(sendImageMessage(serviceConfig, params)).rejects.toThrow(
-			'threadId is required to send an image message',
+			'to.threadId or to.contact.{sub,iss} is required to send an image message',
 		);
 		expect(mockUploadFiles).not.toHaveBeenCalled();
+	});
+
+	it('uses `sub:iss` as the upload key when threadId is absent', async () => {
+		const img = new File([], 'c.png', {
+			type: 'image/png',
+		});
+		mockUploadFiles.mockResolvedValue([
+			{
+				id: 2,
+				name: 'c.png',
+				size: 2,
+				mime: 'image/png',
+				shared: '/s/2',
+			},
+		]);
+		mockSendImageMessageApi.mockResolvedValue(
+			{} as MessageSendImageRawResponse,
+		);
+
+		const params: MessageSendImageParams = {
+			files: img,
+			to: {
+				contact: {
+					sub: 'contact-sub',
+					iss: 'contact-iss',
+				},
+			},
+		};
+
+		await sendImageMessage(serviceConfig, params);
+
+		expect(mockUploadFiles).toHaveBeenCalledWith('contact-sub:contact-iss', [
+			img,
+		]);
 	});
 
 	it('rejects when no files are provided', async () => {

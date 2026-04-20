@@ -6,15 +6,40 @@ import type {
 
 import type { ServiceConfigurable } from '../../configs';
 import type {
-	MessageSendTextParams,
+	MessageSendDocumentRawResponse,
+	MessageSendImageRawResponse,
 	MessageSendTextRawResponse,
 } from '../../messages/types/Message.types';
 
+/**
+ * Unified contact send-message params.
+ *
+ * - text-only message: pass `body`
+ * - document message (optionally with caption): pass `documents` + optional `body`
+ * - image message (optionally with caption): pass `images` + optional `body`
+ *
+ * `images` take precedence over `documents` when both are provided.
+ */
+interface ContactSendMessageParams {
+	body?: string;
+	documents?: File | readonly File[];
+	images?: File | readonly File[];
+}
+
+interface ContactSendMessageOptions {
+	sendId?: string;
+}
+
+type ContactSendMessageResponse =
+	| MessageSendTextRawResponse
+	| MessageSendDocumentRawResponse
+	| MessageSendImageRawResponse;
+
 interface IContact extends ContactModel, ServiceConfigurable {
-	sendTextMessage: (
-		body: string,
-		params?: Omit<MessageSendTextParams, 'body' | 'to'>,
-	) => Promise<MessageSendTextRawResponse>;
+	sendMessage: (
+		params: ContactSendMessageParams,
+		options?: ContactSendMessageOptions,
+	) => Promise<ContactSendMessageResponse>;
 }
 
 type ContactSearchResult = Omit<ContactSearchRawResult, 'items'> & {
@@ -26,5 +51,8 @@ export type {
 	ContactSearchParams,
 	ContactSearchRawResult,
 	ContactSearchResult,
+	ContactSendMessageOptions,
+	ContactSendMessageParams,
+	ContactSendMessageResponse,
 	IContact,
 };

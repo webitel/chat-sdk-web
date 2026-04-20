@@ -26,6 +26,9 @@ interface ThreadSendMessageParams {
 	body?: string;
 	documents?: File | readonly File[];
 	images?: File | readonly File[];
+}
+
+interface ThreadSendMessageOptions {
 	sendId?: string;
 }
 
@@ -43,6 +46,7 @@ interface IThread extends ThreadModel, ServiceConfigurable {
 
 	sendMessage: (
 		params: ThreadSendMessageParams,
+		options?: ThreadSendMessageOptions,
 	) => Promise<ThreadSendMessageResponse>;
 }
 
@@ -56,6 +60,7 @@ export type {
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,
+	ThreadSendMessageOptions,
 	ThreadSendMessageParams,
 	ThreadSendMessageResponse,
 };

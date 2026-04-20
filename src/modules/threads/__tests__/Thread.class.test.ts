@@ -65,10 +65,14 @@ describe('createThread', () => {
 			serviceConfig,
 		});
 
-		await thread.sendMessage({
-			body: 'hi',
-			sendId: 'client-msg-1',
-		});
+		await thread.sendMessage(
+			{
+				body: 'hi',
+			},
+			{
+				sendId: 'client-msg-1',
+			},
+		);
 
 		expect(mockSendTextMessage).toHaveBeenCalledWith({
 			body: 'hi',
@@ -89,11 +93,15 @@ describe('createThread', () => {
 			type: 'application/pdf',
 		});
 
-		await thread.sendMessage({
-			documents: file,
-			body: 'see attached',
-			sendId: 'client-doc-1',
-		});
+		await thread.sendMessage(
+			{
+				documents: file,
+				body: 'see attached',
+			},
+			{
+				sendId: 'client-doc-1',
+			},
+		);
 
 		expect(mockSendDocumentMessage).toHaveBeenCalledWith({
 			files: file,

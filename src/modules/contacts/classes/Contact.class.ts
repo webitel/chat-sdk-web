@@ -1,6 +1,12 @@
 import type { ServiceConfig } from '../../configs';
-import { type MessageSendTextParams, useMessagesService } from '../../messages';
-import type { ContactModel, IContact } from '../types/Contact.types';
+import { useMessagesService } from '../../messages';
+import type {
+	ContactModel,
+	ContactSendMessageOptions,
+	ContactSendMessageParams,
+	ContactSendMessageResponse,
+	IContact,
+} from '../types/Contact.types';
 
 class Contact implements IContact {
 	private readonly _serviceConfig: ServiceConfig;
@@ -19,19 +25,40 @@ class Contact implements IContact {
 		this._serviceConfig = serviceConfig;
 	}
 
-	async sendTextMessage(
-		body: string,
-		params: Omit<MessageSendTextParams, 'body' | 'to'> = {},
-	) {
-		return useMessagesService(this.serviceConfig).sendTextMessage({
-			...params,
-			body,
-			to: {
-				contact: {
-					sub: this.sub,
-					iss: this.iss,
-				},
+	async sendMessage(
+		{ body, documents, images }: ContactSendMessageParams,
+		{ sendId }: ContactSendMessageOptions = {},
+	): Promise<ContactSendMessageResponse> {
+		const messagesService = useMessagesService(this.serviceConfig);
+		const to = {
+			contact: {
+				sub: this.sub,
+				iss: this.iss,
 			},
+		};
+
+		if (images) {
+			return messagesService.sendImageMessage({
+				files: images,
+				body,
+				sendId,
+				to,
+			});
+		}
+
+		if (documents) {
+			return messagesService.sendDocumentMessage({
+				files: documents,
+				body,
+				sendId,
+				to,
+			});
+		}
+
+		return messagesService.sendTextMessage({
+			body: body ?? '',
+			sendId,
+			to,
 		});
 	}
 

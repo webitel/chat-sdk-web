@@ -41,7 +41,7 @@ const baseParams = (files: File | File[]): MessageSendDocumentParams => ({
 });
 
 describe('sendDocumentMessage', () => {
-	it('rejects when threadId is missing', async () => {
+	it('rejects when neither threadId nor contact.sub is provided', async () => {
 		const file = new File([], 'a.pdf', {
 			type: 'application/pdf',
 		});
@@ -53,9 +53,43 @@ describe('sendDocumentMessage', () => {
 		} as MessageSendDocumentParams;
 
 		await expect(sendDocumentMessage(serviceConfig, params)).rejects.toThrow(
-			'threadId is required to send a document message',
+			'to.threadId or to.contact.{sub,iss} is required to send a document message',
 		);
 		expect(mockUploadFiles).not.toHaveBeenCalled();
+	});
+
+	it('uses `sub:iss` as the upload key when threadId is absent', async () => {
+		const file = new File([], 'c.pdf', {
+			type: 'application/pdf',
+		});
+		mockUploadFiles.mockResolvedValue([
+			{
+				id: 1,
+				name: 'c.pdf',
+				size: 1,
+				mime: 'application/pdf',
+				shared: '/s/1',
+			},
+		]);
+		mockSendDocumentMessageApi.mockResolvedValue(
+			{} as MessageSendDocumentRawResponse,
+		);
+
+		const params: MessageSendDocumentParams = {
+			files: file,
+			to: {
+				contact: {
+					sub: 'contact-sub',
+					iss: 'contact-iss',
+				},
+			},
+		};
+
+		await sendDocumentMessage(serviceConfig, params);
+
+		expect(mockUploadFiles).toHaveBeenCalledWith('contact-sub:contact-iss', [
+			file,
+		]);
 	});
 
 	it('rejects when no files are provided', async () => {

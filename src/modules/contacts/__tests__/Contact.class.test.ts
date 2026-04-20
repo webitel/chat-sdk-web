@@ -42,12 +42,13 @@ describe('createContact', () => {
 		expect(contact.serviceConfig).toBe(serviceConfig);
 	});
 
-	it('routes sendTextMessage through the messages service with contact peer', async () => {
+	it('routes sendMessage through the messages service with contact peer', async () => {
 		const contact = createContact(rawContact, {
 			serviceConfig,
 		});
 
-		await contact.sendTextMessage('ping', {
+		await contact.sendMessage({
+			body: 'ping',
 			sendId: 'c1',
 		});
 
@@ -55,6 +56,25 @@ describe('createContact', () => {
 		expect(mockSendTextMessage).toHaveBeenCalledWith({
 			body: 'ping',
 			sendId: 'c1',
+			to: {
+				contact: {
+					sub: 'contact-sub',
+					iss: 'contact-iss',
+				},
+			},
+		});
+	});
+
+	it('defaults body to empty string when omitted', async () => {
+		const contact = createContact(rawContact, {
+			serviceConfig,
+		});
+
+		await contact.sendMessage({});
+
+		expect(mockSendTextMessage).toHaveBeenCalledWith({
+			body: '',
+			sendId: undefined,
 			to: {
 				contact: {
 					sub: 'contact-sub',

@@ -6,6 +6,7 @@ import {
 import type {
 	IThread,
 	ThreadModel,
+	ThreadSendMessageOptions,
 	ThreadSendMessageParams,
 	ThreadSendMessageResponse,
 } from '../types/Thread.types';
@@ -33,12 +34,10 @@ class Thread implements IThread {
 		);
 	}
 
-	async sendMessage({
-		body,
-		documents,
-		images,
-		sendId,
-	}: ThreadSendMessageParams): Promise<ThreadSendMessageResponse> {
+	async sendMessage(
+		{ body, documents, images }: ThreadSendMessageParams,
+		{ sendId }: ThreadSendMessageOptions = {},
+	): Promise<ThreadSendMessageResponse> {
 		const messagesService = useMessagesService(this.serviceConfig);
 		const to = {
 			threadId: this.id,
