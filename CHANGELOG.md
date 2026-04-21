@@ -1,5 +1,16 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.11] - 2026-04-21
+
+### Breaking changes
+
+- `Message` model: `{ document: { body, document } }` → `{ body, documents: [] }`, same for `images`
+
+### Internals
+
+- up `@webitel/api-services`
+- internals refactors according to Message model changes
+
 ## [0.0.10] - 2026-04-17
 
 ### Breaking changes
