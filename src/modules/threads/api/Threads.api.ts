@@ -44,18 +44,15 @@ export const getThreadsService = ({ axiosInstance }: ServiceConfig) => {
 		): Promise<ThreadAddMemberResponse> => {
 			const response = await axiosInstance.post(
 				`/v1/threads/${threadId}/members`,
-				undefined,
+				{},
 				{
-					params: applyTransform(
-						{
-							contactSub: contact.sub,
-							contactIss: contact.iss,
-							role,
+					params: {
+						member: {
+							sub: contact.sub,
+							iss: contact.iss,
 						},
-						[
-							camelToSnake(),
-						],
-					),
+						role,
+					},
 				},
 			);
 			return applyTransform(response.data, [
