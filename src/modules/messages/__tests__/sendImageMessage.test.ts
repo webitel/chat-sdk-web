@@ -138,18 +138,15 @@ describe('sendImageMessage', () => {
 			to: {
 				threadId: 'thread-img',
 			},
-			image: {
-				body: 'look at this',
-				images: [
-					{
-						id: '55',
-						mimeType: 'image/png',
-						name: 'cap.png',
-					},
-				],
-			},
+			body: 'look at this',
+			images: [
+				{
+					id: '55',
+					mimeType: 'image/png',
+					name: 'cap.png',
+				},
+			],
 		});
-		expect(call).not.toHaveProperty('body');
 		expect(call).not.toHaveProperty('files');
 	});
 
@@ -182,15 +179,13 @@ describe('sendImageMessage', () => {
 		expect(mockSendImageMessageApi).toHaveBeenCalledWith(
 			expect.objectContaining({
 				...expectedRest,
-				image: {
-					images: [
-						{
-							id: '99',
-							mimeType: 'image/png',
-							name: 'pic.png',
-						},
-					],
-				},
+				images: [
+					{
+						id: '99',
+						mimeType: 'image/png',
+						name: 'pic.png',
+					},
+				],
 			}),
 		);
 		expect(mockSendImageMessageApi.mock.calls[0][0]).not.toHaveProperty(

@@ -32,10 +32,8 @@ const sendDocumentMessage = async (
 
 	return messagesService.sendDocumentMessage({
 		...rest,
-		document: {
-			body,
-			documents: uploadedDocuments,
-		},
+		body,
+		documents: uploadedDocuments,
 	});
 };
 
