@@ -7,6 +7,11 @@ import type {
 /** Contact identity shape – derived from the member model's contact field. */
 type ThreadMemberContact = NonNullable<ThreadMemberModel['contact']>;
 
+interface IThreadMember extends ThreadMemberModel {
+	id: NonNullable<ThreadMemberModel['id']>;
+	removeFromThread: () => Promise<ThreadRemoveMemberResponse>;
+}
+
 /**
  * `POST /v1/threads/{threadId}/members`
  *
@@ -22,6 +27,7 @@ type ThreadAddMemberParams = Required<
 type ThreadRemoveMemberParams = Required<Pick<ThreadMemberModel, 'id'>>;
 
 export type {
+	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
 	ThreadMemberContact,

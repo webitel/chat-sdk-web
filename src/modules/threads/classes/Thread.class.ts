@@ -9,10 +9,12 @@ import type {
 	MessageSendParams,
 	MessageSendResponse,
 } from '../../messages/types/Message.types';
+import { createThreadMember } from '../modules/members/classes/ThreadMember.class';
 import { addMember } from '../modules/members/utils/addMember';
 import { removeMember } from '../modules/members/utils/removeMember';
 import type {
 	IThread,
+	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadModel,
 	ThreadRemoveMemberParams,
@@ -21,9 +23,12 @@ import type {
 class Thread implements IThread {
 	private readonly _serviceConfig: ServiceConfig;
 	id!: string;
+	members: IThreadMember[] = [];
 
 	constructor(
-		rawThread: ThreadModel,
+		rawThread: ThreadModel & {
+			members: IThreadMember[];
+		},
 		{
 			serviceConfig,
 		}: {
@@ -95,7 +100,19 @@ export function createThread(
 		serviceConfig: ServiceConfig;
 	},
 ): IThread {
-	return new Thread(rawThread, {
-		serviceConfig,
-	});
+	const members = (rawThread.members ?? []).map((rawMember) =>
+		createThreadMember(rawMember, {
+			serviceConfig,
+			threadId: rawThread.id!,
+		}),
+	);
+	return new Thread(
+		{
+			...rawThread,
+			members,
+		},
+		{
+			serviceConfig,
+		},
+	);
 }

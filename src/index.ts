@@ -41,6 +41,7 @@ export {
 } from './modules/socket';
 export {
 	type IThread, // Thread class
+	type IThreadMember, // ThreadMember class
 	type ThreadAddMemberParams,
 	type ThreadMemberContact,
 	type ThreadMemberModel,

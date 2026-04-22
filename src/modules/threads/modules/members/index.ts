@@ -1,5 +1,7 @@
+export { createThreadMember } from './classes/ThreadMember.class';
 export { ThreadMemberRole } from './enums/ThreadMemberRole.enum';
 export type {
+	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
 	ThreadMemberContact,
