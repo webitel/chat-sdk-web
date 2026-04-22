@@ -1,13 +1,13 @@
-import mitt from 'mitt';
 import {
 	applyTransform,
 	snakeToCamel,
 } from '@webitel/api-services/api/transformers';
+import mitt from 'mitt';
 
-import { EventPayload } from '../../../gen/ws/EventPayload';
+import type { EventPayload } from '../../../gen/ws/EventPayload';
 import type { ServiceConfig, SocketConfig } from '../../configs';
-import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
+import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
 import type {
 	ChatsSocketConnectionStatePayloadMap,
@@ -80,6 +80,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 			this.ws.onopen = () => {
 				this.setConnectionState(ChatsSocketConnectionStatus.Connected);
+				// biome-ignore lint/style/noNonNullAssertion: open -> exists
 				this.ws!.send(
 					JSON.stringify({
 						'x-webitel-access': this.socketConfig.accessToken,

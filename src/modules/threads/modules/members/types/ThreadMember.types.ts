@@ -1,7 +1,7 @@
 import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
-	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
 	WebitelImApiGatewayV1ThreadMember as ThreadMemberModel,
+	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
 } from '@webitel/api-services/gen/models';
 
 /** Contact identity shape – derived from the member model's contact field. */

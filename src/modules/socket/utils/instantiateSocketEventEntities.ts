@@ -1,14 +1,13 @@
-import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import type { ServiceConfig } from '../../configs';
 
 import { createMessage } from '../../messages/classes/Message.class';
-import { createThread } from '../../threads/classes/Thread.class';
-import type { ServiceConfig } from '../../configs';
 import type {
 	IMessage,
 	MessageModel,
 } from '../../messages/types/Message.types';
-import type { IThread } from '../../threads/types/Thread.types';
-import type { ThreadModel } from '../../threads/types/Thread.types';
+import { createThread } from '../../threads/classes/Thread.class';
+import type { IThread, ThreadModel } from '../../threads/types/Thread.types';
+import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 
 export function instantiateSocketEventEntities(
 	args:
