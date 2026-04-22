@@ -5,7 +5,7 @@ import type {
 	ThreadRemoveMemberResponse,
 } from '../types/ThreadMember.types';
 
-/** Raw `DELETE /v1/threads/{threadId}/members` */
+/** Raw `DELETE /v1/threads/{threadId}/members/{memberId}` */
 const removeMember =
 	(config: ServiceConfig) =>
 	async (

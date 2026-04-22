@@ -38,10 +38,9 @@ export const getThreadMembersService = ({ axiosInstance }: ServiceConfig) => ({
 	},
 
 	/**
-	 * `DELETE /v1/threads/{threadId}/members`
+	 * `DELETE /v1/threads/{threadId}/members/{memberId}`
 	 *
-	 * Identifies the member to remove via `contact_sub` / `contact_iss`
-	 * query params (no memberId path segment).
+	 * Identifies the member to remove via the `memberId` path segment.
 	 */
 	removeMember: async (
 		threadId: string,

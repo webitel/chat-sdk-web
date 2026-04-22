@@ -18,7 +18,7 @@ type ThreadAddMemberParams = Required<
 	Pick<ThreadMemberModel, 'contact' | 'role'>
 >;
 
-/** `DELETE /v1/threads/{threadId}/members` */
+/** `DELETE /v1/threads/{threadId}/members/{memberId}` */
 type ThreadRemoveMemberParams = Required<Pick<ThreadMemberModel, 'id'>>;
 
 export type {
