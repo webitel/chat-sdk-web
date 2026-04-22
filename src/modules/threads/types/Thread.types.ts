@@ -1,7 +1,7 @@
 import type {
-	WebitelImApiGatewayV1Thread,
 	ThreadManagementSearchParams as ThreadSearchParams,
 	WebitelImApiGatewayV1SearchThreadResponse as ThreadSearchRawResult,
+	WebitelImApiGatewayV1Thread,
 } from '@webitel/api-services/gen/models';
 
 import type { ServiceConfigurable } from '../../configs';
