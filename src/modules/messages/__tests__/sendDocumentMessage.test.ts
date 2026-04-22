@@ -161,22 +161,20 @@ describe('sendDocumentMessage', () => {
 		expect(mockSendDocumentMessageApi).toHaveBeenCalledWith(
 			expect.objectContaining({
 				...expectedRest,
-				document: {
-					documents: [
-						{
-							fileName: 'one.pdf',
-							id: '10',
-							mimeType: 'application/pdf',
-							sizeBytes: '1',
-						},
-						{
-							fileName: 'two.pdf',
-							id: '20',
-							mimeType: 'application/pdf',
-							sizeBytes: '1',
-						},
-					],
-				},
+				documents: [
+					{
+						fileName: 'one.pdf',
+						id: '10',
+						mimeType: 'application/pdf',
+						sizeBytes: '1',
+					},
+					{
+						fileName: 'two.pdf',
+						id: '20',
+						mimeType: 'application/pdf',
+						sizeBytes: '1',
+					},
+				],
 			}),
 		);
 		expect(mockSendDocumentMessageApi.mock.calls[0][0]).not.toHaveProperty(
@@ -217,19 +215,16 @@ describe('sendDocumentMessage', () => {
 			to: {
 				threadId: 'thread-doc',
 			},
-			document: {
-				body: 'see attached',
-				documents: [
-					{
-						fileName: 'cap.pdf',
-						id: '7',
-						mimeType: 'application/pdf',
-						sizeBytes: '2',
-					},
-				],
-			},
+			body: 'see attached',
+			documents: [
+				{
+					fileName: 'cap.pdf',
+					id: '7',
+					mimeType: 'application/pdf',
+					sizeBytes: '2',
+				},
+			],
 		});
-		expect(call).not.toHaveProperty('body');
 		expect(call).not.toHaveProperty('files');
 	});
 

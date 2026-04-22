@@ -31,10 +31,8 @@ const sendImageMessage = async (
 
 	return messagesService.sendImageMessage({
 		...rest,
-		image: {
-			body,
-			images: uploadedImages,
-		},
+		body,
+		images: uploadedImages,
 	});
 };
 
