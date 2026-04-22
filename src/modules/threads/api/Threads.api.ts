@@ -10,21 +10,19 @@ import type {
 	ThreadSearchRawResult,
 } from '../types/Thread.types';
 
-export const getThreadsService = ({ axiosInstance }: ServiceConfig) => {
-	return {
-		getThreadsList: async (
-			params: ThreadSearchParams = {},
-		): Promise<ThreadSearchRawResult> => {
-			const transformedParams = applyTransform(params, [
-				camelToSnake(),
-			]);
+export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
+	getThreadsList: async (
+		params: ThreadSearchParams = {},
+	): Promise<ThreadSearchRawResult> => {
+		const transformedParams = applyTransform(params, [
+			camelToSnake(),
+		]);
 
-			const response = await axiosInstance.get('/v1/threads', {
-				params: transformedParams,
-			});
-			return applyTransform(response.data, [
-				snakeToCamel(),
-			]);
-		},
-	};
-};
+		const response = await axiosInstance.get('/v1/threads', {
+			params: transformedParams,
+		});
+		return applyTransform(response.data, [
+			snakeToCamel(),
+		]);
+	},
+});

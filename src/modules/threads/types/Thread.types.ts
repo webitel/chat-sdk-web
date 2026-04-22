@@ -10,6 +10,14 @@ import type {
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
 } from '../../messages/types/Message.types';
+import type {
+	ThreadAddMemberParams,
+	ThreadAddMemberResponse,
+	ThreadMemberContact,
+	ThreadMemberModel,
+	ThreadRemoveMemberParams,
+	ThreadRemoveMemberResponse,
+} from '../modules/members/types/ThreadMember.types';
 
 interface IThread extends ThreadModel, ServiceConfigurable, IMessageSender {
 	id: string;
@@ -17,6 +25,14 @@ interface IThread extends ThreadModel, ServiceConfigurable, IMessageSender {
 	fetchMessageHistory: (
 		params?: MessageHistorySearchParams,
 	) => Promise<MessageHistorySearchResult>;
+
+	addMember: (
+		params: ThreadAddMemberParams,
+	) => Promise<ThreadAddMemberResponse>;
+
+	removeMember: (
+		params: ThreadRemoveMemberParams,
+	) => Promise<ThreadRemoveMemberResponse>;
 }
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
@@ -25,7 +41,13 @@ type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
 
 export type {
 	IThread,
+	ThreadAddMemberParams,
+	ThreadAddMemberResponse,
+	ThreadMemberContact,
+	ThreadMemberModel,
 	ThreadModel,
+	ThreadRemoveMemberParams,
+	ThreadRemoveMemberResponse,
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,

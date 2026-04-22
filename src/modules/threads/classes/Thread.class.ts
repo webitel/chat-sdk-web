@@ -9,7 +9,14 @@ import type {
 	MessageSendParams,
 	MessageSendResponse,
 } from '../../messages/types/Message.types';
-import type { IThread, ThreadModel } from '../types/Thread.types';
+import { addMember } from '../modules/members/utils/addMember';
+import { removeMember } from '../modules/members/utils/removeMember';
+import type {
+	IThread,
+	ThreadAddMemberParams,
+	ThreadModel,
+	ThreadRemoveMemberParams,
+} from '../types/Thread.types';
 
 class Thread implements IThread {
 	private readonly _serviceConfig: ServiceConfig;
@@ -65,6 +72,14 @@ class Thread implements IThread {
 					to,
 				});
 		}
+	}
+
+	async addMember(params: ThreadAddMemberParams) {
+		return addMember(this.serviceConfig)(this.id, params);
+	}
+
+	async removeMember(params: ThreadRemoveMemberParams) {
+		return removeMember(this.serviceConfig)(this.id, params);
 	}
 
 	get serviceConfig(): ServiceConfig {

@@ -34,6 +34,11 @@
         </div>
       </div>
 
+      <ThreadMembers
+        v-if="activeThread"
+        :thread="activeThread"
+      />
+
       <div
         ref="messagesEl"
         class="messages"
@@ -81,13 +86,14 @@
 >
 import { computed, nextTick, ref, watch } from 'vue';
 
-import type { IMessage } from '@webitel/chat-web-sdk';
+import type { IMessage, IThread } from '@webitel/chat-web-sdk';
 import type {
 	ChatSendParams,
 	ChatTarget,
 } from '../composables/use-active-chat';
 import MessageBubble from './message-bubble.vue';
 import MessageInput from './message-input.vue';
+import ThreadMembers from './thread-members.vue';
 
 const props = defineProps<{
 	activeChat: ChatTarget | null;
@@ -105,6 +111,10 @@ defineEmits<{
 }>();
 
 const messagesEl = ref<HTMLElement | null>(null);
+
+const activeThread = computed<IThread | null>(() =>
+	props.activeChat?.kind === 'thread' ? props.activeChat.item : null,
+);
 
 const chatTitle = computed(() => {
 	if (!props.activeChat) return '';
