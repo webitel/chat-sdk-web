@@ -4,7 +4,6 @@ export type {
 	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
-	ThreadMemberContact,
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,

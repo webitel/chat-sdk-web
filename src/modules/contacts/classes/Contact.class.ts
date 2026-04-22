@@ -1,5 +1,5 @@
 import type { ServiceConfig } from '../../configs';
-import { useMessagesService } from '../../messages';
+import { type IMessagesService, useMessagesService } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	MessageSendOptions,
@@ -10,8 +10,9 @@ import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
 	private readonly _serviceConfig: ServiceConfig;
-	sub!: string;
-	iss!: string;
+	private readonly _messagesService: IMessagesService;
+	readonly sub;
+	readonly iss;
 
 	constructor(
 		rawContact: ContactModel,
@@ -21,15 +22,19 @@ class Contact implements IContact {
 			serviceConfig: ServiceConfig;
 		},
 	) {
-		Object.assign(this, rawContact);
 		this._serviceConfig = serviceConfig;
+		this._messagesService = useMessagesService(serviceConfig);
+
+		const { sub, iss, ...rest } = rawContact;
+		Object.assign(this, rest);
+		this.sub = sub;
+		this.iss = iss;
 	}
 
 	async sendMessage(
 		{ body, attachments }: MessageSendParams,
 		{ sendId }: MessageSendOptions = {},
 	): Promise<MessageSendResponse> {
-		const messagesService = useMessagesService(this.serviceConfig);
 		const to = {
 			contact: {
 				sub: this.sub,
@@ -39,21 +44,21 @@ class Contact implements IContact {
 
 		switch (attachments?.type) {
 			case MessageAttachmentType.Images:
-				return messagesService.sendImageMessage({
+				return this.messagesService.sendImageMessage({
 					files: attachments.files,
 					body,
 					sendId,
 					to,
 				});
 			case MessageAttachmentType.Documents:
-				return messagesService.sendDocumentMessage({
+				return this.messagesService.sendDocumentMessage({
 					files: attachments.files,
 					body,
 					sendId,
 					to,
 				});
 			default:
-				return messagesService.sendTextMessage({
+				return this.messagesService.sendTextMessage({
 					body: body ?? '',
 					sendId,
 					to,
@@ -63,6 +68,10 @@ class Contact implements IContact {
 
 	get serviceConfig(): ServiceConfig {
 		return this._serviceConfig;
+	}
+
+	get messagesService(): IMessagesService {
+		return this._messagesService;
 	}
 }
 

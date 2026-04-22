@@ -1,17 +1,17 @@
 import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
 	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
-	WebitelImApiGatewayV1ThreadMember,
+	WebitelImApiGatewayV1ThreadMember as ThreadMemberRawModel,
 } from '@webitel/api-services/gen/models';
 
-import type { IContact } from '../../../../contacts/types/Contact.types';
+import type {
+	ContactModel,
+	IContact,
+} from '../../../../contacts/types/Contact.types';
 
-/** Contact identity shape – derived from the member model's contact field. */
-type ThreadMemberContact = NonNullable<ThreadMemberModel['contact']>;
-
-type ThreadMemberModel = WebitelImApiGatewayV1ThreadMember & {
-	id: NonNullable<WebitelImApiGatewayV1ThreadMember['id']>;
-	contact: IContact;
+type ThreadMemberModel = ThreadMemberRawModel & {
+	id: NonNullable<ThreadMemberRawModel['id']>;
+	contact: ContactModel;
 };
 
 interface IThreadMember extends Omit<ThreadMemberModel, 'contact'> {
@@ -20,13 +20,6 @@ interface IThreadMember extends Omit<ThreadMemberModel, 'contact'> {
 	removeFromThread: () => Promise<ThreadRemoveMemberResponse>;
 }
 
-/**
- * `POST /v1/threads/{threadId}/members`
- *
- * `contact` is required; `role` is optional — both picked from `ThreadMemberModel`.
- * The contact shape (`{ sub, iss, ... }`) is structurally satisfied by `IContact`.
- * Flattened to `contact_sub` / `contact_iss` query params by the API layer.
- */
 type ThreadAddMemberParams = Required<
 	Pick<ThreadMemberModel, 'contact' | 'role'>
 >;
@@ -38,7 +31,6 @@ export type {
 	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
-	ThreadMemberContact,
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,

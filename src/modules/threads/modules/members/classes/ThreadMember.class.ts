@@ -1,7 +1,6 @@
 import type { ServiceConfig } from '../../../../configs';
 import { createContact } from '../../../../contacts/classes/Contact.class';
-import type { IContact } from '../../../../contacts/types/Contact.types';
-import type { IThread } from '../../../types/Thread.types';
+import type { ThreadModel } from '../../../types/Thread.types';
 import type {
 	IThreadMember,
 	ThreadMemberModel,
@@ -11,25 +10,29 @@ import { removeMember } from '../utils/removeMember';
 
 class ThreadMember implements IThreadMember {
 	private readonly _serviceConfig: ServiceConfig;
-	private readonly threadId: IThread['id'];
-	id!: NonNullable<ThreadMemberModel['id']>;
-	contact!: IContact;
+	private readonly _threadId: ThreadModel['id'];
+	id;
+	contact;
 
 	constructor(
-		raw: ThreadMemberModel & {
-			contact: IContact;
-		},
+		rawMember: ThreadMemberModel,
 		{
 			serviceConfig,
 			threadId,
 		}: {
 			serviceConfig: ServiceConfig;
-			threadId: IThread['id'];
+			threadId: ThreadModel['id'];
 		},
 	) {
-		Object.assign(this, raw);
 		this._serviceConfig = serviceConfig;
-		this.threadId = threadId;
+		this._threadId = threadId;
+
+		const { id, contact, ...rest } = rawMember;
+		Object.assign(this, rest);
+		this.id = id;
+		this.contact = createContact(contact, {
+			serviceConfig,
+		});
 	}
 
 	async removeFromThread(): Promise<ThreadRemoveMemberResponse> {
@@ -37,29 +40,24 @@ class ThreadMember implements IThreadMember {
 			id: this.id,
 		});
 	}
+
+	get threadId(): ThreadModel['id'] {
+		return this._threadId;
+	}
 }
 
 export function createThreadMember(
-	raw: ThreadMemberModel,
+	rawMember: ThreadMemberModel,
 	{
 		serviceConfig,
 		threadId,
 	}: {
 		serviceConfig: ServiceConfig;
-		threadId: IThread['id'];
+		threadId: ThreadModel['id'];
 	},
 ): IThreadMember {
-	const contact = createContact(raw.contact, {
+	return new ThreadMember(rawMember, {
 		serviceConfig,
+		threadId,
 	});
-	return new ThreadMember(
-		{
-			...raw,
-			contact,
-		},
-		{
-			serviceConfig,
-			threadId,
-		},
-	);
 }

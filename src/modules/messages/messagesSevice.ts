@@ -14,7 +14,7 @@ import { sendDocumentMessage } from './utils/sendDocumentMessage';
 import { sendImageMessage } from './utils/sendImageMessage';
 import { sendTextMessage } from './utils/sendTextMessage';
 
-interface IMessagesService {
+export interface IMessagesService {
 	fetchMessageHistory: (
 		threadId: string,
 		params?: MessageHistorySearchParams,

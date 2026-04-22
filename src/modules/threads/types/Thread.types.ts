@@ -1,7 +1,7 @@
 import type {
 	ThreadManagementSearchParams as ThreadSearchParams,
 	WebitelImApiGatewayV1SearchThreadResponse as ThreadSearchRawResult,
-	WebitelImApiGatewayV1Thread,
+	WebitelImApiGatewayV1Thread as ThreadRawModel,
 } from '@webitel/api-services/gen/models';
 
 import type { ServiceConfigurable } from '../../configs';
@@ -14,21 +14,20 @@ import type {
 	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
-	ThreadMemberContact,
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
 } from '../modules/members/types/ThreadMember.types';
 
-type ThreadModel = WebitelImApiGatewayV1Thread & {
-	id: NonNullable<WebitelImApiGatewayV1Thread['id']>;
+type ThreadModel = ThreadRawModel & {
+	id: NonNullable<ThreadRawModel['id']>;
 };
 
 interface IThread
 	extends Omit<ThreadModel, 'members'>,
 		ServiceConfigurable,
 		IMessageSender {
-	id: NonNullable<ThreadModel['id']>;
+	id: ThreadModel['id'];
 	members: IThreadMember[];
 
 	fetchMessageHistory: (
@@ -53,7 +52,6 @@ export type {
 	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
-	ThreadMemberContact,
 	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,

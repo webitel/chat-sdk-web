@@ -2,7 +2,7 @@ import type { ServiceConfig } from '../../configs';
 import { getContactsService } from '../api/Contacts.api';
 import { createContact } from '../classes/Contact.class';
 import type {
-	ContactModel,
+	ContactRawModel,
 	ContactSearchParams,
 	ContactSearchRawResult,
 	ContactSearchResult,
@@ -17,7 +17,7 @@ const fetchRawContacts =
 	};
 
 const instantiateContacts = (
-	rawContacts: ContactModel[],
+	rawContacts: ContactRawModel[],
 	{
 		serviceConfig,
 	}: {

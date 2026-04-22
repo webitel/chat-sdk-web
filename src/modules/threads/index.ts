@@ -5,7 +5,6 @@ export type {
 	IThread,
 	IThreadMember,
 	ThreadAddMemberParams,
-	ThreadMemberContact,
 	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,
