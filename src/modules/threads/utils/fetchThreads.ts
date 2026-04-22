@@ -51,4 +51,20 @@ const fetchThreads = async (
 	};
 };
 
-export { fetchRawThreads, fetchThreads };
+const getRawThread =
+	(config: ServiceConfig) =>
+	async (threadId: string): Promise<ThreadModel> => {
+		return getThreadsService(config).getThread(threadId);
+	};
+
+const fetchThread = async (
+	config: ServiceConfig,
+	threadId: string,
+): Promise<IThread> => {
+	const rawThread = await getRawThread(config)(threadId);
+	return createThread(rawThread, {
+		serviceConfig: config,
+	});
+};
+
+export { fetchRawThreads, fetchThread, fetchThreads, getRawThread };
