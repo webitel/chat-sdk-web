@@ -48,6 +48,6 @@ export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
 		]);
 		const thread = result.items?.[0];
 		if (!thread) throw new Error(`Thread not found: ${threadId}`);
-		return thread;
+		return thread as ThreadModel;
 	},
 });

@@ -103,7 +103,7 @@ export function createThread(
 	const members = (rawThread.members ?? []).map((rawMember) =>
 		createThreadMember(rawMember, {
 			serviceConfig,
-			threadId: rawThread.id!,
+			threadId: rawThread.id,
 		}),
 	);
 	return new Thread(

@@ -1,5 +1,5 @@
 import type {
-	WebitelImApiGatewayV1Thread as ThreadModel,
+	WebitelImApiGatewayV1Thread,
 	ThreadManagementSearchParams as ThreadSearchParams,
 	WebitelImApiGatewayV1SearchThreadResponse as ThreadSearchRawResult,
 } from '@webitel/api-services/gen/models';
@@ -19,6 +19,10 @@ import type {
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
 } from '../modules/members/types/ThreadMember.types';
+
+type ThreadModel = WebitelImApiGatewayV1Thread & {
+	id: NonNullable<WebitelImApiGatewayV1Thread['id']>;
+};
 
 interface IThread
 	extends Omit<ThreadModel, 'members'>,
