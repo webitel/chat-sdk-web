@@ -1,11 +1,11 @@
-export type SocketConfigInputSchema = {
+import type { Config } from '../types/Config.types';
+export interface SocketConfigInputSchema extends Config {
 	baseUrl: string;
-	accessToken: string | (() => string) | (() => Promise<string>);
-};
+}
 
 export class SocketConfig implements SocketConfigInputSchema {
-	baseUrl: string;
-	accessToken: string | (() => string) | (() => Promise<string>);
+	accessToken;
+	baseUrl;
 
 	constructor({ baseUrl, accessToken }: SocketConfigInputSchema) {
 		this.baseUrl = baseUrl;

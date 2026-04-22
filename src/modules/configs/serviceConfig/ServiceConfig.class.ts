@@ -1,14 +1,14 @@
 import axios, { type AxiosInstance } from 'axios';
 import * as qs from 'qs-esm';
 
-export type ServiceConfigInputSchema = {
+import type { Config } from '../types/Config.types';
+export interface ServiceConfigInputSchema extends Config {
 	baseUrl: string;
-	accessToken: string | (() => string) | (() => Promise<string>);
-};
+}
 
 export class ServiceConfig implements ServiceConfigInputSchema {
-	baseUrl: string;
-	accessToken: string | (() => string) | (() => Promise<string>);
+	baseUrl;
+	accessToken;
 
 	axiosInstance: AxiosInstance;
 
