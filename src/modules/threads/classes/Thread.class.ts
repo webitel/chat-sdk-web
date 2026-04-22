@@ -16,6 +16,7 @@ import type {
 	IThread,
 	IThreadMember,
 	ThreadAddMemberParams,
+	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,
 } from '../types/Thread.types';
@@ -101,7 +102,7 @@ export function createThread(
 	},
 ): IThread {
 	const members = (rawThread.members ?? []).map((rawMember) =>
-		createThreadMember(rawMember, {
+		createThreadMember(rawMember as ThreadMemberModel, {
 			serviceConfig,
 			threadId: rawThread.id,
 		}),

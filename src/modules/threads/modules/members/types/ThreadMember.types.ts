@@ -1,7 +1,7 @@
 import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
-	WebitelImApiGatewayV1ThreadMember,
 	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
+	WebitelImApiGatewayV1ThreadMember,
 } from '@webitel/api-services/gen/models';
 
 import type { IContact } from '../../../../contacts/types/Contact.types';

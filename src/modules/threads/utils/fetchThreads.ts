@@ -45,15 +45,20 @@ const fetchThreads = async (
 	const rawThreadsResponse = await fetchRawThreads(config)(params);
 	return {
 		...rawThreadsResponse,
-		items: instantiateThreads(rawThreadsResponse.items ?? [], {
-			serviceConfig: config,
-		}),
+		items: instantiateThreads(
+			(rawThreadsResponse.items ?? []) as ThreadModel[],
+			{
+				serviceConfig: config,
+			},
+		),
 	};
 };
 
 const getRawThread =
 	(config: ServiceConfig) =>
-	async (threadId: string): Promise<ThreadModel> => {
+	async (
+		threadId: string,
+	): Promise<NonNullable<ThreadSearchRawResult['items']>[number]> => {
 		return getThreadsService(config).getThread(threadId);
 	};
 
@@ -62,7 +67,7 @@ const fetchThread = async (
 	threadId: string,
 ): Promise<IThread> => {
 	const rawThread = await getRawThread(config)(threadId);
-	return createThread(rawThread, {
+	return createThread(rawThread as ThreadModel, {
 		serviceConfig: config,
 	});
 };
