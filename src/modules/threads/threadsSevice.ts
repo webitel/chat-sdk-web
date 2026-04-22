@@ -2,6 +2,7 @@ import type { ServiceConfig } from '../configs';
 import { addMember } from './modules/members/utils/addMember';
 import { removeMember } from './modules/members/utils/removeMember';
 import type {
+	IThread,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
 	ThreadRemoveMemberParams,
@@ -9,9 +10,10 @@ import type {
 	ThreadSearchParams,
 	ThreadSearchResult,
 } from './types/Thread.types';
-import { fetchThreads } from './utils/fetchThreads';
+import { fetchThread, fetchThreads } from './utils/fetchThreads';
 
 interface IThreadsService {
+	fetchThread: (threadId: string) => Promise<IThread>;
 	fetchThreads: (params?: ThreadSearchParams) => Promise<ThreadSearchResult>;
 	addMember: (
 		threadId: string,
@@ -25,6 +27,7 @@ interface IThreadsService {
 
 export function useThreadsService(config: ServiceConfig): IThreadsService {
 	return {
+		fetchThread: (threadId: string) => fetchThread(config, threadId),
 		fetchThreads: (params?: ThreadSearchParams) =>
 			fetchThreads(config, params ?? {}),
 		addMember: (threadId: string, params: ThreadAddMemberParams) =>

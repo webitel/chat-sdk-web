@@ -9,6 +9,7 @@ vi.mock('../api/Threads.api', () => ({
 }));
 
 const mockGetThreadsList = vi.fn();
+const mockGetThread = vi.fn();
 
 const serviceConfig = createServiceConfig({
 	baseUrl: 'https://example.test',
@@ -18,6 +19,7 @@ const serviceConfig = createServiceConfig({
 beforeEach(() => {
 	vi.mocked(getThreadsService).mockReturnValue({
 		getThreadsList: mockGetThreadsList,
+		getThread: mockGetThread,
 	});
 	mockGetThreadsList.mockReset();
 });
