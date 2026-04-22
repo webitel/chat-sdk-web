@@ -23,6 +23,7 @@ describe('resolveUploadKey', () => {
 		).toBe('t-1');
 	});
 
+	// biome-ignore lint/suspicious/noTemplateCurlyInString: test naming
 	it('builds `${sub}:${iss}` for a contact peer', () => {
 		expect(
 			resolveUploadKey({

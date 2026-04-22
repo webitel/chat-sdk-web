@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-
-import { createServiceConfig } from '../../configs';
 import { ConnectedPayload } from '../../../gen/ws/ConnectedPayload';
 import { EventPayload } from '../../../gen/ws/EventPayload';
+import { createServiceConfig } from '../../configs';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 

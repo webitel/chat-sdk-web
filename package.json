@@ -27,7 +27,7 @@
 		"dist"
 	],
 	"devDependencies": {
-		"@biomejs/biome": "2.4.8",
+		"@biomejs/biome": "2.4.11",
 		"@types/lodash": "^4.17.24",
 		"@vitejs/plugin-vue": "^6.0.0",
 		"@webitel/api-services": "^0.1.13",
