@@ -9,14 +9,14 @@ import type {
 	MessageSendParams,
 	MessageSendResponse,
 } from '../../messages/types/Message.types';
+import { addMember } from '../modules/members/utils/addMember';
+import { removeMember } from '../modules/members/utils/removeMember';
 import type {
 	IThread,
 	ThreadAddMemberParams,
 	ThreadModel,
 	ThreadRemoveMemberParams,
 } from '../types/Thread.types';
-import { addMember } from '../utils/addMember';
-import { removeMember } from '../utils/removeMember';
 
 class Thread implements IThread {
 	private readonly _serviceConfig: ServiceConfig;

@@ -1,11 +1,11 @@
 export { createThread } from './classes/Thread.class';
-export { ThreadMemberRole } from './enums/ThreadMemberRole.enum';
+export { ThreadMemberRole } from './modules/members';
 export { useThreadsService } from './threadsSevice';
 export type {
 	IThread,
 	ThreadAddMemberParams,
-	ThreadMember,
 	ThreadMemberContact,
+	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,
 	ThreadSearchParams,

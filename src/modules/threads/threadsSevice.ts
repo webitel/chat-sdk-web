@@ -1,4 +1,6 @@
 import type { ServiceConfig } from '../configs';
+import { addMember } from './modules/members/utils/addMember';
+import { removeMember } from './modules/members/utils/removeMember';
 import type {
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
@@ -7,9 +9,7 @@ import type {
 	ThreadSearchParams,
 	ThreadSearchResult,
 } from './types/Thread.types';
-import { addMember } from './utils/addMember';
 import { fetchThreads } from './utils/fetchThreads';
-import { removeMember } from './utils/removeMember';
 
 interface IThreadsService {
 	fetchThreads: (params?: ThreadSearchParams) => Promise<ThreadSearchResult>;

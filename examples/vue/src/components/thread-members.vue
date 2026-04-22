@@ -149,10 +149,10 @@
   lang="ts"
 >
 import {
-	ThreadMemberRole,
 	type IContact,
 	type IThread,
-	type ThreadMember,
+	type ThreadMemberModel,
+	ThreadMemberRole,
 	useContactsService,
 } from '@webitel/chat-web-sdk';
 import { ref, watch } from 'vue';
@@ -165,7 +165,7 @@ const props = defineProps<{
 const { serviceConfig } = useSocket();
 
 const expanded = ref(false);
-const localMembers = ref<ThreadMember[]>([
+const localMembers = ref<ThreadMemberModel[]>([
 	...(props.thread.members ?? []),
 ]);
 const adding = ref(false);
@@ -208,17 +208,17 @@ watch(
 	},
 );
 
-function memberKey(m: ThreadMember) {
+function memberKey(m: ThreadMemberModel) {
 	return m.id ?? m.contact?.sub ?? '';
 }
 
-function memberDisplayName(m: ThreadMember) {
+function memberDisplayName(m: ThreadMemberModel) {
 	return (
 		m.contact?.name || m.contact?.username || m.contact?.sub || 'Unknown member'
 	);
 }
 
-function memberInitials(m: ThreadMember) {
+function memberInitials(m: ThreadMemberModel) {
 	return memberDisplayName(m)
 		.split(/\s+/)
 		.slice(0, 2)
@@ -236,16 +236,17 @@ function formatRole(role: string) {
 async function handleAdd() {
 	const sub = form.value.contactSub;
 	if (!sub || adding.value) return;
-	const contact = contacts.value.find((c) => c.sub === sub);
+	const contact = contacts.value.find((c) => c.sub === sub) ?? {
+		sub,
+	};
 	opError.value = null;
 	adding.value = true;
 	try {
 		const res = await props.thread.addMember({
-			contact: {
-				sub,
-				iss: contact?.iss || undefined,
-			},
-			role: (form.value.role as ThreadMemberRole) || undefined,
+			contact,
+			role:
+				(form.value.role as ThreadMemberRole) ||
+				ThreadMemberRole.RoleUnspecified,
 		});
 		if (res.member) {
 			localMembers.value = [
@@ -264,17 +265,14 @@ async function handleAdd() {
 	}
 }
 
-async function handleRemove(member: ThreadMember) {
+async function handleRemove(member: ThreadMemberModel) {
 	const key = memberKey(member);
 	if (!key || removing.value) return;
 	opError.value = null;
 	removing.value = key;
 	try {
 		await props.thread.removeMember({
-			contact: {
-				sub: member.contact?.sub,
-				iss: member.contact?.iss,
-			},
+			id: member.id,
 		});
 		localMembers.value = localMembers.value.filter((m) => memberKey(m) !== key);
 	} catch (err) {

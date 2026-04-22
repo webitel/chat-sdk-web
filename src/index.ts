@@ -42,8 +42,8 @@ export {
 export {
 	type IThread, // Thread class
 	type ThreadAddMemberParams,
-	type ThreadMember,
 	type ThreadMemberContact,
+	type ThreadMemberModel,
 	ThreadMemberRole, // enum for thread member roles
 	type ThreadModel, // Thread backend response type
 	type ThreadRemoveMemberParams,

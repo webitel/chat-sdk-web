@@ -18,8 +18,6 @@ const serviceConfig = createServiceConfig({
 beforeEach(() => {
 	vi.mocked(getThreadsService).mockReturnValue({
 		getThreadsList: mockGetThreadsList,
-		addMember: vi.fn(),
-		removeMember: vi.fn(),
 	});
 	mockGetThreadsList.mockReset();
 });
