@@ -1,11 +1,24 @@
 import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
-	WebitelImApiGatewayV1ThreadMember as ThreadMemberModel,
 	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
+	WebitelImApiGatewayV1ThreadMember,
 } from '@webitel/api-services/gen/models';
+
+import type { IContact } from '../../../../contacts/types/Contact.types';
 
 /** Contact identity shape – derived from the member model's contact field. */
 type ThreadMemberContact = NonNullable<ThreadMemberModel['contact']>;
+
+type ThreadMemberModel = WebitelImApiGatewayV1ThreadMember & {
+	id: NonNullable<WebitelImApiGatewayV1ThreadMember['id']>;
+	contact: IContact;
+};
+
+interface IThreadMember extends Omit<ThreadMemberModel, 'contact'> {
+	id: NonNullable<ThreadMemberModel['id']>;
+	contact: IContact;
+	removeFromThread: () => Promise<ThreadRemoveMemberResponse>;
+}
 
 /**
  * `POST /v1/threads/{threadId}/members`
@@ -22,6 +35,7 @@ type ThreadAddMemberParams = Required<
 type ThreadRemoveMemberParams = Required<Pick<ThreadMemberModel, 'id'>>;
 
 export type {
+	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
 	ThreadMemberContact,

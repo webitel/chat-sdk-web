@@ -28,7 +28,9 @@ export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
 	},
 
 	// Temporary: uses getThreadsList with ids filter until dedicated GET /v1/threads/:id endpoint exists
-	getThread: async (threadId: string): Promise<ThreadModel> => {
+	getThread: async (
+		threadId: string,
+	): Promise<NonNullable<ThreadSearchRawResult['items']>[number]> => {
 		const transformedParams = applyTransform(
 			{
 				ids: [
@@ -48,6 +50,6 @@ export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
 		]);
 		const thread = result.items?.[0];
 		if (!thread) throw new Error(`Thread not found: ${threadId}`);
-		return thread;
+		return thread as ThreadModel;
 	},
 });

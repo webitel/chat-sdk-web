@@ -3,6 +3,7 @@ export { ThreadMemberRole } from './modules/members';
 export { useThreadsService } from './threadsSevice';
 export type {
 	IThread,
+	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadMemberContact,
 	ThreadMemberModel,
