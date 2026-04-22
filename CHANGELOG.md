@@ -1,5 +1,24 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.12] - 2026-04-22
+
+### New features
+
+- ADDED `useThreadsService().fetchThread(threadId)` — fetch single thread by ID; throws if not found (uses `GET /v1/threads?ids[]=` until a dedicated endpoint exists)
+- ADDED `Thread.addMember(params)` / `useThreadsService().addMember(threadId, params)` — add a member to a thread
+- ADDED `Thread.removeMember(params)` / `useThreadsService().removeMember(threadId, params)` — remove a member from a thread
+- ADDED `ThreadMemberRole` enum, `ThreadMemberModel`, `ThreadMemberContact`, `ThreadAddMemberParams`, `ThreadRemoveMemberParams` types — re-exported from the package root
+
+### Fixes
+
+- FIXED `SocketThreadModel`: field renamed `kind` → `type` to match server contract
+
+### Internals
+
+- member management isolated into `threads/modules/members` (own API, types, utils)
+- CI: GitHub Actions workflows added for lint (`biome ci`), typecheck (`vue-tsc --noEmit`), and tests (`vitest run`)
+- biome config updated; all source files reformatted
+
 ## [0.0.11] - 2026-04-21
 
 ### Breaking changes
