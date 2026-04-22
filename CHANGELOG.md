@@ -1,5 +1,19 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.13] - 2026-04-22
+
+### New features
+
+- ADDED `ThreadMember` class — `thread.members` is now `IThreadMember[]`, populated from raw thread data on instantiation
+- ADDED `ThreadMember.removeFromThread()` — removes the member from its thread; no args needed (thread context baked in at instantiation)
+- ADDED `IThreadMember.contact` is now an `IContact` instance — full contact methods (e.g. `sendMessage`) available directly on the member
+- ADDED `IThreadMember` type re-exported from the package root
+
+### Internals
+
+- `ThreadModel` narrowed: `id` made required (`NonNullable<WebitelImApiGatewayV1Thread['id']>`)
+- `ThreadMemberModel` narrowed: `id` made required, `contact` typed as `IContact`
+
 ## [0.0.12] - 2026-04-22
 
 ### New features
