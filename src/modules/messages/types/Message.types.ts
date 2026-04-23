@@ -1,7 +1,7 @@
 import type {
 	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
-	WebitelImApiGatewayV1HistoryMessage as MessageModel,
+	WebitelImApiGatewayV1HistoryMessage as MessageRawModel,
 	WebitelImApiGatewayV1SendDocumentResponse as MessageSendDocumentRawResponse,
 	WebitelImApiGatewayV1SendDocumentRequest as MessageSendDocumentRequest,
 	WebitelImApiGatewayV1SendImageResponse as MessageSendImageRawResponse,
@@ -12,6 +12,10 @@ import type {
 
 import type { ServiceConfigurable } from '../../configs';
 import type { MessageAttachmentType } from '../enums/MessageAttachmentType.enum';
+
+type MessageModel = MessageRawModel & {
+	id: NonNullable<MessageRawModel['id']>;
+};
 
 /**
  * One element from storage upload `POST …/upload` response

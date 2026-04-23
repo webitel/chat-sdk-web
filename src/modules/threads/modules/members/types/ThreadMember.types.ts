@@ -1,7 +1,7 @@
 import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
-	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
 	WebitelImApiGatewayV1ThreadMember as ThreadMemberRawModel,
+	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
 } from '@webitel/api-services/gen/models';
 
 import type {

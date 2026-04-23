@@ -22,8 +22,8 @@ type ContactSearchResult = Omit<ContactSearchRawResult, 'items'> & {
 };
 
 export type {
-	ContactRawModel,
 	ContactModel,
+	ContactRawModel,
 	ContactSearchParams,
 	ContactSearchRawResult,
 	ContactSearchResult,

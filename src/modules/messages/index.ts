@@ -6,11 +6,4 @@ export type {
 	MessageHistorySearchParams,
 	MessageHistorySearchResult,
 	MessageModel,
-	MessageSendDocumentParams,
-	MessageSendDocumentRawResponse,
-	MessageSendImageParams,
-	MessageSendImageRawResponse,
-	MessageSendTextParams,
-	MessageSendTextRawResponse,
-	MessageStorageUploadedFile,
 } from './types/Message.types';

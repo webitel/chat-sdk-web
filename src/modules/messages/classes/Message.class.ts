@@ -1,8 +1,11 @@
 import type { ServiceConfig } from '../../configs';
+import { type IMessagesService, useMessagesService } from '../messagesSevice';
 import type { IMessage, MessageModel } from '../types/Message.types';
 
 class Message implements IMessage {
 	private readonly _serviceConfig: ServiceConfig;
+	private readonly _messagesService: IMessagesService;
+	id;
 	constructor(
 		rawMessage: MessageModel,
 		{
@@ -11,16 +14,25 @@ class Message implements IMessage {
 			serviceConfig: ServiceConfig;
 		},
 	) {
-		Object.assign(this, rawMessage);
 		this._serviceConfig = serviceConfig;
+		this._messagesService = useMessagesService(serviceConfig);
+
+		const { id, ...rest } = rawMessage;
+		Object.assign(this, rest);
+		this.id = id;
 	}
 
 	get serviceConfig(): ServiceConfig {
 		return this._serviceConfig;
 	}
 
-	async markRead(): Promise<void> {
+	get messagesService(): IMessagesService {
+		return this._messagesService;
+	}
+
+	async markRead() {
 		throw new Error('Method not implemented.');
+		// return this.messagesService.markRead(this.id);
 	}
 }
 
