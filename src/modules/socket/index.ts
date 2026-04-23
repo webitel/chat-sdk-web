@@ -1,4 +1,4 @@
-import { createChatsSocketClient } from './classes/ChatsSoketClient';
+import { createChatsSocketClient } from './classes/ChatsSocketClient';
 import { ChatsSocketConnectionStatus } from './enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from './enums/ChatsSocketMessage.enum';
 import type { SocketContactModel } from './types/models/SocketContactModel.types';

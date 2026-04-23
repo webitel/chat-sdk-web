@@ -1,7 +1,7 @@
 import type { WebitelImApiGatewayV1Peer as MessagePeer } from '@webitel/api-services/gen/models';
 
 import { MessageAttachmentType } from '../enums/MessageAttachmentType.enum';
-import type { IMessagesService } from '../messagesSevice';
+import type { IMessagesService } from '../messagesService';
 import type {
 	MessageSendOptions,
 	MessageSendParams,

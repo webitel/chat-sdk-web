@@ -19,6 +19,7 @@
 		"typecheck:ci": "vue-tsc --noEmit",
 		"test": "vitest run",
 		"test:ci": "npm run test",
+		"code-check:ci": "npm run biome:ci && npm run typecheck:ci && npm run test:ci",
 		"test:watch": "vitest"
 	},
 	"main": "./dist/index.js",

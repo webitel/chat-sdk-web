@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig, createSocketConfig } from '../../configs';
-import { createChatsSocketClient } from '../classes/ChatsSoketClient';
+import { createChatsSocketClient } from '../classes/ChatsSocketClient';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 
 class MockWebSocket {

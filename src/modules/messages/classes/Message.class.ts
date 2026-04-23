@@ -1,8 +1,8 @@
 import type { ServiceConfig } from '../../configs';
 import {
-	type IMessagesService,
 	createMessagesService,
-} from '../messagesSevice';
+	type IMessagesService,
+} from '../messagesService';
 import type { IMessage, MessageModel } from '../types/Message.types';
 
 class Message implements IMessage {

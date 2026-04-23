@@ -18,18 +18,18 @@ export {
 	type ContactModel, // Contact backend response type
 	type ContactSearchParams,
 	type ContactSearchResult,
-	type IContact, // Contact class
 	createContactsService, // fetch + instantiate contacts
+	type IContact, // Contact class
 } from './modules/contacts';
 
 export {
+	// type MessageSendTextParams,
+	createMessagesService, // fetch + instantiate messages (service wrapper)
 	type IMessage, // Message class
 	MessageAttachmentType, // enum for message attachment kinds
 	type MessageHistorySearchParams,
 	type MessageHistorySearchResult,
 	type MessageModel, // Message backend response type
-	// type MessageSendTextParams,
-	createMessagesService, // fetch + instantiate messages (service wrapper)
 } from './modules/messages';
 export {
 	ChatsSocketConnectionStatus,
@@ -40,6 +40,7 @@ export {
 	// type SocketContactModel,
 } from './modules/socket';
 export {
+	createThreadsService, // fetch + instantiate threads (service wrapper)
 	type IThread, // Thread class
 	type IThreadMember, // ThreadMember class
 	type ThreadAddMemberParams,
@@ -49,7 +50,6 @@ export {
 	type ThreadRemoveMemberParams,
 	type ThreadSearchParams,
 	type ThreadSearchResult,
-	createThreadsService, // fetch + instantiate threads (service wrapper)
 } from './modules/threads';
 
 // custom-elements:

@@ -1,8 +1,8 @@
 import type { ServiceConfig } from '../../configs';
 import {
+	createMessagesService,
 	type IMessagesService,
 	type MessageHistorySearchParams,
-	createMessagesService,
 } from '../../messages';
 import type {
 	MessageSendOptions,

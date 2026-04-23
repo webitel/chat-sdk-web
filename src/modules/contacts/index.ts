@@ -1,5 +1,5 @@
 export { createContact } from './classes/Contact.class';
-export { createContactsService } from './contactsSevice';
+export { createContactsService } from './contactsService';
 export type {
 	ContactModel,
 	ContactSearchParams,
