@@ -15,7 +15,6 @@ type ThreadMemberModel = ThreadMemberRawModel & {
 };
 
 interface IThreadMember extends Omit<ThreadMemberModel, 'contact'> {
-	id: NonNullable<ThreadMemberModel['id']>;
 	contact: IContact;
 	removeFromThread: () => Promise<ThreadRemoveMemberResponse>;
 }
