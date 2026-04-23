@@ -5,6 +5,6 @@ import { fetchContacts } from './utils/fetchContacts';
 export function createContactsService(config: ServiceConfig) {
 	return {
 		fetchContacts: (params?: ContactSearchParams) =>
-			fetchContacts(config, params ?? {}),
+			fetchContacts(config, params),
 	};
 }

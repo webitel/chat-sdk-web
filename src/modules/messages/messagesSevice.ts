@@ -35,7 +35,7 @@ export function createMessagesService(config: ServiceConfig): IMessagesService {
 		fetchMessageHistory: (
 			threadId: string,
 			params?: MessageHistorySearchParams,
-		) => fetchMessageHistory(config, threadId, params ?? {}),
+		) => fetchMessageHistory(config, threadId, params),
 		sendTextMessage: (params: MessageSendTextParams) =>
 			sendTextMessage(config, params),
 		sendDocumentMessage: (params: MessageSendDocumentParams) =>

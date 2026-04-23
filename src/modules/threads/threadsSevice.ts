@@ -28,8 +28,7 @@ interface IThreadsService {
 export function createThreadsService(config: ServiceConfig): IThreadsService {
 	return {
 		fetchThread: (threadId: string) => fetchThread(config, threadId),
-		fetchThreads: (params?: ThreadSearchParams) =>
-			fetchThreads(config, params ?? {}),
+		fetchThreads: (params?: ThreadSearchParams) => fetchThreads(config, params),
 		addMember: (threadId: string, params: ThreadAddMemberParams) =>
 			addMember(config)(threadId, params),
 		removeMember: (threadId: string, params: ThreadRemoveMemberParams) =>
