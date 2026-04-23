@@ -4,12 +4,12 @@ import {
 	type MessageHistorySearchParams,
 	createMessagesService,
 } from '../../messages';
-import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	MessageSendOptions,
 	MessageSendParams,
 	MessageSendResponse,
 } from '../../messages/types/Message.types';
+import { routeMessageSend } from '../../messages/utils/routeMessageSend';
 import { createThreadMember } from '../modules/members/classes/ThreadMember.class';
 import { addMember } from '../modules/members/utils/addMember';
 import { removeMember } from '../modules/members/utils/removeMember';
@@ -57,35 +57,17 @@ class Thread implements IThread {
 	}
 
 	async sendMessage(
-		{ body, attachments }: MessageSendParams,
-		{ sendId }: MessageSendOptions = {},
+		params: MessageSendParams,
+		options: MessageSendOptions = {},
 	): Promise<MessageSendResponse> {
-		const to = {
-			threadId: this.id,
-		};
-
-		switch (attachments?.type) {
-			case MessageAttachmentType.Images:
-				return this.messagesService.sendImageMessage({
-					files: attachments.files,
-					body,
-					sendId,
-					to,
-				});
-			case MessageAttachmentType.Documents:
-				return this.messagesService.sendDocumentMessage({
-					files: attachments.files,
-					body,
-					sendId,
-					to,
-				});
-			default:
-				return this.messagesService.sendTextMessage({
-					body: body ?? '',
-					sendId,
-					to,
-				});
-		}
+		return routeMessageSend(
+			this.messagesService,
+			{
+				threadId: this.id,
+			},
+			params,
+			options,
+		);
 	}
 
 	async addMember(params: ThreadAddMemberParams) {

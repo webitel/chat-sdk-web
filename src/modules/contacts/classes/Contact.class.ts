@@ -1,11 +1,11 @@
 import type { ServiceConfig } from '../../configs';
 import { type IMessagesService, createMessagesService } from '../../messages';
-import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	MessageSendOptions,
 	MessageSendParams,
 	MessageSendResponse,
 } from '../../messages/types/Message.types';
+import { routeMessageSend } from '../../messages/utils/routeMessageSend';
 import type { ContactModel, IContact } from '../types/Contact.types';
 
 class Contact implements IContact {
@@ -32,38 +32,20 @@ class Contact implements IContact {
 	}
 
 	async sendMessage(
-		{ body, attachments }: MessageSendParams,
-		{ sendId }: MessageSendOptions = {},
+		params: MessageSendParams,
+		options: MessageSendOptions = {},
 	): Promise<MessageSendResponse> {
-		const to = {
-			contact: {
-				sub: this.sub,
-				iss: this.iss,
+		return routeMessageSend(
+			this.messagesService,
+			{
+				contact: {
+					sub: this.sub,
+					iss: this.iss,
+				},
 			},
-		};
-
-		switch (attachments?.type) {
-			case MessageAttachmentType.Images:
-				return this.messagesService.sendImageMessage({
-					files: attachments.files,
-					body,
-					sendId,
-					to,
-				});
-			case MessageAttachmentType.Documents:
-				return this.messagesService.sendDocumentMessage({
-					files: attachments.files,
-					body,
-					sendId,
-					to,
-				});
-			default:
-				return this.messagesService.sendTextMessage({
-					body: body ?? '',
-					sendId,
-					to,
-				});
-		}
+			params,
+			options,
+		);
 	}
 
 	get serviceConfig(): ServiceConfig {
