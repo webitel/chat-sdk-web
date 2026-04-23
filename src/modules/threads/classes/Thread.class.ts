@@ -50,10 +50,7 @@ class Thread implements IThread {
 	}
 
 	async fetchMessageHistory(params?: MessageHistorySearchParams) {
-		return createMessagesService(this.serviceConfig).fetchMessageHistory(
-			this.id,
-			params,
-		);
+		return this.messagesService.fetchMessageHistory(this.id, params);
 	}
 
 	async sendMessage(
