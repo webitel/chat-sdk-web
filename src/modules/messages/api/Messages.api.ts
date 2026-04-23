@@ -29,7 +29,7 @@ interface IMessagesApiService {
 		params: MessageSendTextParams,
 	) => Promise<MessageSendTextRawResponse>;
 	uploadFiles: (
-		threadId: string,
+		uploadKey: string,
 		file: File | readonly File[],
 	) => Promise<MessageStorageUploadedFile[]>;
 	sendDocumentMessage: (
@@ -81,7 +81,7 @@ export const getMessagesService = ({
 	 * upload file to Storage before sending document/image message.
 	 */
 	async function uploadFiles(
-		threadId: string,
+		uploadKey: string,
 		file: File | readonly File[],
 	): Promise<MessageStorageUploadedFile[]> {
 		const formData = new FormData();
@@ -96,7 +96,7 @@ export const getMessagesService = ({
 		});
 
 		const response = await axiosInstance.post(
-			`/storage/file/${threadId}/upload`,
+			`/storage/file/${uploadKey}/upload`,
 			formData,
 		);
 		return applyTransform(response.data, [
