@@ -72,4 +72,4 @@ const fetchThread = async (
 	});
 };
 
-export { fetchRawThreads, fetchThread, fetchThreads, getRawThread };
+export { fetchThread, fetchThreads };

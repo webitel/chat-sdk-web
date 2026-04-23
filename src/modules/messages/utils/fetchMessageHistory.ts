@@ -54,4 +54,4 @@ const fetchMessageHistory = async (
 	};
 };
 
-export { fetchMessageHistory, fetchRawMessageHistory };
+export { fetchMessageHistory };

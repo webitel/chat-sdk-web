@@ -47,4 +47,4 @@ const fetchContacts = async (
 	};
 };
 
-export { fetchContacts, fetchRawContacts };
+export { fetchContacts };
