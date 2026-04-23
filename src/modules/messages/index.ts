@@ -1,6 +1,6 @@
 export { createMessage } from './classes/Message.class';
 export { MessageAttachmentType } from './enums/MessageAttachmentType.enum';
-export { type IMessagesService, useMessagesService } from './messagesSevice';
+export { createMessagesService, type IMessagesService } from './messagesSevice';
 export type {
 	IMessage,
 	MessageHistorySearchParams,

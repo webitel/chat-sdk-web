@@ -1,5 +1,5 @@
 import type { ServiceConfig } from '../../configs';
-import { type IMessagesService, useMessagesService } from '../../messages';
+import { type IMessagesService, createMessagesService } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
 	MessageSendOptions,
@@ -23,7 +23,7 @@ class Contact implements IContact {
 		},
 	) {
 		this._serviceConfig = serviceConfig;
-		this._messagesService = useMessagesService(serviceConfig);
+		this._messagesService = createMessagesService(serviceConfig);
 
 		const { sub, iss, ...rest } = rawContact;
 		Object.assign(this, rest);

@@ -97,7 +97,7 @@
   lang="ts"
 >
 import { ref } from 'vue';
-import { type IContact, useContactsService } from '@webitel/chat-web-sdk';
+import { type IContact, createContactsService } from '@webitel/chat-web-sdk';
 import { useSocket } from '../../composables/use-socket';
 
 const props = defineProps<{
@@ -128,7 +128,7 @@ async function refresh() {
 	loading.value = true;
 	error.value = null;
 	try {
-		const { fetchContacts } = useContactsService(serviceConfig.value);
+		const { fetchContacts } = createContactsService(serviceConfig.value);
 		const res = await fetchContacts();
 		contacts.value = res.items ?? [];
 	} catch (err) {

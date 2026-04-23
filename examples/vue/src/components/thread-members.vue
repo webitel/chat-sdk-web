@@ -153,7 +153,7 @@ import {
 	type IThread,
 	type ThreadMemberModel,
 	ThreadMemberRole,
-	useContactsService,
+	createContactsService,
 } from '@webitel/chat-web-sdk';
 import { ref, watch } from 'vue';
 import { useSocket } from '../composables/use-socket';
@@ -184,7 +184,7 @@ async function loadContacts() {
 	if (contactsLoaded.value || contactsLoading.value) return;
 	contactsLoading.value = true;
 	try {
-		const { fetchContacts } = useContactsService(serviceConfig.value);
+		const { fetchContacts } = createContactsService(serviceConfig.value);
 		const res = await fetchContacts();
 		contacts.value = res.items ?? [];
 		contactsLoaded.value = true;

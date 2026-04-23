@@ -30,7 +30,7 @@ export interface IMessagesService {
 	) => Promise<MessageSendImageRawResponse>;
 }
 
-export function useMessagesService(config: ServiceConfig): IMessagesService {
+export function createMessagesService(config: ServiceConfig): IMessagesService {
 	return {
 		fetchMessageHistory: (
 			threadId: string,

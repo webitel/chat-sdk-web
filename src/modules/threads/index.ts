@@ -1,6 +1,6 @@
 export { createThread } from './classes/Thread.class';
 export { ThreadMemberRole } from './modules/members';
-export { useThreadsService } from './threadsSevice';
+export { createThreadsService } from './threadsSevice';
 export type {
 	IThread,
 	IThreadMember,

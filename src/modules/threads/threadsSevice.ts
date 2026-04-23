@@ -25,7 +25,7 @@ interface IThreadsService {
 	) => Promise<ThreadRemoveMemberResponse>;
 }
 
-export function useThreadsService(config: ServiceConfig): IThreadsService {
+export function createThreadsService(config: ServiceConfig): IThreadsService {
 	return {
 		fetchThread: (threadId: string) => fetchThread(config, threadId),
 		fetchThreads: (params?: ThreadSearchParams) =>

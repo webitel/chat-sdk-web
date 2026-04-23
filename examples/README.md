@@ -32,13 +32,13 @@ HTTP Endpoints related to one entity are named **Services**.
 
 ```js
 // your-app/.../contacts-list-component.js
-import { useThreadsService, type IThread } from '@webitel/chat-web-sdk';
+import { createThreadsService, type IThread } from '@webitel/chat-web-sdk';
 
 import { serviceConfig } from '../../configs'; // note! config is required!
 
 const threads: IThread[] = [];
 
-const { fetchThreads } = useThreadsService(serviceConfig);
+const { fetchThreads } = createThreadsService(serviceConfig);
 
 const { items, next } = await fetchThreads();
 threads.push(...items);
@@ -54,16 +54,16 @@ Not currently implemented
 
 ### List of available Services
 
-1. Account (`useAccountService`) — current user / auth payload
-2. Contacts (`useContactsService`)
-3. Threads (aka Dialogs) (`useThreadsService`)
-4. Messages (`useMessagesService`)
+1. Account (`createAccountService`) — current user / auth payload
+2. Contacts (`createContactsService`)
+3. Threads (aka Dialogs) (`createThreadsService`)
+4. Messages (`createMessagesService`)
 
 ```js
-import { useAccountService } from '@webitel/chat-web-sdk';
+import { createAccountService } from '@webitel/chat-web-sdk';
 import { serviceConfig } from './configs';
 
-const { getAccount } = useAccountService(serviceConfig);
+const { getAccount } = createAccountService(serviceConfig);
 const account = await getAccount();
 ```
 

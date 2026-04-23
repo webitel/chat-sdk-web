@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig } from '../../configs';
-import { useMessagesService } from '../../messages';
+import { createMessagesService } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import { createContact } from '../classes/Contact.class';
 import type { ContactModel } from '../types/Contact.types';
 
 vi.mock('../../messages', () => ({
-	useMessagesService: vi.fn(),
+	createMessagesService: vi.fn(),
 }));
 
 const mockSendTextMessage = vi.fn();
@@ -25,7 +25,7 @@ const rawContact = {
 } as ContactModel;
 
 beforeEach(() => {
-	vi.mocked(useMessagesService).mockReturnValue({
+	vi.mocked(createMessagesService).mockReturnValue({
 		fetchMessageHistory: vi.fn(),
 		sendTextMessage: mockSendTextMessage,
 		sendDocumentMessage: mockSendDocumentMessage,
@@ -61,7 +61,7 @@ describe('createContact', () => {
 			},
 		);
 
-		expect(useMessagesService).toHaveBeenCalledWith(serviceConfig);
+		expect(createMessagesService).toHaveBeenCalledWith(serviceConfig);
 		expect(mockSendTextMessage).toHaveBeenCalledWith({
 			body: 'ping',
 			sendId: 'c1',

@@ -1,13 +1,13 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest';
 
 import { createServiceConfig } from '../../configs';
-import { useMessagesService } from '../../messages';
+import { createMessagesService } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import { createThread } from '../classes/Thread.class';
 import type { ThreadModel } from '../types/Thread.types';
 
 vi.mock('../../messages', () => ({
-	useMessagesService: vi.fn(),
+	createMessagesService: vi.fn(),
 }));
 
 const mockFetchMessageHistory = vi.fn();
@@ -25,7 +25,7 @@ const rawThread = {
 } as ThreadModel;
 
 beforeEach(() => {
-	vi.mocked(useMessagesService).mockReturnValue({
+	vi.mocked(createMessagesService).mockReturnValue({
 		fetchMessageHistory: mockFetchMessageHistory,
 		sendTextMessage: mockSendTextMessage,
 		sendDocumentMessage: mockSendDocumentMessage,
@@ -55,7 +55,7 @@ describe('createThread', () => {
 		await thread.fetchMessageHistory({
 			size: 10,
 		});
-		expect(useMessagesService).toHaveBeenCalledWith(serviceConfig);
+		expect(createMessagesService).toHaveBeenCalledWith(serviceConfig);
 		expect(mockFetchMessageHistory).toHaveBeenCalledWith('thread-abc', {
 			size: 10,
 		});

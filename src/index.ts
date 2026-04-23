@@ -1,6 +1,6 @@
 export {
 	type AccountModel, // current auth / user payload from GET /v1/auth/token
-	useAccountService,
+	createAccountService,
 } from './modules/account';
 
 export {
@@ -19,7 +19,7 @@ export {
 	type ContactSearchParams,
 	type ContactSearchResult,
 	type IContact, // Contact class
-	useContactsService, // fetch + instantiate contacts
+	createContactsService, // fetch + instantiate contacts
 } from './modules/contacts';
 
 export {
@@ -29,7 +29,7 @@ export {
 	type MessageHistorySearchResult,
 	type MessageModel, // Message backend response type
 	// type MessageSendTextParams,
-	useMessagesService, // fetch + instantiate messages (service wrapper)
+	createMessagesService, // fetch + instantiate messages (service wrapper)
 } from './modules/messages';
 export {
 	ChatsSocketConnectionStatus,
@@ -49,7 +49,7 @@ export {
 	type ThreadRemoveMemberParams,
 	type ThreadSearchParams,
 	type ThreadSearchResult,
-	useThreadsService, // fetch + instantiate threads (service wrapper)
+	createThreadsService, // fetch + instantiate threads (service wrapper)
 } from './modules/threads';
 
 // custom-elements:

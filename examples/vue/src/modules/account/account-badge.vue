@@ -13,7 +13,7 @@
   setup
   lang="ts"
 >
-import { type AccountModel, useAccountService } from '@webitel/chat-web-sdk';
+import { type AccountModel, createAccountService } from '@webitel/chat-web-sdk';
 import { computed, onMounted, ref } from 'vue';
 
 import { useSocket } from '../../composables/use-socket';
@@ -39,7 +39,7 @@ const initials = computed(() => {
 
 onMounted(async () => {
 	try {
-		const { getAccount } = useAccountService(serviceConfig.value);
+		const { getAccount } = createAccountService(serviceConfig.value);
 		account.value = await getAccount();
 	} catch {}
 });

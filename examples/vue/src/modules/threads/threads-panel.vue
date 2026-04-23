@@ -87,7 +87,7 @@
   lang="ts"
 >
 import { ref } from 'vue';
-import { type IThread, useThreadsService } from '@webitel/chat-web-sdk';
+import { type IThread, createThreadsService } from '@webitel/chat-web-sdk';
 import { useSocket } from '../../composables/use-socket';
 
 const props = defineProps<{
@@ -127,7 +127,7 @@ async function refresh() {
 	loading.value = true;
 	error.value = null;
 	try {
-		const { fetchThreads } = useThreadsService(serviceConfig.value);
+		const { fetchThreads } = createThreadsService(serviceConfig.value);
 		const res = await fetchThreads({
 			size: 50,
 		});

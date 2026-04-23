@@ -1,5 +1,8 @@
 import type { ServiceConfig } from '../../configs';
-import { type IMessagesService, useMessagesService } from '../messagesSevice';
+import {
+	type IMessagesService,
+	createMessagesService,
+} from '../messagesSevice';
 import type { IMessage, MessageModel } from '../types/Message.types';
 
 class Message implements IMessage {
@@ -15,7 +18,7 @@ class Message implements IMessage {
 		},
 	) {
 		this._serviceConfig = serviceConfig;
-		this._messagesService = useMessagesService(serviceConfig);
+		this._messagesService = createMessagesService(serviceConfig);
 
 		const { id, ...rest } = rawMessage;
 		Object.assign(this, rest);

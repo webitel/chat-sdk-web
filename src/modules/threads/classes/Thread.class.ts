@@ -2,7 +2,7 @@ import type { ServiceConfig } from '../../configs';
 import {
 	type IMessagesService,
 	type MessageHistorySearchParams,
-	useMessagesService,
+	createMessagesService,
 } from '../../messages';
 import { MessageAttachmentType } from '../../messages/enums/MessageAttachmentType.enum';
 import type {
@@ -36,7 +36,7 @@ class Thread implements IThread {
 		},
 	) {
 		this._serviceConfig = serviceConfig;
-		this._messagesService = useMessagesService(serviceConfig);
+		this._messagesService = createMessagesService(serviceConfig);
 
 		const { id, members, ...rest } = rawThread;
 		Object.assign(this, rest);
@@ -50,7 +50,7 @@ class Thread implements IThread {
 	}
 
 	async fetchMessageHistory(params?: MessageHistorySearchParams) {
-		return useMessagesService(this.serviceConfig).fetchMessageHistory(
+		return createMessagesService(this.serviceConfig).fetchMessageHistory(
 			this.id,
 			params,
 		);
