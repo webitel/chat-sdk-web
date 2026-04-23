@@ -1,5 +1,23 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.14] - 2026-04-23
+
+### Breaking changes
+
+- RENAMED `useThreadsService` → `createThreadsService`, `useMessagesService` → `createMessagesService`, `useContactsService` → `createContactsService`, `useAccountService` → `createAccountService` — `use*` prefix implied Vue composable semantics; these are plain factory functions
+
+### Internals
+
+- REFACTOR extracted `routeMessageSend` util — eliminates duplicate `sendMessage` switch logic between `Thread` and `Contact`
+- REFACTOR API service factories now have explicit return-type interfaces (`IThreadsApiService`, `IMessagesApiService`, `IContactsApiService`, `IThreadMembersApiService`)
+- REFACTOR `vue` moved from `dependencies` to optional `peerDependencies` — non-Vue consumers no longer bundle Vue unnecessarily
+- FIX socket `onmessage` now wrapped in try/catch — parse errors emit typed `ChatsSocketMessage.Error` event instead of crashing the handler
+- FIX exhaustiveness guards added to `processSocketEventPayload` switch statements (`default: never`)
+- FIX removed double-default `params ?? {}` in service methods — callers already handle optional params
+- FIX removed dead `fetchRaw*` / `getRaw*` exports from fetch utils
+- FIX typo in service/socket file names (`*Sevice` → `*Service`, `ChatsSoket*` → `ChatsSocket*`)
+- FIX `IThreadMember` no longer redeclares `id` (already inherited from `ThreadMemberModel`)
+
 ## [0.0.13] - 2026-04-22
 
 ### New features
