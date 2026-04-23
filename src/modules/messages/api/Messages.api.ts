@@ -20,7 +20,29 @@ import type {
  * Message history for a thread: `GET /v1/{threadId}/messages`
  * @see webitel-im-api-gateway-v1-messagehistory
  */
-export const getMessagesService = ({ axiosInstance }: ServiceConfig) => {
+interface IMessagesApiService {
+	getMessageHistory: (
+		threadId: string,
+		params?: MessageHistorySearchParams,
+	) => Promise<MessageHistorySearchRawResponse>;
+	sendTextMessage: (
+		params: MessageSendTextParams,
+	) => Promise<MessageSendTextRawResponse>;
+	uploadFiles: (
+		threadId: string,
+		file: File | readonly File[],
+	) => Promise<MessageStorageUploadedFile[]>;
+	sendDocumentMessage: (
+		params: MessageSendDocumentRequest,
+	) => Promise<MessageSendDocumentRawResponse>;
+	sendImageMessage: (
+		params: MessageSendImageRequest,
+	) => Promise<MessageSendImageRawResponse>;
+}
+
+export const getMessagesService = ({
+	axiosInstance,
+}: ServiceConfig): IMessagesApiService => {
 	async function getMessageHistory(
 		threadId: string,
 		params: MessageHistorySearchParams = {},

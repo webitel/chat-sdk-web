@@ -11,7 +11,20 @@ import type {
 	ThreadRemoveMemberResponse,
 } from '../types/ThreadMember.types';
 
-export const getThreadMembersService = ({ axiosInstance }: ServiceConfig) => ({
+interface IThreadMembersApiService {
+	addMember: (
+		threadId: string,
+		params: ThreadAddMemberParams,
+	) => Promise<ThreadAddMemberResponse>;
+	removeMember: (
+		threadId: string,
+		params: ThreadRemoveMemberParams,
+	) => Promise<ThreadRemoveMemberResponse>;
+}
+
+export const getThreadMembersService = ({
+	axiosInstance,
+}: ServiceConfig): IThreadMembersApiService => ({
 	/**
 	 * `POST /v1/threads/{threadId}/members`
 	 *

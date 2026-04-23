@@ -11,7 +11,16 @@ import type {
 	ThreadSearchRawResult,
 } from '../types/Thread.types';
 
-export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
+interface IThreadsApiService {
+	getThreadsList: (
+		params?: ThreadSearchParams,
+	) => Promise<ThreadSearchRawResult>;
+	getThread: (threadId: string) => Promise<ThreadModel>;
+}
+
+export const getThreadsService = ({
+	axiosInstance,
+}: ServiceConfig): IThreadsApiService => ({
 	getThreadsList: async (
 		params: ThreadSearchParams = {},
 	): Promise<ThreadSearchRawResult> => {
@@ -28,9 +37,7 @@ export const getThreadsService = ({ axiosInstance }: ServiceConfig) => ({
 	},
 
 	// Temporary: uses getThreadsList with ids filter until dedicated GET /v1/threads/:id endpoint exists
-	getThread: async (
-		threadId: string,
-	): Promise<NonNullable<ThreadSearchRawResult['items']>[number]> => {
+	getThread: async (threadId: string): Promise<ThreadModel> => {
 		const transformedParams = applyTransform(
 			{
 				ids: [

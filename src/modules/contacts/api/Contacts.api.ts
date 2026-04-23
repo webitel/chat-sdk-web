@@ -10,7 +10,15 @@ import type {
 	ContactSearchRawResult,
 } from '../types/Contact.types';
 
-export const getContactsService = ({ axiosInstance }: ServiceConfig) => {
+interface IContactsApiService {
+	getContactsList: (
+		params?: ContactSearchParams,
+	) => Promise<ContactSearchRawResult>;
+}
+
+export const getContactsService = ({
+	axiosInstance,
+}: ServiceConfig): IContactsApiService => {
 	return {
 		getContactsList: async (
 			params: ContactSearchParams = {},
