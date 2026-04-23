@@ -97,24 +97,35 @@ class ChatsSocketClient implements IChatsSocketClient {
 				reject(new Error('socket disconnected'));
 			};
 			this.ws.onmessage = (event) => {
-				const eventData = applyTransform(JSON.parse(event.data), [
-					snakeToCamel(),
-				]) as {
-					payload: EventPayload;
-				};
+				try {
+					const eventData = applyTransform(JSON.parse(event.data), [
+						snakeToCamel(),
+					]) as {
+						payload: EventPayload;
+					};
 
-				const { eventName, eventPayload } = processSocketEventPayload(
-					eventData.payload,
-					{
-						serviceConfig: this.serviceConfig,
-					},
-				);
+					const { eventName, eventPayload } = processSocketEventPayload(
+						eventData.payload,
+						{
+							serviceConfig: this.serviceConfig,
+						},
+					);
 
-				if (eventName === ChatsSocketMessage.Connected) {
-					resolve();
+					if (eventName === ChatsSocketMessage.Connected) {
+						resolve();
+					}
+
+					this.emitter.emit(eventName, eventPayload);
+				} catch (err) {
+					this.emitter.emit(ChatsSocketMessage.Error, {
+						code: -1,
+						message:
+							'SDK failed to parse incoming socket event. Check "details.cause" for the original error.',
+						details: {
+							cause: err instanceof Error ? err.message : String(err),
+						},
+					});
 				}
-
-				this.emitter.emit(eventName, eventPayload);
 			};
 		});
 	}
