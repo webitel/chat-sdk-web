@@ -52,6 +52,10 @@ function extractRawPayload(
 			return sourceEvent.ackEvent;
 		case ChatsSocketMessage.Ping:
 			return sourceEvent.pingEvent;
+		default: {
+			const _exhaustive: never = eventName;
+			return _exhaustive;
+		}
 	}
 }
 
@@ -97,28 +101,36 @@ function processEventPayload(
 		serviceConfig: ServiceConfig;
 	},
 ): ChatsSocketClientEventPayloadMap[ChatsSocketMessage] {
-	if (name === ChatsSocketMessage.ThreadMessage) {
-		return instantiateSocketEventEntities(
-			{
-				name,
-				payload: payload as MessageModel,
-			},
-			{
-				serviceConfig,
-			},
-		);
+	switch (name) {
+		case ChatsSocketMessage.ThreadMessage:
+			return instantiateSocketEventEntities(
+				{
+					name,
+					payload: payload as MessageModel,
+				},
+				{
+					serviceConfig,
+				},
+			);
+		case ChatsSocketMessage.ThreadCreated:
+			return instantiateSocketEventEntities(
+				{
+					name,
+					payload: payload as ThreadModel,
+				},
+				{
+					serviceConfig,
+				},
+			);
+		case ChatsSocketMessage.Connected:
+		case ChatsSocketMessage.Disconnected:
+		case ChatsSocketMessage.Error:
+		case ChatsSocketMessage.Ack:
+		case ChatsSocketMessage.Ping:
+			return payload as ChatsSocketClientEventPayloadMap[typeof name];
+		default: {
+			const _exhaustive: never = name;
+			return _exhaustive;
+		}
 	}
-	if (name === ChatsSocketMessage.ThreadCreated) {
-		return instantiateSocketEventEntities(
-			{
-				name,
-				payload: payload as ThreadModel,
-			},
-			{
-				serviceConfig,
-			},
-		);
-	}
-
-	return payload as ChatsSocketClientEventPayloadMap[ChatsSocketMessage];
 }
