@@ -1,5 +1,23 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.15] - 2026-04-24
+
+### New features
+
+- ADDED `Thread.locateVariables()` / `createThreadsService().locateVariables(threadId)` — fetch all variables for a thread (`GET /v1/threads/{id}/variables`)
+- ADDED `Thread.setVariables(params)` / `createThreadsService().setVariables(threadId, params)` — set or update thread variables; existing keys are overwritten (`POST /v1/threads/{id}/variables`)
+- ADDED `Thread.flushVariables(params)` / `createThreadsService().flushVariables(threadId, params)` — remove variables by key(s); empty `keys` removes all (`DELETE /v1/threads/{id}/variables/flush`)
+- ADDED `createThreadsService().searchVariables(params?)` — search variables across multiple threads with pagination (`GET /v1/variables`)
+- ADDED types `ThreadVariablesModel`, `ThreadVariablesResponse`, `ThreadSetVariablesParams`, `ThreadFlushVariablesParams`, `ThreadSearchVariablesParams`, `ThreadSearchVariablesResponse` — re-exported from package root
+
+### Fixes
+
+- FIX `ServiceConfig`: `qs.stringify` now uses `arrayFormat: 'repeat'` — array query params (e.g. `threadIds`) serialize correctly
+
+### Internals
+
+- variable management isolated into `threads/modules/variables` (own API, types, utils) — mirrors `threads/modules/members` pattern
+
 ## [0.0.14] - 2026-04-23
 
 ### Breaking changes
