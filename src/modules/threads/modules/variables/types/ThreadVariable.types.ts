@@ -1,9 +1,9 @@
 import type {
 	ThreadManagementSearchVariablesParams,
+	WebitelImApiGatewayV1ThreadVariables as ThreadVariablesModel,
 	WebitelImApiGatewayV1SearchVariablesResponse,
 	WebitelImApiGatewayV1ThreadManagementFlushVariablesBody,
 	WebitelImApiGatewayV1ThreadManagementSetVariablesBody,
-	WebitelImApiGatewayV1ThreadVariables as ThreadVariablesModel,
 } from '@webitel/api-services/gen/models';
 
 type ThreadSetVariablesParams =
