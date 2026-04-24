@@ -1,5 +1,12 @@
-import type { IContact, IMessage, IThread } from '@webitel/chat-web-sdk';
+import {
+	createThreadsService,
+	type IContact,
+	type IMessage,
+	type IThread,
+} from '@webitel/chat-web-sdk';
 import { ref, shallowRef } from 'vue';
+
+import { useSocket } from './use-socket';
 
 export type ChatSendParams = Parameters<IThread['sendMessage']>[0];
 
@@ -21,6 +28,8 @@ const sendError = ref<string | null>(null);
 const isSending = ref(false);
 
 export function useActiveChat() {
+	const { serviceConfig } = useSocket();
+
 	async function selectThread(thread: IThread) {
 		activeChat.value = {
 			kind: 'thread',
@@ -29,7 +38,18 @@ export function useActiveChat() {
 		messages.value = [];
 		messagesError.value = null;
 		sendError.value = null;
-		await loadHistory(thread);
+
+		try {
+			const { fetchThread } = createThreadsService(serviceConfig.value);
+			const full = await fetchThread(thread.id);
+			activeChat.value = {
+				kind: 'thread',
+				item: full,
+			};
+			await loadHistory(full);
+		} catch {
+			await loadHistory(thread);
+		}
 	}
 
 	function selectContact(contact: IContact) {

@@ -38,6 +38,10 @@
         v-if="activeThread"
         :thread="activeThread"
       />
+      <ThreadVariables
+        v-if="activeThread"
+        :thread="activeThread"
+      />
 
       <div
         ref="messagesEl"
@@ -94,6 +98,7 @@ import type {
 import MessageBubble from './message-bubble.vue';
 import MessageInput from './message-input.vue';
 import ThreadMembers from './thread-members.vue';
+import ThreadVariables from './thread-variables.vue';
 
 const props = defineProps<{
 	activeChat: ChatTarget | null;

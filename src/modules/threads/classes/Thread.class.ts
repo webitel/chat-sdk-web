@@ -14,6 +14,13 @@ import { createThreadMember } from '../modules/members/classes/ThreadMember.clas
 import { addMember } from '../modules/members/utils/addMember';
 import { removeMember } from '../modules/members/utils/removeMember';
 import type {
+	ThreadFlushVariablesParams,
+	ThreadSetVariablesParams,
+} from '../modules/variables/types/ThreadVariable.types';
+import { flushVariables } from '../modules/variables/utils/flushVariables';
+import { locateVariables } from '../modules/variables/utils/locateVariables';
+import { setVariables } from '../modules/variables/utils/setVariables';
+import type {
 	IThread,
 	ThreadAddMemberParams,
 	ThreadMemberModel,
@@ -73,6 +80,18 @@ class Thread implements IThread {
 
 	async removeMember(params: ThreadRemoveMemberParams) {
 		return removeMember(this.serviceConfig)(this.id, params);
+	}
+
+	async locateVariables() {
+		return locateVariables(this.serviceConfig)(this.id);
+	}
+
+	async setVariables(params: ThreadSetVariablesParams) {
+		return setVariables(this.serviceConfig)(this.id, params);
+	}
+
+	async flushVariables(params: ThreadFlushVariablesParams) {
+		return flushVariables(this.serviceConfig)(this.id, params);
 	}
 
 	get serviceConfig(): ServiceConfig {

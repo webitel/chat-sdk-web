@@ -18,6 +18,14 @@ import type {
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
 } from '../modules/members/types/ThreadMember.types';
+import type {
+	ThreadFlushVariablesParams,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
+	ThreadSetVariablesParams,
+	ThreadVariablesModel,
+	ThreadVariablesResponse,
+} from '../modules/variables/types/ThreadVariable.types';
 
 type ThreadModel = ThreadRawModel & {
 	id: NonNullable<ThreadRawModel['id']>;
@@ -41,6 +49,16 @@ interface IThread
 	removeMember: (
 		params: ThreadRemoveMemberParams,
 	) => Promise<ThreadRemoveMemberResponse>;
+
+	locateVariables: () => Promise<ThreadVariablesResponse>;
+
+	setVariables: (
+		params: ThreadSetVariablesParams,
+	) => Promise<ThreadVariablesResponse>;
+
+	flushVariables: (
+		params: ThreadFlushVariablesParams,
+	) => Promise<ThreadVariablesResponse>;
 }
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
@@ -52,6 +70,7 @@ export type {
 	IThreadMember,
 	ThreadAddMemberParams,
 	ThreadAddMemberResponse,
+	ThreadFlushVariablesParams,
 	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,
@@ -59,4 +78,9 @@ export type {
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
+	ThreadSetVariablesParams,
+	ThreadVariablesModel,
+	ThreadVariablesResponse,
 };

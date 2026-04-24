@@ -21,6 +21,7 @@ export class ServiceConfig implements ServiceConfigInputSchema {
 			paramsSerializer: (params) =>
 				qs.stringify(params, {
 					allowDots: true,
+					arrayFormat: 'repeat',
 				}),
 		});
 

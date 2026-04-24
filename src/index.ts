@@ -44,12 +44,18 @@ export {
 	type IThread, // Thread class
 	type IThreadMember, // ThreadMember class
 	type ThreadAddMemberParams,
+	type ThreadFlushVariablesParams,
 	type ThreadMemberModel,
 	ThreadMemberRole, // enum for thread member roles
 	type ThreadModel, // Thread backend response type
 	type ThreadRemoveMemberParams,
 	type ThreadSearchParams,
 	type ThreadSearchResult,
+	type ThreadSearchVariablesParams,
+	type ThreadSearchVariablesResponse,
+	type ThreadSetVariablesParams,
+	type ThreadVariablesModel,
+	type ThreadVariablesResponse,
 } from './modules/threads';
 
 // custom-elements:
