@@ -20,6 +20,8 @@ import type {
 } from '../modules/members/types/ThreadMember.types';
 import type {
 	ThreadFlushVariablesParams,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
 	ThreadVariablesModel,
 	ThreadVariablesResponse,
@@ -76,6 +78,8 @@ export type {
 	ThreadSearchParams,
 	ThreadSearchRawResult,
 	ThreadSearchResult,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
 	ThreadVariablesModel,
 	ThreadVariablesResponse,

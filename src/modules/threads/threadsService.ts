@@ -3,6 +3,7 @@ import { addMember } from './modules/members/utils/addMember';
 import { removeMember } from './modules/members/utils/removeMember';
 import { flushVariables } from './modules/variables/utils/flushVariables';
 import { locateVariables } from './modules/variables/utils/locateVariables';
+import { searchVariables } from './modules/variables/utils/searchVariables';
 import { setVariables } from './modules/variables/utils/setVariables';
 import type {
 	IThread,
@@ -13,6 +14,8 @@ import type {
 	ThreadRemoveMemberResponse,
 	ThreadSearchParams,
 	ThreadSearchResult,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
 	ThreadVariablesResponse,
 } from './types/Thread.types';
@@ -38,6 +41,9 @@ interface IThreadsService {
 		threadId: string,
 		params: ThreadFlushVariablesParams,
 	) => Promise<ThreadVariablesResponse>;
+	searchVariables: (
+		params?: ThreadSearchVariablesParams,
+	) => Promise<ThreadSearchVariablesResponse>;
 }
 
 export function createThreadsService(config: ServiceConfig): IThreadsService {
@@ -53,5 +59,7 @@ export function createThreadsService(config: ServiceConfig): IThreadsService {
 			setVariables(config)(threadId, params),
 		flushVariables: (threadId: string, params: ThreadFlushVariablesParams) =>
 			flushVariables(config)(threadId, params),
+		searchVariables: (params?: ThreadSearchVariablesParams) =>
+			searchVariables(config)(params),
 	};
 }

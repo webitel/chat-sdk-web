@@ -51,6 +51,8 @@ export {
 	type ThreadRemoveMemberParams,
 	type ThreadSearchParams,
 	type ThreadSearchResult,
+	type ThreadSearchVariablesParams,
+	type ThreadSearchVariablesResponse,
 	type ThreadSetVariablesParams,
 	type ThreadVariablesModel,
 	type ThreadVariablesResponse,

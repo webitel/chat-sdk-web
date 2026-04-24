@@ -6,6 +6,8 @@ import {
 import type { ServiceConfig } from '../../../../configs';
 import type {
 	ThreadFlushVariablesParams,
+	ThreadSearchVariablesParams,
+	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
 	ThreadVariablesResponse,
 } from '../types/ThreadVariable.types';
@@ -20,6 +22,9 @@ interface IThreadVariablesApiService {
 		threadId: string,
 		params: ThreadFlushVariablesParams,
 	) => Promise<ThreadVariablesResponse>;
+	searchVariables: (
+		params?: ThreadSearchVariablesParams,
+	) => Promise<ThreadSearchVariablesResponse>;
 }
 
 export const getThreadVariablesService = ({
@@ -62,6 +67,17 @@ export const getThreadVariablesService = ({
 				data: params,
 			},
 		);
+		return applyTransform(response.data, [
+			snakeToCamel(),
+		]);
+	},
+
+	searchVariables: async (
+		params?: ThreadSearchVariablesParams,
+	): Promise<ThreadSearchVariablesResponse> => {
+		const response = await axiosInstance.get('/v1/variables', {
+			params,
+		});
 		return applyTransform(response.data, [
 			snakeToCamel(),
 		]);
