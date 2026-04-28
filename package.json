@@ -20,7 +20,9 @@
 		"test": "vitest run",
 		"test:ci": "npm run test",
 		"code-check:ci": "npm run biome:ci && npm run typecheck:ci && npm run test:ci",
-		"test:watch": "vitest"
+		"test:watch": "vitest",
+		"biome:ci:gh": "biome ci ./src --reporter=github",
+		"test:unit:ci": "vitest run --coverage"
 	},
 	"main": "./dist/index.js",
 	"types": "./dist/index.d.ts",
