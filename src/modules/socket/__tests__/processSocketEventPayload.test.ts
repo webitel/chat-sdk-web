@@ -1,8 +1,7 @@
 import { describe, expect, it } from 'vitest';
-import { ConnectedPayload } from '../../../gen/ws/ConnectedPayload';
-import { EventPayload } from '../../../gen/ws/EventPayload';
 import { createServiceConfig } from '../../configs';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import type { EventPayload } from '../types/WsEventPayload.types';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
 const testCtx = () => ({
@@ -14,7 +13,7 @@ const testCtx = () => ({
 
 describe('processSocketEventPayload', () => {
 	it('throws when no recognised branch is set on the payload', () => {
-		const payload = new EventPayload({});
+		const payload: EventPayload = {};
 
 		expect(() => processSocketEventPayload(payload, testCtx())).toThrow(
 			/^Unknown event:/,
@@ -22,12 +21,14 @@ describe('processSocketEventPayload', () => {
 	});
 
 	it('maps connectedEvent to Connected with that payload', () => {
-		const connected = new ConnectedPayload({
+		const connected: EventPayload['connectedEvent'] = {
 			ok: true,
-		});
-		const payload = new EventPayload({
+			connectionId: 'conn-id',
+			serverVersion: '1.0.0',
+		};
+		const payload: EventPayload = {
 			connectedEvent: connected,
-		});
+		};
 
 		expect(processSocketEventPayload(payload, testCtx())).toEqual({
 			eventName: ChatsSocketMessage.Connected,

@@ -4,7 +4,6 @@ import {
 } from '@webitel/api-services/api/transformers';
 import mitt from 'mitt';
 
-import type { EventPayload } from '../../../gen/ws/EventPayload';
 import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
@@ -13,6 +12,7 @@ import type {
 	ChatsSocketConnectionStatePayloadMap,
 	IChatsSocketClientStateSubscriber,
 } from '../types/ChatsSocketConnectionState.types';
+import type { EventPayload } from '../types/WsEventPayload.types';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
 export interface IChatsSocketClient {

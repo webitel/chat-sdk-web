@@ -1,9 +1,9 @@
-import type { EventPayload } from '../../../gen/ws/EventPayload';
 import type { ServiceConfig } from '../../configs';
 import type { MessageModel } from '../../messages/types/Message.types';
 import type { ThreadModel } from '../../threads/types/Thread.types';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
+import type { EventPayload } from '../types/WsEventPayload.types';
 import { instantiateSocketEventEntities } from './instantiateSocketEventEntities';
 
 function getSocketMessageNameFromEvent(
