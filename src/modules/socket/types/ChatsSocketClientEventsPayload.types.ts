@@ -21,6 +21,25 @@ export type ChatsSocketClientEventPayloadMap = {
 		message: string;
 		details: Record<string, unknown>;
 	};
+	[ChatsSocketMessage.MemberAdded]: {
+		threadId: string;
+		contactId: string;
+		metadata: {
+			threadId: string;
+			newMemberContactId: string;
+			newMemberId: string;
+			newMemberRole: number;
+		};
+	};
+	[ChatsSocketMessage.MemberLeft]: {
+		threadId: string;
+		contactId: string;
+		metadata: {
+			threadId: string;
+			removedMemberContactId: string;
+			removedMemberId: string;
+		};
+	};
 	[ChatsSocketMessage.Ack]: {
 		id: string;
 		status: string;
