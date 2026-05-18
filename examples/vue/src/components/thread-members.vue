@@ -185,7 +185,9 @@ async function loadContacts() {
 	contactsLoading.value = true;
 	try {
 		const { fetchContacts } = createContactsService(serviceConfig.value);
-		const res = await fetchContacts();
+		const res = await fetchContacts({
+			size: 100,
+		});
 		contacts.value = res.items ?? [];
 		contactsLoaded.value = true;
 	} catch {

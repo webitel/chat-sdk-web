@@ -8,6 +8,8 @@ export interface EventPayload {
 	disconnectedEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Disconnected];
 	messageEvent?: SocketMessageModel;
 	threadCreatedEvent?: SocketThreadModel;
+	memberAddedEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.MemberAdded];
+	memberLeftEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.MemberLeft];
 	ackEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ack];
 	errorEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Error];
 	pingEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ping];

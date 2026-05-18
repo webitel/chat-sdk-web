@@ -27,6 +27,7 @@
           @send="sendMessage"
         />
       </div>
+      <MyMembershipEvents />
     </template>
   </div>
 </template>
@@ -42,6 +43,7 @@ import AppHeader from './components/app-header.vue';
 import ChatSidebar from './components/chat-sidebar.vue';
 import ChatWindow from './components/chat-window.vue';
 import ConnectForm from './components/connect-form.vue';
+import MyMembershipEvents from './components/my-membership-events.vue';
 import { useActiveChat } from './composables/use-active-chat';
 import { useSocket } from './composables/use-socket';
 

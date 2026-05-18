@@ -4,7 +4,12 @@ import {
 	ChatsSocketMessage,
 	createChatsSocketClient,
 } from '@webitel/chat-web-sdk';
-import type { IMessage, IThread } from '@webitel/chat-web-sdk';
+import type {
+	IMessage,
+	IThread,
+	SocketMemberAddedEventPayload,
+	SocketMemberLeftEventPayload,
+} from '@webitel/chat-web-sdk';
 import { makeServiceConfig, makeSocketConfig } from '../configs';
 
 type SocketClient = ReturnType<typeof createChatsSocketClient>;
@@ -17,6 +22,12 @@ const currentServiceConfig = shallowRef(makeServiceConfig('', ''));
 
 const messageHandlers = new Set<(msg: IMessage) => void>();
 const threadCreatedHandlers = new Set<(thread: IThread) => void>();
+const memberAddedHandlers = new Set<
+	(payload: SocketMemberAddedEventPayload) => void
+>();
+const memberLeftHandlers = new Set<
+	(payload: SocketMemberLeftEventPayload) => void
+>();
 
 export function useSocket() {
 	function attachHandlers(c: SocketClient) {
@@ -36,6 +47,18 @@ export function useSocket() {
 
 		c.onMessage(ChatsSocketMessage.ThreadCreated, (data) => {
 			threadCreatedHandlers.forEach((h) => h(data as IThread));
+		});
+
+		c.onMessage(ChatsSocketMessage.MemberAdded, (data) => {
+			memberAddedHandlers.forEach((h) =>
+				h(data as SocketMemberAddedEventPayload),
+			);
+		});
+
+		c.onMessage(ChatsSocketMessage.MemberLeft, (data) => {
+			memberLeftHandlers.forEach((h) =>
+				h(data as SocketMemberLeftEventPayload),
+			);
 		});
 	}
 
@@ -79,6 +102,20 @@ export function useSocket() {
 		return () => threadCreatedHandlers.delete(cb);
 	}
 
+	function onMemberAdded(
+		cb: (payload: SocketMemberAddedEventPayload) => void,
+	): () => void {
+		memberAddedHandlers.add(cb);
+		return () => memberAddedHandlers.delete(cb);
+	}
+
+	function onMemberLeft(
+		cb: (payload: SocketMemberLeftEventPayload) => void,
+	): () => void {
+		memberLeftHandlers.add(cb);
+		return () => memberLeftHandlers.delete(cb);
+	}
+
 	return {
 		socketStatus,
 		serviceConfig: currentServiceConfig,
@@ -86,5 +123,7 @@ export function useSocket() {
 		disconnect,
 		onThreadMessage,
 		onThreadCreated,
+		onMemberAdded,
+		onMemberLeft,
 	};
 }

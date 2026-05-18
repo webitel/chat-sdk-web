@@ -35,6 +35,8 @@ export {
 	ChatsSocketConnectionStatus,
 	ChatsSocketMessage, // enum for socket message types
 	createChatsSocketClient,
+	type SocketMemberAddedEventPayload,
+	type SocketMemberLeftEventPayload,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
 	// type SocketContactModel,

@@ -24,6 +24,12 @@ function getSocketMessageNameFromEvent(
 	if (sourceEvent.threadCreatedEvent) {
 		return ChatsSocketMessage.ThreadCreated;
 	}
+	if (sourceEvent.memberAddedEvent) {
+		return ChatsSocketMessage.MemberAdded;
+	}
+	if (sourceEvent.memberLeftEvent) {
+		return ChatsSocketMessage.MemberLeft;
+	}
 	if (sourceEvent.ackEvent) {
 		return ChatsSocketMessage.Ack;
 	}
@@ -48,6 +54,10 @@ function extractRawPayload(
 			return sourceEvent.messageEvent;
 		case ChatsSocketMessage.ThreadCreated:
 			return sourceEvent.threadCreatedEvent;
+		case ChatsSocketMessage.MemberAdded:
+			return sourceEvent.memberAddedEvent;
+		case ChatsSocketMessage.MemberLeft:
+			return sourceEvent.memberLeftEvent;
 		case ChatsSocketMessage.Ack:
 			return sourceEvent.ackEvent;
 		case ChatsSocketMessage.Ping:
@@ -125,6 +135,8 @@ function processEventPayload(
 		case ChatsSocketMessage.Connected:
 		case ChatsSocketMessage.Disconnected:
 		case ChatsSocketMessage.Error:
+		case ChatsSocketMessage.MemberAdded:
+		case ChatsSocketMessage.MemberLeft:
 		case ChatsSocketMessage.Ack:
 		case ChatsSocketMessage.Ping:
 			return payload as ChatsSocketClientEventPayloadMap[typeof name];
