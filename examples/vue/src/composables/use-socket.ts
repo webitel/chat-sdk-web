@@ -4,31 +4,15 @@ import {
 	ChatsSocketMessage,
 	createChatsSocketClient,
 } from '@webitel/chat-web-sdk';
-import type { IMessage, IThread } from '@webitel/chat-web-sdk';
+import type {
+	IMessage,
+	IThread,
+	SocketMemberAddedEventPayload,
+	SocketMemberLeftEventPayload,
+} from '@webitel/chat-web-sdk';
 import { makeServiceConfig, makeSocketConfig } from '../configs';
 
 type SocketClient = ReturnType<typeof createChatsSocketClient>;
-
-export type MemberAddedPayload = {
-	threadId: string;
-	contactId: string;
-	metadata: {
-		threadId: string;
-		newMemberContactId: string;
-		newMemberId: string;
-		newMemberRole: number;
-	};
-};
-
-export type MemberLeftPayload = {
-	threadId: string;
-	contactId: string;
-	metadata: {
-		threadId: string;
-		removedMemberContactId: string;
-		removedMemberId: string;
-	};
-};
 
 const client = shallowRef<SocketClient | null>(null);
 const socketStatus = ref<ChatsSocketConnectionStatus>(
@@ -38,8 +22,12 @@ const currentServiceConfig = shallowRef(makeServiceConfig('', ''));
 
 const messageHandlers = new Set<(msg: IMessage) => void>();
 const threadCreatedHandlers = new Set<(thread: IThread) => void>();
-const memberAddedHandlers = new Set<(payload: MemberAddedPayload) => void>();
-const memberLeftHandlers = new Set<(payload: MemberLeftPayload) => void>();
+const memberAddedHandlers = new Set<
+	(payload: SocketMemberAddedEventPayload) => void
+>();
+const memberLeftHandlers = new Set<
+	(payload: SocketMemberLeftEventPayload) => void
+>();
 
 export function useSocket() {
 	function attachHandlers(c: SocketClient) {
@@ -62,11 +50,15 @@ export function useSocket() {
 		});
 
 		c.onMessage(ChatsSocketMessage.MemberAdded, (data) => {
-			memberAddedHandlers.forEach((h) => h(data as MemberAddedPayload));
+			memberAddedHandlers.forEach((h) =>
+				h(data as SocketMemberAddedEventPayload),
+			);
 		});
 
 		c.onMessage(ChatsSocketMessage.MemberLeft, (data) => {
-			memberLeftHandlers.forEach((h) => h(data as MemberLeftPayload));
+			memberLeftHandlers.forEach((h) =>
+				h(data as SocketMemberLeftEventPayload),
+			);
 		});
 	}
 
@@ -111,13 +103,15 @@ export function useSocket() {
 	}
 
 	function onMemberAdded(
-		cb: (payload: MemberAddedPayload) => void,
+		cb: (payload: SocketMemberAddedEventPayload) => void,
 	): () => void {
 		memberAddedHandlers.add(cb);
 		return () => memberAddedHandlers.delete(cb);
 	}
 
-	function onMemberLeft(cb: (payload: MemberLeftPayload) => void): () => void {
+	function onMemberLeft(
+		cb: (payload: SocketMemberLeftEventPayload) => void,
+	): () => void {
 		memberLeftHandlers.add(cb);
 		return () => memberLeftHandlers.delete(cb);
 	}

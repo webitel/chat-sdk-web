@@ -38,10 +38,6 @@
         v-if="activeThread"
         :thread="activeThread"
       />
-      <ThreadMemberEvents
-        v-if="activeThread"
-        :thread="activeThread"
-      />
       <ThreadVariables
         v-if="activeThread"
         :thread="activeThread"
@@ -101,7 +97,6 @@ import type {
 } from '../composables/use-active-chat';
 import MessageBubble from './message-bubble.vue';
 import MessageInput from './message-input.vue';
-import ThreadMemberEvents from './thread-member-events.vue';
 import ThreadMembers from './thread-members.vue';
 import ThreadVariables from './thread-variables.vue';
 
