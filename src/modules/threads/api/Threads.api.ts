@@ -36,27 +36,10 @@ export const getThreadsService = ({
 		]);
 	},
 
-	// Temporary: uses getThreadsList with ids filter until dedicated GET /v1/threads/:id endpoint exists
 	getThread: async (threadId: string): Promise<ThreadModel> => {
-		const transformedParams = applyTransform(
-			{
-				ids: [
-					threadId,
-				],
-			},
-			[
-				camelToSnake(),
-			],
-		);
-
-		const response = await axiosInstance.get('/v1/threads', {
-			params: transformedParams,
-		});
-		const result: ThreadSearchRawResult = applyTransform(response.data, [
+		const response = await axiosInstance.get(`/v1/threads/${threadId}`);
+		return applyTransform(response.data, [
 			snakeToCamel(),
 		]);
-		const thread = result.items?.[0];
-		if (!thread) throw new Error(`Thread not found: ${threadId}`);
-		return thread as ThreadModel;
 	},
 });
