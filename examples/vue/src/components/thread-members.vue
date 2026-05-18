@@ -127,10 +127,19 @@
           <button
             class="btn-add"
             type="button"
-            :disabled="!form.contactSub || adding"
+            :disabled="!form.contactSub || adding || transferring"
             @click="handleAdd"
           >
             {{ adding ? '…' : 'Add' }}
+          </button>
+          <button
+            class="btn-transfer"
+            type="button"
+            :disabled="!form.contactSub || transferring || adding"
+            title="Add member and remove caller in one step"
+            @click="handleTransfer"
+          >
+            {{ transferring ? '…' : 'Transfer' }}
           </button>
         </div>
         <p
@@ -169,6 +178,7 @@ const localMembers = ref<ThreadMemberModel[]>([
 	...(props.thread.members ?? []),
 ]);
 const adding = ref(false);
+const transferring = ref(false);
 const removing = ref<string | null>(null);
 const opError = ref<string | null>(null);
 const form = ref({
@@ -264,6 +274,32 @@ async function handleAdd() {
 		opError.value = err instanceof Error ? err.message : String(err);
 	} finally {
 		adding.value = false;
+	}
+}
+
+async function handleTransfer() {
+	const sub = form.value.contactSub;
+	if (!sub || transferring.value) return;
+	const contact = contacts.value.find((c) => c.sub === sub) ?? {
+		sub,
+	};
+	opError.value = null;
+	transferring.value = true;
+	try {
+		await props.thread.transfer({
+			contact,
+			role:
+				(form.value.role as ThreadMemberRole) ||
+				ThreadMemberRole.RoleUnspecified,
+		});
+		form.value = {
+			contactSub: '',
+			role: '',
+		};
+	} catch (err) {
+		opError.value = err instanceof Error ? err.message : String(err);
+	} finally {
+		transferring.value = false;
 	}
 }
 
@@ -487,6 +523,27 @@ async function handleRemove(member: ThreadMemberModel) {
 }
 
 .btn-add:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-transfer {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #1f7aff;
+  background: #fff;
+  color: #1f7aff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.btn-transfer:hover:not(:disabled) {
+  background: #eff6ff;
+}
+
+.btn-transfer:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }

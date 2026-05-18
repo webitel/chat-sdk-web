@@ -86,7 +86,7 @@
   setup
   lang="ts"
 >
-import { ref } from 'vue';
+import { onBeforeUnmount, ref } from 'vue';
 import { type IThread, createThreadsService } from '@webitel/chat-web-sdk';
 import { useSocket } from '../../composables/use-socket';
 
@@ -100,7 +100,7 @@ defineEmits<{
 	];
 }>();
 
-const { serviceConfig } = useSocket();
+const { serviceConfig, onMemberAdded, onMemberLeft } = useSocket();
 
 const threads = ref<IThread[]>([]);
 const loading = ref(false);
@@ -140,6 +140,14 @@ async function refresh() {
 }
 
 refresh();
+
+const stopAdded = onMemberAdded(() => refresh());
+const stopLeft = onMemberLeft(() => refresh());
+
+onBeforeUnmount(() => {
+	stopAdded();
+	stopLeft();
+});
 </script>
 
 <style scoped>

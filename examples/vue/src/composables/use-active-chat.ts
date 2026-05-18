@@ -74,6 +74,15 @@ export function useActiveChat() {
 		}
 	}
 
+	function clearActiveThread(threadId: string) {
+		const chat = activeChat.value;
+		if (!chat || chat.kind !== 'thread' || chat.item.id !== threadId) return;
+		activeChat.value = null;
+		messages.value = [];
+		messagesError.value = null;
+		sendError.value = null;
+	}
+
 	function appendSocketMessage(msg: IMessage) {
 		const chat = activeChat.value;
 		if (!chat) return;
@@ -108,6 +117,7 @@ export function useActiveChat() {
 		isSending,
 		selectThread,
 		selectContact,
+		clearActiveThread,
 		appendSocketMessage,
 		sendMessage,
 	};

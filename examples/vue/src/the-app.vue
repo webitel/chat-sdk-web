@@ -47,7 +47,8 @@ import MyMembershipEvents from './components/my-membership-events.vue';
 import { useActiveChat } from './composables/use-active-chat';
 import { useSocket } from './composables/use-socket';
 
-const { socketStatus, connect, disconnect, onThreadMessage } = useSocket();
+const { socketStatus, connect, disconnect, onThreadMessage, onMemberLeft } =
+	useSocket();
 const {
 	activeChat,
 	messages,
@@ -57,6 +58,7 @@ const {
 	isSending,
 	selectThread,
 	selectContact,
+	clearActiveThread,
 	appendSocketMessage,
 	sendMessage,
 } = useActiveChat();
@@ -72,6 +74,9 @@ const isConnecting = computed(
 );
 
 const stopMsgListener = onThreadMessage(appendSocketMessage);
+const stopMemberLeftListener = onMemberLeft((payload) => {
+	clearActiveThread(payload.threadId);
+});
 
 async function handleConnect(wsUrl: string, httpUrl: string, token: string) {
 	connectError.value = null;
@@ -88,6 +93,7 @@ async function handleDisconnect() {
 
 onBeforeUnmount(() => {
 	stopMsgListener();
+	stopMemberLeftListener();
 	disconnect();
 });
 </script>
