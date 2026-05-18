@@ -17,6 +17,8 @@ import type {
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 } from '../modules/members/types/ThreadMember.types';
 import type {
 	ThreadFlushVariablesParams,
@@ -50,6 +52,8 @@ interface IThread
 		params: ThreadRemoveMemberParams,
 	) => Promise<ThreadRemoveMemberResponse>;
 
+	transfer: (params: ThreadTransferParams) => Promise<ThreadTransferResponse>;
+
 	locateVariables: () => Promise<ThreadVariablesResponse>;
 
 	setVariables: (
@@ -81,6 +85,8 @@ export type {
 	ThreadSearchVariablesParams,
 	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 	ThreadVariablesModel,
 	ThreadVariablesResponse,
 };

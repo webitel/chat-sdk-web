@@ -13,6 +13,7 @@ import { routeMessageSend } from '../../messages/utils/routeMessageSend';
 import { createThreadMember } from '../modules/members/classes/ThreadMember.class';
 import { addMember } from '../modules/members/utils/addMember';
 import { removeMember } from '../modules/members/utils/removeMember';
+import { transfer } from '../modules/members/utils/transfer';
 import type {
 	ThreadFlushVariablesParams,
 	ThreadSetVariablesParams,
@@ -26,6 +27,7 @@ import type {
 	ThreadMemberModel,
 	ThreadModel,
 	ThreadRemoveMemberParams,
+	ThreadTransferParams,
 } from '../types/Thread.types';
 
 class Thread implements IThread {
@@ -80,6 +82,10 @@ class Thread implements IThread {
 
 	async removeMember(params: ThreadRemoveMemberParams) {
 		return removeMember(this.serviceConfig)(this.id, params);
+	}
+
+	async transfer(params: ThreadTransferParams) {
+		return transfer(this.serviceConfig)(this.id, params);
 	}
 
 	async locateVariables() {

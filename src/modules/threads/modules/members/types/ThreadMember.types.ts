@@ -2,6 +2,7 @@ import type {
 	WebitelImApiGatewayV1AddMemberResponse as ThreadAddMemberResponse,
 	WebitelImApiGatewayV1ThreadMember as ThreadMemberRawModel,
 	WebitelImApiGatewayV1RemoveMemberResponse as ThreadRemoveMemberResponse,
+	WebitelImApiGatewayV1TransferResponse as ThreadTransferResponse,
 } from '@webitel/api-services/gen/models';
 
 import type {
@@ -26,6 +27,11 @@ type ThreadAddMemberParams = Required<
 /** `DELETE /v1/threads/{threadId}/members/{memberId}` */
 type ThreadRemoveMemberParams = Required<Pick<ThreadMemberModel, 'id'>>;
 
+/** `POST /v1/threads/{threadId}/transfer` */
+type ThreadTransferParams = Required<
+	Pick<ThreadMemberModel, 'contact' | 'role'>
+>;
+
 export type {
 	IThreadMember,
 	ThreadAddMemberParams,
@@ -33,4 +39,6 @@ export type {
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 };

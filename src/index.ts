@@ -56,6 +56,7 @@ export {
 	type ThreadSearchVariablesParams,
 	type ThreadSearchVariablesResponse,
 	type ThreadSetVariablesParams,
+	type ThreadTransferParams,
 	type ThreadVariablesModel,
 	type ThreadVariablesResponse,
 } from './modules/threads';

@@ -1,6 +1,7 @@
 import type { ServiceConfig } from '../configs';
 import { addMember } from './modules/members/utils/addMember';
 import { removeMember } from './modules/members/utils/removeMember';
+import { transfer } from './modules/members/utils/transfer';
 import { flushVariables } from './modules/variables/utils/flushVariables';
 import { locateVariables } from './modules/variables/utils/locateVariables';
 import { searchVariables } from './modules/variables/utils/searchVariables';
@@ -17,6 +18,8 @@ import type {
 	ThreadSearchVariablesParams,
 	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 	ThreadVariablesResponse,
 } from './types/Thread.types';
 import { fetchThread, fetchThreads } from './utils/fetchThreads';
@@ -32,6 +35,10 @@ interface IThreadsService {
 		threadId: string,
 		params: ThreadRemoveMemberParams,
 	) => Promise<ThreadRemoveMemberResponse>;
+	transfer: (
+		threadId: string,
+		params: ThreadTransferParams,
+	) => Promise<ThreadTransferResponse>;
 	locateVariables: (threadId: string) => Promise<ThreadVariablesResponse>;
 	setVariables: (
 		threadId: string,
@@ -54,6 +61,8 @@ export function createThreadsService(config: ServiceConfig): IThreadsService {
 			addMember(config)(threadId, params),
 		removeMember: (threadId: string, params: ThreadRemoveMemberParams) =>
 			removeMember(config)(threadId, params),
+		transfer: (threadId: string, params: ThreadTransferParams) =>
+			transfer(config)(threadId, params),
 		locateVariables: (threadId: string) => locateVariables(config)(threadId),
 		setVariables: (threadId: string, params: ThreadSetVariablesParams) =>
 			setVariables(config)(threadId, params),

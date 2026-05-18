@@ -9,6 +9,8 @@ import type {
 	ThreadAddMemberResponse,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 } from '../types/ThreadMember.types';
 
 interface IThreadMembersApiService {
@@ -20,6 +22,10 @@ interface IThreadMembersApiService {
 		threadId: string,
 		params: ThreadRemoveMemberParams,
 	) => Promise<ThreadRemoveMemberResponse>;
+	transfer: (
+		threadId: string,
+		params: ThreadTransferParams,
+	) => Promise<ThreadTransferResponse>;
 }
 
 export const getThreadMembersService = ({
@@ -61,6 +67,31 @@ export const getThreadMembersService = ({
 	): Promise<ThreadRemoveMemberResponse> => {
 		const response = await axiosInstance.delete(
 			`/v1/threads/${threadId}/members/${memberId}`,
+		);
+		return applyTransform(response.data, [
+			snakeToCamel(),
+		]);
+	},
+
+	/**
+	 * `POST /v1/threads/{threadId}/transfer`
+	 *
+	 * Adds the given contact to the thread and removes the caller in a single
+	 * operation. Body shape mirrors `addMember`.
+	 */
+	transfer: async (
+		threadId: string,
+		{ contact, role }: ThreadTransferParams,
+	): Promise<ThreadTransferResponse> => {
+		const response = await axiosInstance.post(
+			`/v1/threads/${threadId}/transfer`,
+			{
+				contact: {
+					sub: contact.sub,
+					iss: contact.iss,
+				},
+				role,
+			},
 		);
 		return applyTransform(response.data, [
 			snakeToCamel(),

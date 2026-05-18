@@ -7,6 +7,9 @@ export type {
 	ThreadMemberModel,
 	ThreadRemoveMemberParams,
 	ThreadRemoveMemberResponse,
+	ThreadTransferParams,
+	ThreadTransferResponse,
 } from './types/ThreadMember.types';
 export { addMember } from './utils/addMember';
 export { removeMember } from './utils/removeMember';
+export { transfer } from './utils/transfer';

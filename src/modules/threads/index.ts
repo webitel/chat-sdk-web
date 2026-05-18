@@ -14,6 +14,7 @@ export type {
 	ThreadSearchVariablesParams,
 	ThreadSearchVariablesResponse,
 	ThreadSetVariablesParams,
+	ThreadTransferParams,
 	ThreadVariablesModel,
 	ThreadVariablesResponse,
 } from './types/Thread.types';
