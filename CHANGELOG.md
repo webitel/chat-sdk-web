@@ -1,5 +1,16 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.18] - 2026-05-18
+
+### New features
+
+- ADDED `Thread.transfer(params)` / `createThreadsService().transfer(threadId, params)` — adds a contact to the thread and removes the caller in a single operation (`POST /v1/threads/{threadId}/transfer`); body shape mirrors `addMember` (`{ contact, role }`)
+- ADDED `ThreadTransferParams` / `ThreadTransferResponse` types — re-exported from the package root
+
+### Internals
+
+- REFACTOR `Threads.api.getThread`: switched from the `GET /v1/threads?ids[]=` workaround to the dedicated `GET /v1/threads/{id}` endpoint now exposed by `@webitel/api-services`; dropped the manual not-found error (server returns 404)
+
 ## [0.0.17] - 2026-05-18
 
 ### Fixes
