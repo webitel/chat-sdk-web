@@ -1,5 +1,18 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.16] - 2026-05-18
+
+### New features
+
+- ADDED `ChatsSocketMessage.MemberAdded` / `MemberLeft` socket events — fired to the affected user only when they are added to or removed from a thread; other participants receive a regular `messageEvent` instead
+- ADDED `SocketMemberAddedEventPayload` / `SocketMemberLeftEventPayload` types — re-exported from the package root so consumers can type their handlers without redeclaring the payload shape
+
+### Internals
+
+- REFACTOR removed `src/gen/ws/` codegen output and the `gen:ws` npm script; replaced with a single hand-written `EventPayload` interface in `src/modules/socket/types/WsEventPayload.types.ts` that reuses existing `SocketMessageModel`, `SocketThreadModel`, and `ChatsSocketClientEventPayloadMap` shapes
+- `examples/vue`: added a global, floating `MyMembershipEvents` panel to surface the new socket events
+- CHORE added empty `typecheck:ci` command and synced biome / unit-test script names in `package.json`
+
 ## [0.0.15] - 2026-04-24
 
 ### New features
