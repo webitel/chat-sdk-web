@@ -1,5 +1,11 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.17] - 2026-05-18
+
+### Fixes
+
+- FIX **skipped** `snakeToCamel` transform on `variables` key in thread variables API responses
+
 ## [0.0.16] - 2026-05-18
 
 ### New features

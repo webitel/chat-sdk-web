@@ -37,7 +37,9 @@ export const getThreadVariablesService = ({
 			`/v1/threads/${threadId}/variables`,
 		);
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 
@@ -50,7 +52,9 @@ export const getThreadVariablesService = ({
 			params,
 		);
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 
@@ -68,7 +72,9 @@ export const getThreadVariablesService = ({
 			},
 		);
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 
@@ -79,7 +85,9 @@ export const getThreadVariablesService = ({
 			params,
 		});
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 });
