@@ -1,5 +1,5 @@
 import type {
-	MessageHistorySearchThreadMessagesHistoryWebitelImApiGatewayV1MessageHistoryParams as MessageHistorySearchParams,
+	MessageHistorySearchThreadMessagesHistoryParams as MessageHistorySearchParams,
 	WebitelImApiGatewayV1SearchMessageHistoryResponse as MessageHistorySearchRawResponse,
 	WebitelImApiGatewayV1HistoryMessage as MessageRawModel,
 	WebitelImApiGatewayV1SendDocumentResponse as MessageSendDocumentRawResponse,

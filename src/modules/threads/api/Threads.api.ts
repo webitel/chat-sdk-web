@@ -32,14 +32,18 @@ export const getThreadsService = ({
 			params: transformedParams,
 		});
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 
 	getThread: async (threadId: string): Promise<ThreadModel> => {
 		const response = await axiosInstance.get(`/v1/threads/${threadId}`);
 		return applyTransform(response.data, [
-			snakeToCamel(),
+			snakeToCamel([
+				'variables',
+			]),
 		]);
 	},
 });

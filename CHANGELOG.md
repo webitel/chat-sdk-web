@@ -1,5 +1,11 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.19] - 2026-05-20
+
+### Fixes
+
+- FIX `Thread.variables` conversion from `snake_case` to `camelCase`
+
 ## [0.0.18] - 2026-05-18
 
 ### New features
