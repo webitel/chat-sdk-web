@@ -38,6 +38,53 @@
       </button>
     </div>
 
+    <div class="search-bar">
+      <svg
+        class="search-icon"
+        width="14"
+        height="14"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle
+          cx="11"
+          cy="11"
+          r="8"
+        />
+        <path d="m21 21-4.35-4.35" />
+      </svg>
+      <input
+        v-model="searchQuery"
+        class="search-input"
+        type="search"
+        placeholder="Search contacts…"
+        :disabled="loading && contacts.length === 0"
+      >
+      <button
+        v-if="searchQuery"
+        class="btn-clear"
+        type="button"
+        aria-label="Clear search"
+        @click="clearSearch"
+      >
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2.5"
+          stroke-linecap="round"
+        >
+          <path d="M18 6 6 18M6 6l12 12" />
+        </svg>
+      </button>
+    </div>
+
     <div
       v-if="error"
       class="state error"
@@ -54,7 +101,7 @@
       v-else-if="contacts.length === 0"
       class="state muted"
     >
-      No contacts found
+      {{ searchQuery.trim() ? 'No contacts match your search' : 'No contacts found' }}
     </div>
 
     <ul
@@ -96,7 +143,7 @@
   setup
   lang="ts"
 >
-import { ref } from 'vue';
+import { onBeforeUnmount, ref, watch } from 'vue';
 import { type IContact, createContactsService } from '@webitel/chat-web-sdk';
 import { useSocket } from '../../composables/use-socket';
 
@@ -115,6 +162,9 @@ const { serviceConfig } = useSocket();
 const contacts = ref<IContact[]>([]);
 const loading = ref(false);
 const error = ref<string | null>(null);
+const searchQuery = ref('');
+
+let searchDebounceTimer: ReturnType<typeof setTimeout> | undefined;
 
 function nameInitials(name: string) {
 	return name
@@ -129,7 +179,15 @@ async function refresh() {
 	error.value = null;
 	try {
 		const { fetchContacts } = createContactsService(serviceConfig.value);
-		const res = await fetchContacts();
+		const q = searchQuery.value.trim();
+		const res = await fetchContacts({
+			size: 100,
+			...(q
+				? {
+						q,
+					}
+				: {}),
+		});
 		contacts.value = res.items ?? [];
 	} catch (err) {
 		error.value = err instanceof Error ? err.message : String(err);
@@ -137,6 +195,21 @@ async function refresh() {
 		loading.value = false;
 	}
 }
+
+function clearSearch() {
+	searchQuery.value = '';
+}
+
+watch(searchQuery, () => {
+	clearTimeout(searchDebounceTimer);
+	searchDebounceTimer = setTimeout(() => {
+		refresh();
+	}, 300);
+});
+
+onBeforeUnmount(() => {
+	clearTimeout(searchDebounceTimer);
+});
 
 refresh();
 </script>
@@ -161,6 +234,62 @@ refresh();
 .count {
   font-size: 12px;
   color: #9ca3af;
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 14px;
+  border-bottom: 1px solid #f3f4f6;
+  flex-shrink: 0;
+}
+
+.search-icon {
+  color: #9ca3af;
+  flex-shrink: 0;
+}
+
+.search-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  font-size: 13px;
+  color: #111827;
+  outline: none;
+}
+
+.search-input::placeholder {
+  color: #9ca3af;
+}
+
+.search-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.search-input::-webkit-search-cancel-button {
+  display: none;
+}
+
+.btn-clear {
+  width: 20px;
+  height: 20px;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  color: #9ca3af;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: color 0.15s, background 0.15s;
+}
+
+.btn-clear:hover {
+  color: #6b7280;
+  background: #f3f4f6;
 }
 
 .btn-refresh {
