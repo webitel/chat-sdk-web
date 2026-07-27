@@ -14,7 +14,7 @@
 		"biome:format:all": "npx biome check --write ./src",
 		"biome:format:staged": "npx biome check --write --staged",
 		"lint:fix-staged": "npx lint-staged",
-		"prepare": "(husky || true)",
+		"prepare": "husky",
 		"typecheck:ci": "true",
 		"test": "vitest run",
 		"test:ci": "npm run test",
