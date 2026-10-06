@@ -149,8 +149,10 @@ class ChatsSocketClient implements IChatsSocketClient {
 			return;
 		}
 		this.wsConnectionState = next;
-		this.stateEmitter.emit(next, {
-			previous,
+		notifySafely(() => {
+			this.stateEmitter.emit(next, {
+				previous,
+			});
 		});
 	}
 

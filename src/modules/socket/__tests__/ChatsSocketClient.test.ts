@@ -1203,4 +1203,37 @@ describe('createChatsSocketClient', () => {
 			);
 		});
 	});
+
+	describe('throwing state subscribers', () => {
+		it('still authenticates when a Connected subscriber throws', async () => {
+			const consoleError = vi
+				.spyOn(console, 'error')
+				.mockImplementation(() => {});
+			const client = createChatsSocketClient(clientConfigs());
+			client.onState(ChatsSocketConnectionStatus.Connected, () => {
+				throw new Error('subscriber failed');
+			});
+
+			const connecting = client.connect();
+			const socket = latestSocket();
+			await answer(socket);
+
+			await expect(connecting).resolves.toBeUndefined();
+			expect(socket.send).toHaveBeenCalled();
+			expect(consoleError).toHaveBeenCalled();
+		});
+
+		it('does not reject connect() with a Connecting subscriber error', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
+			const client = createChatsSocketClient(clientConfigs());
+			client.onState(ChatsSocketConnectionStatus.Connecting, () => {
+				throw new Error('subscriber failed');
+			});
+
+			const connecting = client.connect();
+			await answer(latestSocket());
+
+			await expect(connecting).resolves.toBeUndefined();
+		});
+	});
 });
