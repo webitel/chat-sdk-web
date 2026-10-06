@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { createServiceConfig, createSocketConfig } from '../../configs';
 import { createChatsSocketClient } from '../classes/ChatsSocketClient';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
+import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import type { ChatsSocketClientOptions } from '../types/ChatsSocketClientOptions.types';
 
 class MockWebSocket {
 	static instances: MockWebSocket[] = [];
@@ -18,8 +20,11 @@ class MockWebSocket {
 	}
 
 	send = vi.fn();
+	// browsers report the close asynchronously
 	close = vi.fn(() => {
-		this.onclose?.();
+		queueMicrotask(() => {
+			this.onclose?.();
+		});
 	});
 }
 
@@ -59,6 +64,34 @@ function connectedEventWireJson() {
 			},
 		},
 	});
+}
+
+/** lets pending promise callbacks (e.g. an async token getter) run */
+const flushPromises = () => vi.advanceTimersByTimeAsync(0);
+
+const latestSocket = () =>
+	MockWebSocket.instances[MockWebSocket.instances.length - 1];
+
+/** the server accepts the socket: it opens, then answers with `connectedEvent` */
+async function answer(socket: MockWebSocket) {
+	socket.onopen?.();
+	await flushPromises();
+	socket.onmessage?.({
+		data: connectedEventWireJson(),
+	});
+}
+
+async function connectedClient(
+	options: Partial<ChatsSocketClientOptions> = {},
+) {
+	const client = createChatsSocketClient({
+		...clientConfigs(),
+		...options,
+	});
+	const connecting = client.connect();
+	await answer(latestSocket());
+	await connecting;
+	return client;
 }
 
 describe('createChatsSocketClient', () => {
@@ -144,6 +177,116 @@ describe('createChatsSocketClient', () => {
 		expect(transitions[1]).toEqual({
 			state: ChatsSocketConnectionStatus.Connected,
 			previous: ChatsSocketConnectionStatus.Connecting,
+		});
+	});
+
+	describe('socket ownership', () => {
+		it('closes the previous socket when connect() is called again', async () => {
+			const client = await connectedClient();
+			const oldSocket = latestSocket();
+
+			void client.connect();
+
+			expect(oldSocket.close).toHaveBeenCalled();
+			expect(MockWebSocket.instances).toHaveLength(2);
+		});
+
+		it('ignores events from a socket it no longer uses', async () => {
+			const client = await connectedClient();
+			const oldSocket = latestSocket();
+			const connectedMessage = vi.fn();
+			const disconnectedState = vi.fn();
+			client.onMessage(ChatsSocketMessage.Connected, connectedMessage);
+			client.onState(
+				ChatsSocketConnectionStatus.Disconnected,
+				disconnectedState,
+			);
+
+			void client.connect();
+			oldSocket.onopen?.();
+			oldSocket.onerror?.();
+			oldSocket.onmessage?.({
+				data: connectedEventWireJson(),
+			});
+			oldSocket.onclose?.();
+			await flushPromises();
+
+			// once, by the handshake before it was replaced
+			expect(oldSocket.send).toHaveBeenCalledOnce();
+			expect(connectedMessage).not.toHaveBeenCalled();
+			expect(disconnectedState).not.toHaveBeenCalled();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connecting,
+			);
+		});
+
+		it('rejects a pending connect() superseded by another one', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			const first = client.connect();
+			const firstOutcome = expect(first).rejects.toThrow(
+				'socket connect superseded',
+			);
+
+			const second = client.connect();
+			await firstOutcome;
+			await answer(latestSocket());
+			await second;
+		});
+
+		it('rejects a pending connect() when disconnect() is called', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('socket disconnected');
+
+			await client.disconnect();
+
+			await outcome;
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Disconnected,
+			);
+		});
+	});
+
+	describe('state subscribers calling back into the client', () => {
+		it('settles each connect() by its own socket when an Error subscriber connects again', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			let reconnecting: Promise<void> | null = null;
+			client.onState(ChatsSocketConnectionStatus.Error, () => {
+				reconnecting ??= client.connect();
+			});
+			const first = client.connect();
+			const firstOutcome = expect(first).rejects.toThrow(
+				'failed to connect to socket',
+			);
+
+			latestSocket().onerror?.();
+			await firstOutcome;
+			await answer(latestSocket());
+
+			await expect(reconnecting).resolves.toBeUndefined();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connected,
+			);
+		});
+
+		it('closes the new socket when a Connecting subscriber disconnects', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			client.onState(ChatsSocketConnectionStatus.Connecting, () => {
+				void client.disconnect();
+			});
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('socket disconnected');
+			const socket = latestSocket();
+
+			await outcome;
+			socket.onopen?.();
+			await flushPromises();
+
+			expect(socket.close).toHaveBeenCalled();
+			expect(socket.send).not.toHaveBeenCalled();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Disconnected,
+			);
 		});
 	});
 });

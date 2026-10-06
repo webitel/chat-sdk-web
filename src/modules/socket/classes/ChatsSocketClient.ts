@@ -8,6 +8,7 @@ import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
+import type { ChatsSocketClientOptions } from '../types/ChatsSocketClientOptions.types';
 import type {
 	ChatsSocketConnectionStatePayloadMap,
 	IChatsSocketClientStateSubscriber,
@@ -42,17 +43,13 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private serviceConfig: ServiceConfig;
 
 	private ws: WebSocket | null = null;
+	/** rejects the `connect()` call still waiting for `connectedEvent` */
+	private rejectAttempt: ((error: Error) => void) | null = null;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
 
-	constructor({
-		socketConfig,
-		serviceConfig,
-	}: {
-		socketConfig: SocketConfig;
-		serviceConfig: ServiceConfig;
-	}) {
+	constructor({ socketConfig, serviceConfig }: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
 	}
@@ -73,61 +70,120 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
+		return this.openSocket();
+	}
+
+	/**
+	 * Every attempt gets its own socket. Handlers of a socket that is no longer
+	 * `this.ws` return early, so a replaced socket never changes state.
+	 *
+	 * State subscribers may call back into the client (an app's own retry
+	 * loop does), so every state change is emitted after the bookkeeping.
+	 */
+	private openSocket(): Promise<void> {
+		this.dropSocket(new Error('socket connect superseded'));
+
 		return new Promise((resolve, reject) => {
-			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
+			this.rejectAttempt = reject;
 
-			this.ws = new WebSocket(new URL(this.socketConfig.baseUrl).toString());
+			const socket = new WebSocket(
+				new URL(this.socketConfig.baseUrl).toString(),
+			);
+			this.ws = socket;
 
-			this.ws.onopen = () => {
+			socket.onopen = () => {
+				if (socket !== this.ws) {
+					return;
+				}
 				this.setConnectionState(ChatsSocketConnectionStatus.Connected);
-				// biome-ignore lint/style/noNonNullAssertion: open -> exists
-				this.ws!.send(
+				socket.send(
 					JSON.stringify({
 						'x-webitel-access': this.socketConfig.accessToken,
 					}),
 				);
 			};
-			this.ws.onerror = () => {
-				this.setConnectionState(ChatsSocketConnectionStatus.Error);
-				reject(new Error('failed to connect to socket'));
-			};
-			this.ws.onclose = () => {
-				this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
-				this.ws = null;
-				reject(new Error('socket disconnected'));
-			};
-			this.ws.onmessage = (event) => {
-				try {
-					const eventData = applyTransform(JSON.parse(event.data), [
-						snakeToCamel(),
-					]) as {
-						payload: EventPayload;
-					};
-
-					const { eventName, eventPayload } = processSocketEventPayload(
-						eventData.payload,
-						{
-							serviceConfig: this.serviceConfig,
-						},
-					);
-
-					if (eventName === ChatsSocketMessage.Connected) {
-						resolve();
-					}
-
-					this.emitter.emit(eventName, eventPayload);
-				} catch (err) {
-					this.emitter.emit(ChatsSocketMessage.Error, {
-						code: -1,
-						message:
-							'SDK failed to parse incoming socket event. Check "details.cause" for the original error.',
-						details: {
-							cause: err instanceof Error ? err.message : String(err),
-						},
-					});
+			socket.onerror = () => {
+				if (socket !== this.ws) {
+					return;
 				}
+				this.rejectPendingAttempt(new Error('failed to connect to socket'));
+				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 			};
+			socket.onclose = () => {
+				if (socket !== this.ws) {
+					return;
+				}
+				this.failAttempt(new Error('socket disconnected'));
+			};
+			socket.onmessage = (event) => {
+				if (socket !== this.ws) {
+					return;
+				}
+				this.handleMessage(event, resolve);
+			};
+
+			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 		});
+	}
+
+	private handleMessage(event: MessageEvent, resolve: () => void): void {
+		try {
+			const eventData = applyTransform(JSON.parse(event.data), [
+				snakeToCamel(),
+			]) as {
+				payload: EventPayload;
+			};
+
+			const { eventName, eventPayload } = processSocketEventPayload(
+				eventData.payload,
+				{
+					serviceConfig: this.serviceConfig,
+				},
+			);
+
+			if (eventName === ChatsSocketMessage.Connected) {
+				this.markAnswered();
+				resolve();
+			}
+
+			this.emitter.emit(eventName, eventPayload);
+		} catch (err) {
+			this.emitter.emit(ChatsSocketMessage.Error, {
+				code: -1,
+				message:
+					'SDK failed to parse incoming socket event. Check "details.cause" for the original error.',
+				details: {
+					cause: err instanceof Error ? err.message : String(err),
+				},
+			});
+		}
+	}
+
+	/** The server answered the attempt with `connectedEvent`. */
+	private markAnswered(): void {
+		this.rejectAttempt = null;
+	}
+
+	/** Forgets the current socket and fails the attempt still waiting on it. */
+	private dropSocket(error: Error): void {
+		this.rejectPendingAttempt(error);
+		const socket = this.ws;
+		if (!socket) {
+			return;
+		}
+		// cleared before close(): the socket's own close event must read as stale
+		this.ws = null;
+		socket.close();
+	}
+
+	private failAttempt(error: Error): void {
+		this.dropSocket(error);
+		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
+	}
+
+	private rejectPendingAttempt(error: Error): void {
+		this.rejectAttempt?.(error);
+		this.rejectAttempt = null;
 	}
 
 	async reconnect(): Promise<void> {
@@ -135,9 +191,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async disconnect(): Promise<void> {
-		this.ws?.close();
+		this.dropSocket(new Error('socket disconnected'));
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
-		this.ws = null;
 	}
 
 	onMessage(
@@ -155,15 +210,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 }
 
-export function createChatsSocketClient({
-	socketConfig,
-	serviceConfig,
-}: {
-	socketConfig: SocketConfig;
-	serviceConfig: ServiceConfig;
-}): ChatsSocketClient {
-	return new ChatsSocketClient({
-		socketConfig,
-		serviceConfig,
-	});
+export function createChatsSocketClient(
+	options: ChatsSocketClientOptions,
+): ChatsSocketClient {
+	return new ChatsSocketClient(options);
 }
