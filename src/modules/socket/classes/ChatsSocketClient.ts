@@ -123,6 +123,10 @@ class ChatsSocketClient implements IChatsSocketClient {
 			return;
 		}
 		this.setConnectionState(ChatsSocketConnectionStatus.Connected);
+		// a subscriber may have disconnected; a getter can be a network call
+		if (socket !== this.ws) {
+			return;
+		}
 
 		let accessToken: string;
 		try {
