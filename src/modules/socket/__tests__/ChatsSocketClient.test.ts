@@ -577,6 +577,63 @@ describe('createChatsSocketClient', () => {
 			expect(MockWebSocket.instances).toHaveLength(3);
 		});
 
+		it('retries an attempt whose token getter throws', async () => {
+			let calls = 0;
+			const client = clientWithToken(() => {
+				calls += 1;
+				if (calls === 1) {
+					throw new Error('token unavailable');
+				}
+				return 'second-token';
+			});
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('token unavailable');
+			latestSocket().onopen?.();
+			await outcome;
+
+			await vi.advanceTimersByTimeAsync(1_000);
+			const retrySocket = latestSocket();
+			retrySocket.onopen?.();
+			await flushPromises();
+
+			expect(MockWebSocket.instances).toHaveLength(2);
+			expect(retrySocket.send).toHaveBeenCalledWith(
+				JSON.stringify({
+					'x-webitel-access': 'second-token',
+				}),
+			);
+		});
+
+		it('keeps the socket a Disconnected subscriber opened during a drop', async () => {
+			const client = await connectedClient();
+			let reconnecting: Promise<void> | null = null;
+			client.onState(ChatsSocketConnectionStatus.Disconnected, () => {
+				reconnecting ??= client.connect();
+			});
+
+			drop(latestSocket());
+			await answer(latestSocket());
+			await reconnecting;
+			await vi.advanceTimersByTimeAsync(5_000);
+
+			expect(MockWebSocket.instances).toHaveLength(2);
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connected,
+			);
+		});
+
+		it('does not retry when a Disconnected subscriber disconnects', async () => {
+			const client = await connectedClient();
+			client.onState(ChatsSocketConnectionStatus.Disconnected, () => {
+				void client.disconnect();
+			});
+
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(60_000);
+
+			expect(MockWebSocket.instances).toHaveLength(1);
+		});
+
 		it('authenticates a retry with the current token', async () => {
 			let currentToken = 'first-token';
 			const client = clientWithToken(() => currentToken);
