@@ -26,6 +26,28 @@ export const socketConfig = createChatsSocketClient({
 });
 ```
 
+## socket reconnect
+
+A dropped socket is connected again automatically: after 1s, doubling up to 30s while attempts fail, until the server answers. An attempt the server does not answer within 10s fails and is retried. `disconnect()` stops retrying until the next `connect()`.
+
+```js
+const socketClient = createChatsSocketClient({
+    socketConfig,
+    serviceConfig,
+    connectTimeout: 10_000, // optional
+    reconnect: { initialDelay: 1_000, maxDelay: 30_000 }, // optional; `false` turns it off
+});
+
+// anything sent while the socket was down was not pushed: fetch it again
+socketClient.onReconnected(({ attempt }) => {
+    refetchThreads();
+});
+
+await socketClient.reconnect(); // connect again right away
+```
+
+Pass `accessToken` as a getter so a reconnect uses the current token.
+
 ## using Chats Services
 
 HTTP Endpoints related to one entity are named **Services**. 
