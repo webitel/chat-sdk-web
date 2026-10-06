@@ -32,8 +32,10 @@ export {
 	type MessageModel, // Message backend response type
 } from './modules/messages';
 export {
+	type ChatsSocketClientOptions,
 	ChatsSocketConnectionStatus,
 	ChatsSocketMessage, // enum for socket message types
+	type ChatsSocketReconnectedPayload, // payload of onReconnected
 	createChatsSocketClient,
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,

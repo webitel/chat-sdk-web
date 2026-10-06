@@ -5,8 +5,9 @@ export type ChatsSocketClientOptions = {
 	serviceConfig: ServiceConfig;
 	/**
 	 * An attempt the server has not answered with `connectedEvent` within this
-	 * many ms fails and is retried (default 10s). It includes resolving an
-	 * `accessToken` getter. `0` or `Infinity` turns the timeout off.
+	 * many ms fails, and is retried unless `reconnect` is `false` (default 10s).
+	 * It includes resolving an `accessToken` getter. `0` or `Infinity` turns
+	 * the timeout off.
 	 */
 	connectTimeout?: number;
 	/**

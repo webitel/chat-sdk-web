@@ -13,18 +13,43 @@ Configs are required to initialize / use [Services](#using-chats-services) and [
 ```js
 // your-app/.../configs.js
 
-import { createServiceConfig, createChatsSocketClient } from '@webitel/chat-web-sdk';
+import { createServiceConfig, createSocketConfig } from '@webitel/chat-web-sdk';
 
 export const serviceConfig = createServiceConfig({
     baseUrl: '/example/api',
     accessToken: 'zxc...', // or async () => await requestUserToken()
 });
 
-export const socketConfig = createChatsSocketClient({
+export const socketConfig = createSocketConfig({
     baseUrl: '/example/ws',
-    accessToken: 'zxc...',
+    accessToken: 'zxc...', // or a getter, so a reconnect uses the current token
 });
 ```
+
+## socket reconnect
+
+A dropped socket — or a first `connect()` that failed — is connected again automatically: after 1s, doubling up to 30s while attempts fail, until the server answers. It never gives up on its own: call `disconnect()` when the socket is no longer needed. An attempt the server does not answer within 10s (including resolving an `accessToken` getter) fails and is retried.
+
+```js
+const socketClient = createChatsSocketClient({
+    socketConfig,
+    serviceConfig,
+    connectTimeout: 10_000, // optional; `0` turns it off
+    reconnect: { initialDelay: 1_000, maxDelay: 30_000 }, // optional; `false` turns it off
+});
+
+// anything sent while the socket was down was not pushed: fetch it again
+socketClient.onReconnected(({ attempt }) => {
+    refetchThreads();
+});
+
+await socketClient.reconnect(); // connect again right away
+```
+
+- `onReconnected` fires after automatic retries and after `reconnect()`, never for `connect()` — use `reconnect()` (not `connect()`) to recover by hand, so catch-up still runs.
+- If your app used to reconnect on `ChatsSocketConnectionStatus.Disconnected` / `Error`, remove that code (or pass `reconnect: false`).
+- A failed `connect()` rejects but keeps retrying in the background; call `disconnect()` if your app gives up on it.
+- Pass `accessToken` as a getter so a reconnect uses the current token.
 
 ## using Chats Services
 
@@ -46,11 +71,7 @@ threads.push(...items);
 
 ### using socket client
 
-Not currently implemented
-
-```js
-// todo
-```
+See [socket reconnect](#socket-reconnect) for creating the client and keeping it connected.
 
 ### List of available Services
 

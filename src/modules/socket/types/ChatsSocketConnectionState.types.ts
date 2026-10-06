@@ -13,7 +13,7 @@ export type IChatsSocketClientStateSubscriber = (
 	payload: ChatsSocketConnectionStateChangePayload,
 ) => unknown;
 
-/** Emitted when a dropped socket is answered by the server again. */
+/** Emitted when the server answers again after a drop, or after `reconnect()`. */
 export type ChatsSocketReconnectedPayload = {
 	/** connect attempts this outage took, including the answered one */
 	attempt: number;

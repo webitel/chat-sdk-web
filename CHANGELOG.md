@@ -1,5 +1,30 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.20] - 2026-10-06
+
+### Breaking changes
+
+- CHANGED the chats socket now reconnects by itself after a drop (on by default). If your app reconnects on `ChatsSocketConnectionStatus.Disconnected` / `Error`, remove that loop or pass `reconnect: false` to `createChatsSocketClient`
+- CHANGED a `connect()` that fails still rejects, but the client keeps retrying in the background. If your app gives up on a failed `connect()` (login form, "server unavailable" screen), call `disconnect()` or pass `reconnect: false`
+- CHANGED calling `connect()` while an earlier `connect()` is still pending rejects the earlier call with `socket connect superseded` (both used to resolve, and the first socket leaked)
+- CHANGED `connect()` against a server that opens the socket but never sends `connectedEvent` now rejects after 10s with `socket connect timed out` (it used to hang forever). Raise `connectTimeout` for slow networks or slow token refreshes, or pass `0` to turn it off
+- CHANGED an exception thrown by an `onMessage` subscriber is logged with `console.error` instead of being reported as an `Error` message ("SDK failed to parse incoming socket event"); exceptions from `onState` subscribers are logged too instead of breaking the connect attempt
+
+### New features
+
+- ADDED automatic reconnect in `ChatsSocketClient`: retry after 1s, doubling up to 30s, reset once the server answers, no give-up — also after a failed first `connect()`. Only `disconnect()` stops it (until the next `connect()` / `reconnect()`)
+- ADDED `createChatsSocketClient({ reconnect })` — `false`, or `{ initialDelay, maxDelay }` to tune the backoff; unusable values fall back to the defaults and the first delay stays between 1ms and `maxDelay`
+- ADDED `createChatsSocketClient({ connectTimeout })` — an attempt the server has not answered with `connectedEvent` within it (default 10s, including resolving an `accessToken` getter) fails and is retried; `0` or `Infinity` turns it off
+- ADDED `ChatsSocketClient.onReconnected(callback)` — fires with `{ attempt }` each time the server answers again after a drop, and after every answered `reconnect()`; never for `connect()`. A throwing subscriber is logged and does not affect the others
+- ADDED `ChatsSocketClient.reconnect()` — connects again right away, cancelling a pending retry (used to throw `Not implemented`)
+- ADDED `ChatsSocketClientOptions` / `ChatsSocketReconnectedPayload` types — re-exported from the package root
+
+### Fixes
+
+- FIX socket now honours an `accessToken` getter (sync or async), resolved on every connect — a getter used to be sent as an empty value. A getter that throws or rejects fails the attempt (`connect()` rejects with its error) and is retried
+- FIX calling `connect()` again closes the previous socket instead of leaking it; state goes `connected` → `connecting` without a `disconnected` in between
+- FIX connection state is reported after the client's own bookkeeping, so a state subscriber may call `connect()` / `disconnect()` safely
+
 ## [0.0.19] - 2026-05-20
 
 ### Fixes
