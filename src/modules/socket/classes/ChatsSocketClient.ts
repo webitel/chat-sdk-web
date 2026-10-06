@@ -76,13 +76,15 @@ class ChatsSocketClient implements IChatsSocketClient {
 	/**
 	 * Every attempt gets its own socket. Handlers of a socket that is no longer
 	 * `this.ws` return early, so a replaced socket never changes state.
+	 *
+	 * State subscribers may call back into the client (an app's own retry
+	 * loop does), so every state change is emitted after the bookkeeping.
 	 */
 	private openSocket(): Promise<void> {
 		this.dropSocket(new Error('socket connect superseded'));
 
 		return new Promise((resolve, reject) => {
 			this.rejectAttempt = reject;
-			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 
 			const socket = new WebSocket(
 				new URL(this.socketConfig.baseUrl).toString(),
@@ -104,8 +106,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 				if (socket !== this.ws) {
 					return;
 				}
-				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 				this.rejectPendingAttempt(new Error('failed to connect to socket'));
+				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 			};
 			socket.onclose = () => {
 				if (socket !== this.ws) {
@@ -119,6 +121,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 				}
 				this.handleMessage(event, resolve);
 			};
+
+			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 		});
 	}
 
