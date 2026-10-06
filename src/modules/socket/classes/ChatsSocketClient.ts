@@ -34,6 +34,20 @@ function notifySafely(notify: () => void): void {
 }
 
 /**
+ * `0` and `Infinity` turn the timeout off; other unusable values (NaN,
+ * negative) fall back to the default.
+ */
+function toConnectTimeout(connectTimeout: number): number | null {
+	if (connectTimeout === 0 || connectTimeout === Number.POSITIVE_INFINITY) {
+		return null;
+	}
+	if (!Number.isFinite(connectTimeout) || connectTimeout < 0) {
+		return DEFAULT_CONNECT_TIMEOUT;
+	}
+	return Math.min(connectTimeout, MAX_TIMER_DELAY);
+}
+
+/**
  * Unusable delays (NaN, Infinity, `maxDelay` <= 0) fall back to the defaults.
  * The first delay is kept between 1ms and `maxDelay`, so a failing server is
  * never retried in a hot loop.
@@ -95,7 +109,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private ws: WebSocket | null = null;
 	/** rejects the `connect()` call still waiting for `connectedEvent` */
 	private rejectAttempt: ((error: Error) => void) | null = null;
-	private connectTimeout: number;
+	/** null: no timeout */
+	private connectTimeout: number | null;
 	private connectTimer: ReturnType<typeof setTimeout> | null = null;
 	private retryPolicy: {
 		initialDelay: number;
@@ -117,7 +132,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
-		this.connectTimeout = connectTimeout;
+		this.connectTimeout = toConnectTimeout(connectTimeout);
 		this.retryPolicy =
 			reconnect === false ? null : toRetryPolicy(reconnect ?? {});
 		this.retryDelay =
@@ -176,9 +191,14 @@ class ChatsSocketClient implements IChatsSocketClient {
 			);
 			this.ws = socket;
 			// a server that opens the socket but never answers would stall retries
-			this.connectTimer = setTimeout(() => {
-				this.failAttempt(new Error('socket connect timed out'));
-			}, this.connectTimeout);
+			if (this.connectTimeout !== null) {
+				this.connectTimer = setTimeout(() => {
+					if (socket !== this.ws) {
+						return;
+					}
+					this.failAttempt(new Error('socket connect timed out'));
+				}, this.connectTimeout);
+			}
 
 			socket.onopen = () => {
 				void this.authenticate(socket);
