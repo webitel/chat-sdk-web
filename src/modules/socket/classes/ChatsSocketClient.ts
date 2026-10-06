@@ -16,6 +16,9 @@ import type {
 import type { EventPayload } from '../types/WsEventPayload.types';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
+const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
+const DEFAULT_MAX_RETRY_DELAY = 30_000;
+
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
 	disconnect: () => void;
@@ -45,13 +48,34 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private ws: WebSocket | null = null;
 	/** rejects the `connect()` call still waiting for `connectedEvent` */
 	private rejectAttempt: ((error: Error) => void) | null = null;
+	private retryPolicy: {
+		initialDelay: number;
+		maxDelay: number;
+	} | null;
+	private retryTimer: ReturnType<typeof setTimeout> | null = null;
+	private retryDelay: number;
+	/** set by disconnect(): a socket closed on purpose is not retried */
+	private stopped = false;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
 
-	constructor({ socketConfig, serviceConfig }: ChatsSocketClientOptions) {
+	constructor({
+		socketConfig,
+		serviceConfig,
+		reconnect = {},
+	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
+		this.retryPolicy =
+			reconnect === false
+				? null
+				: {
+						initialDelay: reconnect.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY,
+						maxDelay: reconnect.maxDelay ?? DEFAULT_MAX_RETRY_DELAY,
+					};
+		this.retryDelay =
+			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
 	}
 
 	get connectionState(): ChatsSocketConnectionStatus {
@@ -70,6 +94,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
+		this.stopped = false;
 		return this.openSocket();
 	}
 
@@ -81,6 +106,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	 * loop does), so every state change is emitted after the bookkeeping.
 	 */
 	private openSocket(): Promise<void> {
+		this.clearRetryTimer();
 		this.dropSocket(new Error('socket connect superseded'));
 
 		return new Promise((resolve, reject) => {
@@ -99,6 +125,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 					return;
 				}
 				this.rejectPendingAttempt(new Error('failed to connect to socket'));
+				this.scheduleRetry();
 				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 			};
 			socket.onclose = () => {
@@ -192,6 +219,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	/** The server answered the attempt with `connectedEvent`. */
 	private markAnswered(): void {
 		this.rejectAttempt = null;
+		this.resetRetryDelay();
 	}
 
 	/** Forgets the current socket and fails the attempt still waiting on it. */
@@ -209,6 +237,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private failAttempt(error: Error): void {
 		this.dropSocket(error);
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
+		this.scheduleRetry();
 	}
 
 	private rejectPendingAttempt(error: Error): void {
@@ -216,11 +245,48 @@ class ChatsSocketClient implements IChatsSocketClient {
 		this.rejectAttempt = null;
 	}
 
+	/** One retry per drop: a drop reports both `error` and `disconnected`. */
+	private scheduleRetry(): void {
+		if (this.stopped || !this.retryPolicy || this.retryTimer) {
+			return;
+		}
+		this.retryTimer = setTimeout(() => {
+			this.retryTimer = null;
+			void this.retry();
+		}, this.retryDelay);
+		this.retryDelay = Math.min(this.retryDelay * 2, this.retryPolicy.maxDelay);
+	}
+
+	private async retry(): Promise<void> {
+		try {
+			await this.openSocket();
+		} catch {
+			// a failed attempt schedules the next one itself
+		}
+	}
+
+	private clearRetryTimer(): void {
+		if (this.retryTimer) {
+			clearTimeout(this.retryTimer);
+		}
+		this.retryTimer = null;
+	}
+
+	private resetRetryDelay(): void {
+		this.retryDelay =
+			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
+	}
+
 	async reconnect(): Promise<void> {
 		throw new Error('Not implemented');
 	}
 
 	async disconnect(): Promise<void> {
+		// set before the socket is told: `disconnected` is reported synchronously
+		// and must not read as a drop worth retrying
+		this.stopped = true;
+		this.clearRetryTimer();
+		this.resetRetryDelay();
 		this.dropSocket(new Error('socket disconnected'));
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 	}
