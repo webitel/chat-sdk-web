@@ -92,15 +92,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 			this.ws = socket;
 
 			socket.onopen = () => {
-				if (socket !== this.ws) {
-					return;
-				}
-				this.setConnectionState(ChatsSocketConnectionStatus.Connected);
-				socket.send(
-					JSON.stringify({
-						'x-webitel-access': this.socketConfig.accessToken,
-					}),
-				);
+				void this.authenticate(socket);
 			};
 			socket.onerror = () => {
 				if (socket !== this.ws) {
@@ -124,6 +116,40 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
 		});
+	}
+
+	private async authenticate(socket: WebSocket): Promise<void> {
+		if (socket !== this.ws) {
+			return;
+		}
+		this.setConnectionState(ChatsSocketConnectionStatus.Connected);
+
+		let accessToken: string;
+		try {
+			accessToken = await this.resolveAccessToken();
+		} catch (err) {
+			if (socket === this.ws) {
+				this.failAttempt(err instanceof Error ? err : new Error(String(err)));
+			}
+			return;
+		}
+		// the socket may have been replaced or dropped while the token resolved
+		if (socket !== this.ws) {
+			return;
+		}
+		socket.send(
+			JSON.stringify({
+				'x-webitel-access': accessToken,
+			}),
+		);
+	}
+
+	/** Read on every attempt, so a reconnect authenticates with the current token. */
+	private async resolveAccessToken(): Promise<string> {
+		const { accessToken } = this.socketConfig;
+		return typeof accessToken === 'function'
+			? await accessToken()
+			: accessToken;
 	}
 
 	private handleMessage(event: MessageEvent, resolve: () => void): void {
