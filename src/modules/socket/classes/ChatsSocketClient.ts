@@ -54,8 +54,6 @@ class ChatsSocketClient implements IChatsSocketClient {
 	} | null;
 	private retryTimer: ReturnType<typeof setTimeout> | null = null;
 	private retryDelay: number;
-	/** set by disconnect(): a socket closed on purpose is not retried */
-	private stopped = false;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
@@ -94,7 +92,6 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
-		this.stopped = false;
 		return this.openSocket();
 	}
 
@@ -236,8 +233,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	private failAttempt(error: Error): void {
 		this.dropSocket(error);
-		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 		this.scheduleRetry();
+		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 	}
 
 	private rejectPendingAttempt(error: Error): void {
@@ -247,7 +244,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	/** One retry per drop: a drop reports both `error` and `disconnected`. */
 	private scheduleRetry(): void {
-		if (this.stopped || !this.retryPolicy || this.retryTimer) {
+		if (!this.retryPolicy || this.retryTimer) {
 			return;
 		}
 		this.retryTimer = setTimeout(() => {
@@ -282,9 +279,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async disconnect(): Promise<void> {
-		// set before the socket is told: `disconnected` is reported synchronously
-		// and must not read as a drop worth retrying
-		this.stopped = true;
+		// the dropped socket's handlers read as stale, so only a pending retry
+		// can still reconnect it
 		this.clearRetryTimer();
 		this.resetRetryDelay();
 		this.dropSocket(new Error('socket disconnected'));
