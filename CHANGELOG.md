@@ -5,9 +5,10 @@
 ### Breaking changes
 
 - CHANGED the chats socket now reconnects by itself after a drop (on by default). If your app reconnects on `ChatsSocketConnectionStatus.Disconnected` / `Error`, remove that loop or pass `reconnect: false` to `createChatsSocketClient`
+- CHANGED a `connect()` that fails still rejects, but the client keeps retrying in the background. If your app gives up on a failed `connect()` (login form, "server unavailable" screen), call `disconnect()` or pass `reconnect: false`
 - CHANGED calling `connect()` while an earlier `connect()` is still pending rejects the earlier call with `socket connect superseded` (both used to resolve, and the first socket leaked)
 - CHANGED `connect()` against a server that opens the socket but never sends `connectedEvent` now rejects after 10s with `socket connect timed out` (it used to hang forever). Raise `connectTimeout` for slow networks or slow token refreshes, or pass `0` to turn it off
-- CHANGED an exception thrown by an `onMessage` subscriber is logged with `console.error` instead of being reported as an `Error` message ("SDK failed to parse incoming socket event")
+- CHANGED an exception thrown by an `onMessage` subscriber is logged with `console.error` instead of being reported as an `Error` message ("SDK failed to parse incoming socket event"); exceptions from `onState` subscribers are logged too instead of breaking the connect attempt
 
 ### New features
 
@@ -20,7 +21,7 @@
 
 ### Fixes
 
-- FIX socket now honours an `accessToken` getter (sync or async), resolved on every connect — a getter used to be sent as an empty value
+- FIX socket now honours an `accessToken` getter (sync or async), resolved on every connect — a getter used to be sent as an empty value. A getter that throws or rejects fails the attempt (`connect()` rejects with its error) and is retried
 - FIX calling `connect()` again closes the previous socket instead of leaking it; state goes `connected` → `connecting` without a `disconnected` in between
 - FIX connection state is reported after the client's own bookkeeping, so a state subscriber may call `connect()` / `disconnect()` safely
 

@@ -42,7 +42,7 @@ reconnect.
 createChatsSocketClient({
   socketConfig,              // accessToken: string | () => string | () => Promise<string>
   serviceConfig,
-  connectTimeout?: number,   // default 10_000 ms; bounds every attempt, the first one too
+  connectTimeout?: number,   // default 10_000 ms; bounds every attempt, the first one too; 0 / Infinity = off
   reconnect?: false | {      // default: enabled with the defaults below
     initialDelay?: number,   // default 1_000 ms
     maxDelay?: number,       // default 30_000 ms
@@ -88,6 +88,12 @@ type ChatsSocketReconnectedPayload = {
   resolves on `connectedEvent`, rejects on failure (background retry continues).
 - The access token is resolved on every attempt (sync or async getter, or the
   string). A getter that throws fails the attempt like a drop.
+- `connectTimeout`: `0` or `Infinity` turns it off; NaN or a negative value
+  falls back to 10s; values above 2^31 - 1 ms are capped. It includes resolving
+  the token.
+- A subscriber that throws (`onMessage`, `onState`, `onReconnected`) is logged
+  with `console.error` and never breaks the attempt; `onReconnected` subscribers
+  are isolated from each other.
 
 ### Non-goals
 
