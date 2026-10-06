@@ -162,11 +162,6 @@ describe('createChatsSocketClient', () => {
 		);
 	});
 
-	it('reconnect is not implemented', async () => {
-		const client = createChatsSocketClient(clientConfigs());
-		await expect(client.reconnect()).rejects.toThrow('Not implemented');
-	});
-
 	it('notifies onState subscribers when connection state changes', () => {
 		const transitions: Array<{
 			state: ChatsSocketConnectionStatus;
@@ -745,6 +740,155 @@ describe('createChatsSocketClient', () => {
 				JSON.stringify({
 					'x-webitel-access': 'rotated-token',
 				}),
+			);
+		});
+	});
+
+	describe('onReconnected', () => {
+		it('fires once a retry is answered, never on the first connect', async () => {
+			const reconnected = vi.fn();
+			const client = createChatsSocketClient(clientConfigs());
+			client.onReconnected(reconnected);
+
+			const connecting = client.connect();
+			await answer(latestSocket());
+			await connecting;
+			expect(reconnected).not.toHaveBeenCalled();
+
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(1_000);
+			await answer(latestSocket());
+
+			expect(reconnected).toHaveBeenCalledOnce();
+			expect(reconnected).toHaveBeenCalledWith({
+				attempt: 1,
+			});
+		});
+
+		it('reports how many attempts the outage took', async () => {
+			const reconnected = vi.fn();
+			const client = await connectedClient();
+			client.onReconnected(reconnected);
+
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(1_000);
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(2_000);
+			await answer(latestSocket());
+
+			expect(reconnected).toHaveBeenCalledWith({
+				attempt: 2,
+			});
+		});
+
+		it('counts from one again for the next outage', async () => {
+			const reconnected = vi.fn();
+			const client = await connectedClient();
+			client.onReconnected(reconnected);
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(1_000);
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(2_000);
+			await answer(latestSocket());
+
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(1_000);
+			await answer(latestSocket());
+
+			expect(reconnected).toHaveBeenLastCalledWith({
+				attempt: 1,
+			});
+		});
+
+		it('fires when a retry answers after a failed first connect()', async () => {
+			const reconnected = vi.fn();
+			const client = createChatsSocketClient(clientConfigs());
+			client.onReconnected(reconnected);
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow(
+				'failed to connect to socket',
+			);
+			drop(latestSocket());
+			await outcome;
+
+			await vi.advanceTimersByTimeAsync(1_000);
+			await answer(latestSocket());
+
+			expect(reconnected).toHaveBeenCalledWith({
+				attempt: 1,
+			});
+		});
+	});
+
+	describe('reconnect()', () => {
+		it('replaces the socket right away and resolves once answered', async () => {
+			const reconnected = vi.fn();
+			const client = await connectedClient();
+			client.onReconnected(reconnected);
+			const oldSocket = latestSocket();
+
+			const reconnecting = client.reconnect();
+			expect(oldSocket.close).toHaveBeenCalled();
+			expect(MockWebSocket.instances).toHaveLength(2);
+			await answer(latestSocket());
+			await reconnecting;
+
+			expect(reconnected).toHaveBeenCalledWith({
+				attempt: 1,
+			});
+		});
+
+		it('replaces a pending retry', async () => {
+			const client = await connectedClient();
+			drop(latestSocket());
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+			await vi.advanceTimersByTimeAsync(5_000);
+
+			expect(MockWebSocket.instances).toHaveLength(2);
+		});
+
+		it('rejects when its attempt fails, and keeps retrying', async () => {
+			const client = await connectedClient();
+			const reconnecting = client.reconnect();
+			const outcome = expect(reconnecting).rejects.toThrow(
+				'failed to connect to socket',
+			);
+
+			drop(latestSocket());
+			await outcome;
+			await vi.advanceTimersByTimeAsync(1_000);
+
+			expect(MockWebSocket.instances).toHaveLength(3);
+		});
+
+		it('turns retries back on after disconnect()', async () => {
+			const client = await connectedClient();
+			await client.disconnect();
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(1_000);
+
+			expect(MockWebSocket.instances).toHaveLength(3);
+		});
+
+		it('still resolves when an onReconnected subscriber throws', async () => {
+			const client = await connectedClient();
+			client.onReconnected(() => {
+				throw new Error('subscriber failed');
+			});
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+
+			await expect(reconnecting).resolves.toBeUndefined();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connected,
 			);
 		});
 	});
