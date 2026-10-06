@@ -1,6 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 
-import { createServiceConfig, createSocketConfig } from '../../configs';
+import {
+	createServiceConfig,
+	createSocketConfig,
+	type SocketConfigInputSchema,
+} from '../../configs';
 import { createChatsSocketClient } from '../classes/ChatsSocketClient';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
@@ -94,6 +98,15 @@ async function connectedClient(
 	return client;
 }
 
+const clientWithToken = (accessToken: SocketConfigInputSchema['accessToken']) =>
+	createChatsSocketClient({
+		...clientConfigs(),
+		socketConfig: createSocketConfig({
+			baseUrl: 'ws://example.test/ws',
+			accessToken,
+		}),
+	});
+
 describe('createChatsSocketClient', () => {
 	it('moves to Connected when the socket opens and sends the access payload after the delay', async () => {
 		const client = createChatsSocketClient(clientConfigs());
@@ -105,6 +118,7 @@ describe('createChatsSocketClient', () => {
 
 		ws.onopen?.();
 		expect(client.connectionState).toBe(ChatsSocketConnectionStatus.Connected);
+		await flushPromises();
 		expect(ws.send).toHaveBeenCalledWith(
 			JSON.stringify({
 				'x-webitel-access': 'token-123',
@@ -287,6 +301,77 @@ describe('createChatsSocketClient', () => {
 			expect(client.connectionState).toBe(
 				ChatsSocketConnectionStatus.Disconnected,
 			);
+		});
+	});
+
+	describe('access token', () => {
+		it('sends the token returned by a getter', async () => {
+			const client = clientWithToken(() => 'getter-token');
+			void client.connect();
+			const socket = latestSocket();
+
+			socket.onopen?.();
+			await flushPromises();
+
+			expect(socket.send).toHaveBeenCalledWith(
+				JSON.stringify({
+					'x-webitel-access': 'getter-token',
+				}),
+			);
+		});
+
+		it('sends the token resolved by an async getter', async () => {
+			const client = clientWithToken(async () => 'async-token');
+			void client.connect();
+			const socket = latestSocket();
+
+			socket.onopen?.();
+			await flushPromises();
+
+			expect(socket.send).toHaveBeenCalledWith(
+				JSON.stringify({
+					'x-webitel-access': 'async-token',
+				}),
+			);
+		});
+
+		it('fails the attempt when the getter throws', async () => {
+			const client = clientWithToken(() => {
+				throw new Error('token unavailable');
+			});
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('token unavailable');
+			const socket = latestSocket();
+
+			socket.onopen?.();
+			await outcome;
+
+			expect(socket.send).not.toHaveBeenCalled();
+			expect(socket.close).toHaveBeenCalled();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Disconnected,
+			);
+		});
+
+		it('does not send a token that resolves after disconnect()', async () => {
+			let releaseToken: (token: string) => void = () => {};
+			const client = clientWithToken(
+				() =>
+					new Promise<string>((resolve) => {
+						releaseToken = resolve;
+					}),
+			);
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('socket disconnected');
+			const socket = latestSocket();
+			socket.onopen?.();
+
+			await client.disconnect();
+			releaseToken('late-token');
+			await flushPromises();
+
+			await outcome;
+			expect(socket.send).not.toHaveBeenCalled();
 		});
 	});
 });
