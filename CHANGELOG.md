@@ -1,5 +1,27 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.20] - 2026-10-06
+
+### Breaking changes
+
+- CHANGED the chats socket now reconnects by itself after a drop (on by default). If your app reconnects on `ChatsSocketConnectionStatus.Disconnected` / `Error`, remove that loop or pass `reconnect: false` to `createChatsSocketClient`
+- CHANGED calling `connect()` while an earlier `connect()` is still pending rejects the earlier call with `socket connect superseded` (both used to resolve, and the first socket leaked)
+
+### New features
+
+- ADDED automatic reconnect in `ChatsSocketClient`: retry after 1s, doubling up to 30s, reset once the server answers, no give-up; stops after `disconnect()` until the next `connect()` / `reconnect()`
+- ADDED `createChatsSocketClient({ reconnect })` — `false`, or `{ initialDelay, maxDelay }` to tune the backoff
+- ADDED `createChatsSocketClient({ connectTimeout })` — an attempt the server has not answered with `connectedEvent` within it (default 10s) fails and is retried
+- ADDED `ChatsSocketClient.onReconnected(callback)` — fires with `{ attempt }` each time the server answers again after a drop, never on the first connect
+- ADDED `ChatsSocketClient.reconnect()` — connects again right away (used to throw `Not implemented`)
+- ADDED `ChatsSocketClientOptions` / `ChatsSocketReconnectedPayload` types — re-exported from the package root
+
+### Fixes
+
+- FIX socket now honours an `accessToken` getter (sync or async), resolved on every connect — a getter used to be sent as an empty value
+- FIX calling `connect()` again closes the previous socket instead of leaking it; state goes `connected` → `connecting` without a `disconnected` in between
+- FIX connection state is reported after the client's own bookkeeping, so a state subscriber may call `connect()` / `disconnect()` safely
+
 ## [0.0.19] - 2026-05-20
 
 ### Fixes
