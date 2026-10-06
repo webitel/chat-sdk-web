@@ -18,6 +18,7 @@ import type {
 import type { EventPayload } from '../types/WsEventPayload.types';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
+const DEFAULT_CONNECT_TIMEOUT = 10_000;
 const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
 const DEFAULT_MAX_RETRY_DELAY = 30_000;
 /** setTimeout fires right away for anything longer */
@@ -94,6 +95,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private ws: WebSocket | null = null;
 	/** rejects the `connect()` call still waiting for `connectedEvent` */
 	private rejectAttempt: ((error: Error) => void) | null = null;
+	private connectTimeout: number;
+	private connectTimer: ReturnType<typeof setTimeout> | null = null;
 	private retryPolicy: {
 		initialDelay: number;
 		maxDelay: number;
@@ -109,10 +112,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 	constructor({
 		socketConfig,
 		serviceConfig,
+		connectTimeout = DEFAULT_CONNECT_TIMEOUT,
 		reconnect,
 	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
+		this.connectTimeout = connectTimeout;
 		this.retryPolicy =
 			reconnect === false ? null : toRetryPolicy(reconnect ?? {});
 		this.retryDelay =
@@ -170,6 +175,10 @@ class ChatsSocketClient implements IChatsSocketClient {
 				new URL(this.socketConfig.baseUrl).toString(),
 			);
 			this.ws = socket;
+			// a server that opens the socket but never answers would stall retries
+			this.connectTimer = setTimeout(() => {
+				this.failAttempt(new Error('socket connect timed out'));
+			}, this.connectTimeout);
 
 			socket.onopen = () => {
 				void this.authenticate(socket);
@@ -293,6 +302,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	/** The server answered the attempt with `connectedEvent`. */
 	private markAnswered(): void {
+		this.clearConnectTimer();
 		this.rejectAttempt = null;
 		this.resetRetryDelay();
 		this.attempt = 0;
@@ -300,6 +310,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	/** Forgets the current socket and fails the attempt still waiting on it. */
 	private dropSocket(error: Error): void {
+		this.clearConnectTimer();
 		this.rejectPendingAttempt(error);
 		const socket = this.ws;
 		if (!socket) {
@@ -349,6 +360,13 @@ class ChatsSocketClient implements IChatsSocketClient {
 			clearTimeout(this.retryTimer);
 		}
 		this.retryTimer = null;
+	}
+
+	private clearConnectTimer(): void {
+		if (this.connectTimer) {
+			clearTimeout(this.connectTimer);
+		}
+		this.connectTimer = null;
 	}
 
 	private resetRetryDelay(): void {
