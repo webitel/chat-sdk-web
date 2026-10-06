@@ -20,8 +20,11 @@ class MockWebSocket {
 	}
 
 	send = vi.fn();
+	// browsers report the close asynchronously
 	close = vi.fn(() => {
-		this.onclose?.();
+		queueMicrotask(() => {
+			this.onclose?.();
+		});
 	});
 }
 
@@ -200,11 +203,16 @@ describe('createChatsSocketClient', () => {
 			);
 
 			void client.connect();
+			oldSocket.onopen?.();
+			oldSocket.onerror?.();
 			oldSocket.onmessage?.({
 				data: connectedEventWireJson(),
 			});
 			oldSocket.onclose?.();
+			await flushPromises();
 
+			// once, by the handshake before it was replaced
+			expect(oldSocket.send).toHaveBeenCalledOnce();
 			expect(connectedMessage).not.toHaveBeenCalled();
 			expect(disconnectedState).not.toHaveBeenCalled();
 			expect(client.connectionState).toBe(
@@ -233,6 +241,49 @@ describe('createChatsSocketClient', () => {
 			await client.disconnect();
 
 			await outcome;
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Disconnected,
+			);
+		});
+	});
+
+	describe('state subscribers calling back into the client', () => {
+		it('settles each connect() by its own socket when an Error subscriber connects again', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			let reconnecting: Promise<void> | null = null;
+			client.onState(ChatsSocketConnectionStatus.Error, () => {
+				reconnecting ??= client.connect();
+			});
+			const first = client.connect();
+			const firstOutcome = expect(first).rejects.toThrow(
+				'failed to connect to socket',
+			);
+
+			latestSocket().onerror?.();
+			await firstOutcome;
+			await answer(latestSocket());
+
+			await expect(reconnecting).resolves.toBeUndefined();
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connected,
+			);
+		});
+
+		it('closes the new socket when a Connecting subscriber disconnects', async () => {
+			const client = createChatsSocketClient(clientConfigs());
+			client.onState(ChatsSocketConnectionStatus.Connecting, () => {
+				void client.disconnect();
+			});
+			const connecting = client.connect();
+			const outcome = expect(connecting).rejects.toThrow('socket disconnected');
+			const socket = latestSocket();
+
+			await outcome;
+			socket.onopen?.();
+			await flushPromises();
+
+			expect(socket.close).toHaveBeenCalled();
+			expect(socket.send).not.toHaveBeenCalled();
 			expect(client.connectionState).toBe(
 				ChatsSocketConnectionStatus.Disconnected,
 			);
