@@ -18,6 +18,37 @@ import { processSocketEventPayload } from '../utils/processSocketEventPayload';
 
 const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
 const DEFAULT_MAX_RETRY_DELAY = 30_000;
+/** setTimeout fires right away for anything longer */
+const MAX_TIMER_DELAY = 2 ** 31 - 1;
+
+/**
+ * Unusable delays (NaN, Infinity, `maxDelay` <= 0) fall back to the defaults.
+ * The first delay is kept between 1ms and `maxDelay`, so a failing server is
+ * never retried in a hot loop.
+ */
+function toRetryPolicy({
+	initialDelay,
+	maxDelay,
+}: {
+	initialDelay?: number;
+	maxDelay?: number;
+}): {
+	initialDelay: number;
+	maxDelay: number;
+} {
+	const usableMaxDelay =
+		maxDelay !== undefined && Number.isFinite(maxDelay) && maxDelay > 0
+			? Math.min(maxDelay, MAX_TIMER_DELAY)
+			: DEFAULT_MAX_RETRY_DELAY;
+	const usableInitialDelay =
+		initialDelay !== undefined && Number.isFinite(initialDelay)
+			? initialDelay
+			: DEFAULT_INITIAL_RETRY_DELAY;
+	return {
+		initialDelay: Math.min(Math.max(usableInitialDelay, 1), usableMaxDelay),
+		maxDelay: usableMaxDelay,
+	};
+}
 
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
@@ -61,17 +92,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 	constructor({
 		socketConfig,
 		serviceConfig,
-		reconnect = {},
+		reconnect,
 	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
 		this.retryPolicy =
-			reconnect === false
-				? null
-				: {
-						initialDelay: reconnect.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY,
-						maxDelay: reconnect.maxDelay ?? DEFAULT_MAX_RETRY_DELAY,
-					};
+			reconnect === false ? null : toRetryPolicy(reconnect ?? {});
 		this.retryDelay =
 			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
 	}
