@@ -96,46 +96,58 @@ listeners, a retry limit, an `off()` / unsubscribe API.
 
 ## Internal behaviour
 
-Private state: `ws`, `retryTimer`, `retryDelay`, `attempt` (count for the
-current outage), `stopped` (set by `disconnect()`), options with defaults.
+Private state: `ws`, `rejectAttempt` (the pending call's reject), `retryTimer`,
+`retryDelay`, `connectTimer`, `attempt` (count for the current outage), options
+with defaults.
 
 **One socket per attempt.** Each attempt creates its own `WebSocket`. Every
 handler first checks that its socket is still `this.ws` and returns otherwise.
-Replacing a socket (timeout, or `connect()` / `reconnect()` over a live one)
-detaches its handlers before `close()`, so a replaced socket never changes state
-or schedules a retry.
+Dropping a socket (timeout, `disconnect()`, or `connect()` / `reconnect()` over
+a live one) clears `this.ws` before `close()`, so a dropped socket never changes
+state or schedules a retry, and rejects the call still waiting on it.
+
+**Bookkeeping first, notify last.** State subscribers may call back into the
+client (an app's own retry loop does). Every state change is emitted after the
+attempt's promise is settled and the retry is scheduled or cancelled, so a
+subscriber's `connect()` / `disconnect()` sees a consistent client and cancels
+a retry instead of racing it. `onReconnected` is emitted after the call
+resolved, so a throwing subscriber cannot stall the attempt.
 
 **Attempt** (`openSocket({ isRetry })`, used by `connect`, `reconnect` and the
 retry timer):
 
-1. Clear the pending retry timer, drop any existing socket, set `Connecting`,
-   create the socket, start the `connectTimeout` timer.
-2. `onopen` → `Connected` (same timing as today) → resolve the token → if the
-   socket became stale during the await, stop → send the auth frame. A getter
-   that throws fails the attempt.
-3. `connectedEvent` → clear the timeout, `retryDelay = initialDelay`; if
-   `isRetry`, emit reconnected with `{ attempt }`; `attempt = 0`; resolve.
-4. Failure — every path goes through one `handleSocketLost` routine:
-   - `onerror` → `Error`; `onclose` → `Disconnected` (as today);
-   - timeout → reject `socket connect timed out`, detach and close the socket,
-     set `Disconnected`;
-   - token getter failure → reject with its error, detach and close, set
-     `Disconnected`;
-   - then reject the attempt's promise (no-op if settled) and `scheduleRetry()`.
+1. Clear the pending retry timer, drop any existing socket, create the socket,
+   start the `connectTimeout` timer, then set `Connecting`.
+2. `onopen` → `Connected` (same timing as today) → if a subscriber dropped the
+   socket, stop → resolve the token → if the socket became stale during the
+   await, stop → send the auth frame. A getter that throws fails the attempt.
+3. `connectedEvent` → clear the timeout, `retryDelay = initialDelay`,
+   `attempt = 0`, resolve; then emit the message and, if `isRetry`, reconnected
+   with `{ attempt }`.
+4. Failure:
+   - `onerror` → reject `failed to connect to socket`, `scheduleRetry()`, set
+     `Error`;
+   - `onclose`, timeout (`socket connect timed out`) and token getter failure go
+     through `failAttempt`: drop the socket (rejecting the call), `scheduleRetry()`,
+     set `Disconnected`.
 
-**`scheduleRetry()`**: return if `stopped`, if reconnect is disabled, or if a
-timer is already pending. Otherwise set a timer for `retryDelay` that increments
-`attempt` and runs `openSocket({ isRetry: true })` with its rejection swallowed
-(its own failure schedules the next retry); then
+**`scheduleRetry()`**: return if reconnect is disabled or a timer is already
+pending (one retry per drop). Otherwise set a timer for `retryDelay` that
+increments `attempt` and runs `openSocket({ isRetry: true })` with its rejection
+swallowed (its own failure schedules the next retry); then
 `retryDelay = min(retryDelay * 2, maxDelay)`.
+
+Delays are normalised once: non-finite values and a `maxDelay` <= 0 fall back to
+the defaults, `maxDelay` is capped at 2^31 - 1 ms, and `initialDelay` is kept
+between 1 ms and `maxDelay` — no hot retry loop.
 
 **Public methods**
 
-- `connect()`: `stopped = false`; `openSocket({ isRetry: false })`.
-- `reconnect()`: `stopped = false`; `attempt++`; `openSocket({ isRetry: true })`.
-- `disconnect()`: `stopped = true` **first** (the `Disconnected` state is
-  emitted synchronously and must not read as a drop), clear the timer, reset
-  `retryDelay` and `attempt`, detach and close the socket, set `Disconnected`.
+- `connect()`: `openSocket({ isRetry: false })`.
+- `reconnect()`: `attempt++`; `openSocket({ isRetry: true })`.
+- `disconnect()`: clear the retry timer, reset `retryDelay` and `attempt`, drop
+  the socket, set `Disconnected`. No `stopped` flag is needed: once `this.ws` is
+  cleared and the timer is gone, nothing is left that could schedule a retry.
 
 An integrator's own retry loop calling `connect()` cancels the pending built-in
 retry and replaces the socket cleanly: no leaked sockets.
