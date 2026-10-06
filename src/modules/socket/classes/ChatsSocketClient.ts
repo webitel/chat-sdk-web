@@ -11,6 +11,8 @@ import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClien
 import type { ChatsSocketClientOptions } from '../types/ChatsSocketClientOptions.types';
 import type {
 	ChatsSocketConnectionStatePayloadMap,
+	ChatsSocketReconnectedPayload,
+	IChatsSocketClientReconnectedSubscriber,
 	IChatsSocketClientStateSubscriber,
 } from '../types/ChatsSocketConnectionState.types';
 import type { EventPayload } from '../types/WsEventPayload.types';
@@ -20,6 +22,15 @@ const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
 const DEFAULT_MAX_RETRY_DELAY = 30_000;
 /** setTimeout fires right away for anything longer */
 const MAX_TIMER_DELAY = 2 ** 31 - 1;
+
+/** A subscriber's bug is reported, never allowed to stop the client or other subscribers. */
+function notifySafely(notify: () => void): void {
+	try {
+		notify();
+	} catch (err) {
+		console.error('[@webitel/chat-web-sdk] a socket subscriber threw', err);
+	}
+}
 
 /**
  * Unusable delays (NaN, Infinity, `maxDelay` <= 0) fall back to the defaults.
@@ -53,7 +64,7 @@ function toRetryPolicy({
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
 	disconnect: () => void;
-	reconnect: () => Promise<void>; // todo
+	reconnect: () => Promise<void>;
 	onMessage: (
 		event: ChatsSocketMessage,
 		callback: IChatsSocketClientEventSubscriber,
@@ -62,6 +73,7 @@ export interface IChatsSocketClient {
 		state: ChatsSocketConnectionStatus,
 		callback: IChatsSocketClientStateSubscriber,
 	) => void;
+	onReconnected: (callback: IChatsSocketClientReconnectedSubscriber) => void;
 }
 
 export type IChatsSocketClientEventSubscriber = (
@@ -72,6 +84,9 @@ export type IChatsSocketClientEventSubscriber = (
 class ChatsSocketClient implements IChatsSocketClient {
 	private emitter = mitt<ChatsSocketClientEventPayloadMap>();
 	private stateEmitter = mitt<ChatsSocketConnectionStatePayloadMap>();
+	private reconnectedEmitter = mitt<{
+		reconnected: ChatsSocketReconnectedPayload;
+	}>();
 
 	private socketConfig: SocketConfig;
 	private serviceConfig: ServiceConfig;
@@ -85,6 +100,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	} | null;
 	private retryTimer: ReturnType<typeof setTimeout> | null = null;
 	private retryDelay: number;
+	/** attempts made for the current outage */
+	private attempt = 0;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
@@ -118,7 +135,21 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
-		return this.openSocket();
+		return this.openSocket({
+			isRetry: false,
+		});
+	}
+
+	/**
+	 * Connects again right away, without waiting for a pending retry; resolves
+	 * once the server answers, which fires `onReconnected`. With
+	 * `reconnect: false` a failed call just rejects and nothing retries.
+	 */
+	async reconnect(): Promise<void> {
+		this.attempt += 1;
+		return this.openSocket({
+			isRetry: true,
+		});
 	}
 
 	/**
@@ -128,7 +159,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	 * State subscribers may call back into the client (an app's own retry
 	 * loop does), so every state change is emitted after the bookkeeping.
 	 */
-	private openSocket(): Promise<void> {
+	private openSocket({ isRetry }: { isRetry: boolean }): Promise<void> {
 		this.clearRetryTimer();
 		this.dropSocket(new Error('socket connect superseded'));
 
@@ -157,11 +188,36 @@ class ChatsSocketClient implements IChatsSocketClient {
 				}
 				this.failAttempt(new Error('socket disconnected'));
 			};
+			// a server may repeat connectedEvent; only the first one answers the attempt
+			let answered = false;
 			socket.onmessage = (event) => {
 				if (socket !== this.ws) {
 					return;
 				}
-				this.handleMessage(event, resolve);
+				const message = this.parseMessage(event);
+				if (!message) {
+					return;
+				}
+
+				const answers =
+					message.eventName === ChatsSocketMessage.Connected && !answered;
+				const attempt = this.attempt;
+				if (answers) {
+					answered = true;
+					this.markAnswered();
+					resolve();
+				}
+
+				notifySafely(() => {
+					this.emitter.emit(message.eventName, message.eventPayload);
+				});
+
+				// last, and only if no subscriber dropped or replaced the socket meanwhile
+				if (answers && isRetry && socket === this.ws) {
+					this.reconnectedEmitter.emit('reconnected', {
+						attempt,
+					});
+				}
 			};
 
 			this.setConnectionState(ChatsSocketConnectionStatus.Connecting);
@@ -206,7 +262,10 @@ class ChatsSocketClient implements IChatsSocketClient {
 			: accessToken;
 	}
 
-	private handleMessage(event: MessageEvent, resolve: () => void): void {
+	/** Parse failures are reported as an SDK `Error` message and dropped. */
+	private parseMessage(
+		event: MessageEvent,
+	): ReturnType<typeof processSocketEventPayload> | null {
 		try {
 			const eventData = applyTransform(JSON.parse(event.data), [
 				snakeToCamel(),
@@ -214,28 +273,21 @@ class ChatsSocketClient implements IChatsSocketClient {
 				payload: EventPayload;
 			};
 
-			const { eventName, eventPayload } = processSocketEventPayload(
-				eventData.payload,
-				{
-					serviceConfig: this.serviceConfig,
-				},
-			);
-
-			if (eventName === ChatsSocketMessage.Connected) {
-				this.markAnswered();
-				resolve();
-			}
-
-			this.emitter.emit(eventName, eventPayload);
-		} catch (err) {
-			this.emitter.emit(ChatsSocketMessage.Error, {
-				code: -1,
-				message:
-					'SDK failed to parse incoming socket event. Check "details.cause" for the original error.',
-				details: {
-					cause: err instanceof Error ? err.message : String(err),
-				},
+			return processSocketEventPayload(eventData.payload, {
+				serviceConfig: this.serviceConfig,
 			});
+		} catch (err) {
+			notifySafely(() => {
+				this.emitter.emit(ChatsSocketMessage.Error, {
+					code: -1,
+					message:
+						'SDK failed to parse incoming socket event. Check "details.cause" for the original error.',
+					details: {
+						cause: err instanceof Error ? err.message : String(err),
+					},
+				});
+			});
+			return null;
 		}
 	}
 
@@ -243,6 +295,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private markAnswered(): void {
 		this.rejectAttempt = null;
 		this.resetRetryDelay();
+		this.attempt = 0;
 	}
 
 	/** Forgets the current socket and fails the attempt still waiting on it. */
@@ -275,6 +328,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 		}
 		this.retryTimer = setTimeout(() => {
 			this.retryTimer = null;
+			this.attempt += 1;
 			void this.retry();
 		}, this.retryDelay);
 		this.retryDelay = Math.min(this.retryDelay * 2, this.retryPolicy.maxDelay);
@@ -282,7 +336,9 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	private async retry(): Promise<void> {
 		try {
-			await this.openSocket();
+			await this.openSocket({
+				isRetry: true,
+			});
 		} catch {
 			// a failed attempt schedules the next one itself
 		}
@@ -300,15 +356,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
 	}
 
-	async reconnect(): Promise<void> {
-		throw new Error('Not implemented');
-	}
-
 	async disconnect(): Promise<void> {
 		// the dropped socket's handlers read as stale, so only a pending retry
 		// can still reconnect it
 		this.clearRetryTimer();
 		this.resetRetryDelay();
+		this.attempt = 0;
 		this.dropSocket(new Error('socket disconnected'));
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 	}
@@ -325,6 +378,21 @@ class ChatsSocketClient implements IChatsSocketClient {
 		callback: IChatsSocketClientStateSubscriber,
 	): void {
 		this.stateEmitter.on(state, callback);
+	}
+
+	/**
+	 * Called each time the server answers again after the socket dropped, and
+	 * after every answered `reconnect()` — never for `connect()`. Anything sent
+	 * while the socket was down was not pushed: this is the moment to catch up.
+	 * A subscriber that throws is logged and does not affect the others.
+	 */
+	onReconnected(callback: IChatsSocketClientReconnectedSubscriber): void {
+		// isolated per subscriber: one app's bug must not cancel another's catch-up
+		this.reconnectedEmitter.on('reconnected', (payload) => {
+			notifySafely(() => {
+				callback(payload);
+			});
+		});
 	}
 }
 
