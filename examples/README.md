@@ -28,13 +28,13 @@ export const socketConfig = createChatsSocketClient({
 
 ## socket reconnect
 
-A dropped socket is connected again automatically: after 1s, doubling up to 30s while attempts fail, until the server answers. An attempt the server does not answer within 10s fails and is retried. `disconnect()` stops retrying until the next `connect()`.
+A dropped socket — or a first `connect()` that failed — is connected again automatically: after 1s, doubling up to 30s while attempts fail, until the server answers. It never gives up on its own: call `disconnect()` when the socket is no longer needed. An attempt the server does not answer within 10s (including resolving an `accessToken` getter) fails and is retried.
 
 ```js
 const socketClient = createChatsSocketClient({
     socketConfig,
     serviceConfig,
-    connectTimeout: 10_000, // optional
+    connectTimeout: 10_000, // optional; `0` turns it off
     reconnect: { initialDelay: 1_000, maxDelay: 30_000 }, // optional; `false` turns it off
 });
 
@@ -46,7 +46,9 @@ socketClient.onReconnected(({ attempt }) => {
 await socketClient.reconnect(); // connect again right away
 ```
 
-Pass `accessToken` as a getter so a reconnect uses the current token.
+- `onReconnected` fires after automatic retries and after `reconnect()`, never for `connect()` — use `reconnect()` (not `connect()`) to recover by hand, so catch-up still runs.
+- If your app used to reconnect on `ChatsSocketConnectionStatus.Disconnected` / `Error`, remove that code (or pass `reconnect: false`).
+- Pass `accessToken` as a getter so a reconnect uses the current token.
 
 ## using Chats Services
 
