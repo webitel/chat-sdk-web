@@ -356,7 +356,7 @@ describe('createChatsSocketClient', () => {
 		it('keeps a newer socket when the getter of a replaced attempt fails late', async () => {
 			let failFirstToken: (error: Error) => void = () => {};
 			let calls = 0;
-			const client = clientWithToken(() => {
+			const client = clientWithToken(async () => {
 				calls += 1;
 				if (calls === 1) {
 					return new Promise<string>((_resolve, reject) => {
