@@ -39,6 +39,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+	vi.restoreAllMocks();
 	vi.unstubAllGlobals();
 	vi.useRealTimers();
 });
@@ -878,18 +879,117 @@ describe('createChatsSocketClient', () => {
 		});
 
 		it('still resolves when an onReconnected subscriber throws', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
 			const client = await connectedClient();
-			client.onReconnected(() => {
+			const failingSubscriber = vi.fn(() => {
 				throw new Error('subscriber failed');
 			});
+			const errorMessage = vi.fn();
+			client.onReconnected(failingSubscriber);
+			client.onMessage(ChatsSocketMessage.Error, errorMessage);
 
 			const reconnecting = client.reconnect();
 			await answer(latestSocket());
 
 			await expect(reconnecting).resolves.toBeUndefined();
+			expect(failingSubscriber).toHaveBeenCalled();
+			// a subscriber's bug is not a protocol error
+			expect(errorMessage).not.toHaveBeenCalled();
 			expect(client.connectionState).toBe(
 				ChatsSocketConnectionStatus.Connected,
 			);
+		});
+
+		it('tells every onReconnected subscriber, even after one throws', async () => {
+			const consoleError = vi
+				.spyOn(console, 'error')
+				.mockImplementation(() => {});
+			const client = await connectedClient();
+			const later = vi.fn();
+			client.onReconnected(() => {
+				throw new Error('subscriber failed');
+			});
+			client.onReconnected(later);
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+
+			expect(later).toHaveBeenCalledWith({
+				attempt: 1,
+			});
+			expect(consoleError).toHaveBeenCalled();
+		});
+
+		it('fires onReconnected even if a Connected-message subscriber throws', async () => {
+			vi.spyOn(console, 'error').mockImplementation(() => {});
+			const client = await connectedClient();
+			const reconnected = vi.fn();
+			client.onMessage(ChatsSocketMessage.Connected, () => {
+				throw new Error('subscriber failed');
+			});
+			client.onReconnected(reconnected);
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+
+			expect(reconnected).toHaveBeenCalledOnce();
+		});
+
+		it('fires once per attempt when the server repeats connectedEvent', async () => {
+			const client = await connectedClient();
+			const reconnected = vi.fn();
+			client.onReconnected(reconnected);
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+			latestSocket().onmessage?.({
+				data: connectedEventWireJson(),
+			});
+
+			expect(reconnected).toHaveBeenCalledOnce();
+		});
+
+		it('does not fire when a Connected-message subscriber disconnects', async () => {
+			const client = await connectedClient();
+			const reconnected = vi.fn();
+			client.onReconnected(reconnected);
+			client.onMessage(ChatsSocketMessage.Connected, () => {
+				void client.disconnect();
+			});
+
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+
+			expect(reconnected).not.toHaveBeenCalled();
+		});
+
+		it('works but does not retry when reconnect is false', async () => {
+			const reconnected = vi.fn();
+			const client = await connectedClient({
+				reconnect: false,
+			});
+			client.onReconnected(reconnected);
+
+			const answered = client.reconnect();
+			await answer(latestSocket());
+			await answered;
+			expect(reconnected).toHaveBeenCalledWith({
+				attempt: 1,
+			});
+
+			const failing = client.reconnect();
+			const outcome = expect(failing).rejects.toThrow(
+				'failed to connect to socket',
+			);
+			drop(latestSocket());
+			await outcome;
+			await vi.advanceTimersByTimeAsync(60_000);
+
+			expect(MockWebSocket.instances).toHaveLength(3);
 		});
 	});
 });
