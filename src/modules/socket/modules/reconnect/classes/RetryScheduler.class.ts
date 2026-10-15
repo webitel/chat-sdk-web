@@ -17,12 +17,11 @@ export class RetryScheduler {
 		this.delay = policy?.initialDelay ?? 0;
 	}
 
-	/** A pending retry means the client still wants the socket. */
 	get isPending(): boolean {
 		return this.timer !== null;
 	}
 
-	/** One retry per drop: a drop reports both `error` and `disconnected`. */
+	/** Schedules a retry unless one is already pending. */
 	schedule(): void {
 		if (!this.policy || this.timer) {
 			return;
@@ -34,12 +33,10 @@ export class RetryScheduler {
 		this.delay = Math.min(this.delay * 2, this.policy.maxDelay);
 	}
 
-	/** Runs the pending retry right away, optionally with the backoff started over. */
-	runNow({ restart }: { restart: boolean }): void {
+	/** Runs a retry right away, with the backoff started over. */
+	runNow(): void {
 		this.cancel();
-		if (restart) {
-			this.restart();
-		}
+		this.restart();
 		this.onRetry();
 	}
 

@@ -79,6 +79,14 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
+		this.connectTimeout = toConnectTimeout(connectTimeout);
+		this.retries = new RetryScheduler(
+			reconnect === false ? null : toRetryPolicy(reconnect ?? {}),
+			() => {
+				this.attempt += 1;
+				void this.retry();
+			},
+		);
 		this.network = followBrowserNetwork
 			? new BrowserNetworkWatcher({
 					// the TCP stack often notices a dead network late
@@ -93,21 +101,11 @@ class ChatsSocketClient implements IChatsSocketClient {
 					// out the grown backoff.
 					onOnline: () => {
 						if (this.retries.isPending) {
-							this.retries.runNow({
-								restart: true,
-							});
+							this.retries.runNow();
 						}
 					},
 				})
 			: null;
-		this.connectTimeout = toConnectTimeout(connectTimeout);
-		this.retries = new RetryScheduler(
-			reconnect === false ? null : toRetryPolicy(reconnect ?? {}),
-			() => {
-				this.attempt += 1;
-				void this.retry();
-			},
-		);
 	}
 
 	get connectionState(): ChatsSocketConnectionStatus {
@@ -183,6 +181,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 					return;
 				}
 				this.rejectPendingAttempt(new Error('failed to connect to socket'));
+				// a drop reports both error and close; the scheduler keeps one retry
 				this.retries.schedule();
 				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 			};
