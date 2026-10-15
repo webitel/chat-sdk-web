@@ -7,6 +7,7 @@ import mitt from 'mitt';
 import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import { toRetryPolicy } from '../modules/reconnect/utils/toRetryPolicy';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
 import type { ChatsSocketClientOptions } from '../types/ChatsSocketClientOptions.types';
 import type {
@@ -16,65 +17,12 @@ import type {
 	IChatsSocketClientStateSubscriber,
 } from '../types/ChatsSocketConnectionState.types';
 import type { EventPayload } from '../types/WsEventPayload.types';
+import { notifySafely } from '../utils/notifySafely';
 import { processSocketEventPayload } from '../utils/processSocketEventPayload';
-
-const DEFAULT_CONNECT_TIMEOUT = 10_000;
-const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
-const DEFAULT_MAX_RETRY_DELAY = 30_000;
-/** setTimeout fires right away for anything longer */
-const MAX_TIMER_DELAY = 2 ** 31 - 1;
-
-/** A subscriber's bug is reported, never allowed to stop the client or other subscribers. */
-function notifySafely(notify: () => void): void {
-	try {
-		notify();
-	} catch (err) {
-		console.error('[@webitel/chat-web-sdk] a socket subscriber threw', err);
-	}
-}
-
-/**
- * `0` and `Infinity` turn the timeout off; other unusable values (NaN,
- * negative) fall back to the default.
- */
-function toConnectTimeout(connectTimeout: number): number | null {
-	if (connectTimeout === 0 || connectTimeout === Number.POSITIVE_INFINITY) {
-		return null;
-	}
-	if (!Number.isFinite(connectTimeout) || connectTimeout < 0) {
-		return DEFAULT_CONNECT_TIMEOUT;
-	}
-	return Math.min(connectTimeout, MAX_TIMER_DELAY);
-}
-
-/**
- * Unusable delays (NaN, Infinity, `maxDelay` <= 0) fall back to the defaults.
- * The first delay is kept between 1ms and `maxDelay`, so a failing server is
- * never retried in a hot loop.
- */
-function toRetryPolicy({
-	initialDelay,
-	maxDelay,
-}: {
-	initialDelay?: number;
-	maxDelay?: number;
-}): {
-	initialDelay: number;
-	maxDelay: number;
-} {
-	const usableMaxDelay =
-		maxDelay !== undefined && Number.isFinite(maxDelay) && maxDelay > 0
-			? Math.min(maxDelay, MAX_TIMER_DELAY)
-			: DEFAULT_MAX_RETRY_DELAY;
-	const usableInitialDelay =
-		initialDelay !== undefined && Number.isFinite(initialDelay)
-			? initialDelay
-			: DEFAULT_INITIAL_RETRY_DELAY;
-	return {
-		initialDelay: Math.min(Math.max(usableInitialDelay, 1), usableMaxDelay),
-		maxDelay: usableMaxDelay,
-	};
-}
+import {
+	DEFAULT_CONNECT_TIMEOUT,
+	toConnectTimeout,
+} from '../utils/toConnectTimeout';
 
 export interface IChatsSocketClient {
 	connect: () => Promise<void>;
@@ -139,8 +87,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 		this.connectTimeout = toConnectTimeout(connectTimeout);
 		this.retryPolicy =
 			reconnect === false ? null : toRetryPolicy(reconnect ?? {});
-		this.retryDelay =
-			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
+		this.retryDelay = this.retryPolicy?.initialDelay ?? 0;
 	}
 
 	get connectionState(): ChatsSocketConnectionStatus {
@@ -442,8 +389,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	private resetRetryDelay(): void {
-		this.retryDelay =
-			this.retryPolicy?.initialDelay ?? DEFAULT_INITIAL_RETRY_DELAY;
+		this.retryDelay = this.retryPolicy?.initialDelay ?? 0;
 	}
 
 	async disconnect(): Promise<void> {
