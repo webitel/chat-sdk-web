@@ -103,8 +103,9 @@ unsubscribe API.
 Added later (PR #4, opt-in): `followBrowserNetwork: true` on
 `createChatsSocketClient` — the browser's `offline` event drops the socket the
 normal way (`browser went offline`, retry scheduled), `online` runs a pending
-retry right away. Listeners are added on `connect()` / `reconnect()`, removed on
-`disconnect()`, and skipped where there is no `window`.
+retry right away with the backoff reset. Listeners are added to the global scope
+(`window` or a worker's `self`) on `connect()` / `reconnect()`, removed on
+`disconnect()`, and skipped where the global scope has no `addEventListener`.
 
 ## Internal behaviour
 

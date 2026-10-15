@@ -13,8 +13,10 @@ export type ChatsSocketClientOptions = {
 	/**
 	 * Follow the browser's `offline` / `online` events (default `false`): going
 	 * offline drops the socket right away — the TCP stack often notices a dead
-	 * network late — and coming back online runs a pending retry immediately.
-	 * Has no effect where there is no `window`.
+	 * network late — and coming back online runs a pending retry immediately,
+	 * with the backoff started over. Works in pages and workers; has no effect
+	 * where the global scope fires no such events (Node, SSR, React Native).
+	 * Listeners stay until `disconnect()`.
 	 */
 	followBrowserNetwork?: boolean;
 	/**
