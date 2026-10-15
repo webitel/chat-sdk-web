@@ -224,6 +224,19 @@ describe('createChatsSocketClient', () => {
 			);
 		});
 
+		it('connects where window is not declared at all (Node, SSR)', async () => {
+			vi.unstubAllGlobals();
+			vi.stubGlobal('WebSocket', MockWebSocket as unknown as typeof WebSocket);
+
+			const client = await connectedClient({
+				followBrowserNetwork: true,
+			});
+
+			expect(client.connectionState).toBe(
+				ChatsSocketConnectionStatus.Connected,
+			);
+		});
+
 		it.each([
 			[
 				'no window',

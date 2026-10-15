@@ -20,7 +20,13 @@ export class BrowserNetworkWatcher {
 	}
 
 	start(): void {
-		if (this.watching || typeof window?.addEventListener !== 'function') {
+		// `typeof` guards only a bare identifier: `window?.x` throws where window
+		// is not declared at all (Node, SSR)
+		if (
+			this.watching ||
+			typeof window === 'undefined' ||
+			typeof window.addEventListener !== 'function'
+		) {
 			return;
 		}
 		window.addEventListener('offline', this.onOffline);
