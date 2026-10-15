@@ -82,7 +82,14 @@ export function useSocket() {
 		attachHandlers(c);
 		client.value = c;
 
-		await c.connect();
+		try {
+			await c.connect();
+		} catch (err) {
+			// the form shows the error and the user retries: stop the background retries
+			await c.disconnect();
+			client.value = null;
+			throw err;
+		}
 	}
 
 	async function disconnect(): Promise<void> {
