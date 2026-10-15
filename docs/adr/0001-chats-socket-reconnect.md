@@ -22,8 +22,8 @@ in it, once.
 failed — is connected again after `initialDelay` (1s), doubling up to
 `maxDelay` (30s), reset once the server answers, with no give-up. Only
 `disconnect()` stops it. `createChatsSocketClient({ reconnect: false })` turns
-it off. Unusable delays fall back to the defaults; the first delay stays between
-1ms and `maxDelay`, so a server failing fast is never retried in a hot loop.
+it off. A delay that is not a positive number falls back to its default, so a
+server failing fast is never retried in a hot loop.
 
 **`onReconnected({ attempt })` is the catch-up signal.** It fires when the
 server answers again after a drop, and after every answered `reconnect()`;

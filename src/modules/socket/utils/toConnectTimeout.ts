@@ -1,5 +1,3 @@
-import { MAX_TIMER_DELAY } from './maxTimerDelay';
-
 export const DEFAULT_CONNECT_TIMEOUT = 10_000;
 
 /**
@@ -13,5 +11,5 @@ export function toConnectTimeout(connectTimeout: number): number | null {
 	if (!Number.isFinite(connectTimeout) || connectTimeout < 0) {
 		return DEFAULT_CONNECT_TIMEOUT;
 	}
-	return Math.min(connectTimeout, MAX_TIMER_DELAY);
+	return connectTimeout;
 }

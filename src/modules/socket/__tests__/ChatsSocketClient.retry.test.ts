@@ -265,29 +265,15 @@ describe('createChatsSocketClient', () => {
 			expect(MockWebSocket.instances).toHaveLength(5);
 		});
 
-		it('keeps backing off when initialDelay is 0', async () => {
+		it.each([
+			0,
+			-5,
+			Number.NaN,
+			Number.POSITIVE_INFINITY,
+		])('falls back to 1s for initialDelay %s', async (initialDelay) => {
 			await connectedClient({
 				reconnect: {
-					initialDelay: 0,
-				},
-			});
-
-			drop(latestSocket());
-			await vi.advanceTimersByTimeAsync(1);
-			expect(MockWebSocket.instances).toHaveLength(2);
-
-			drop(latestSocket());
-			await vi.advanceTimersByTimeAsync(1);
-			expect(MockWebSocket.instances).toHaveLength(2);
-			await vi.advanceTimersByTimeAsync(1);
-			expect(MockWebSocket.instances).toHaveLength(3);
-		});
-
-		it('falls back to the defaults for delays that are not positive numbers', async () => {
-			await connectedClient({
-				reconnect: {
-					initialDelay: Number.NaN,
-					maxDelay: -5,
+					initialDelay,
 				},
 			});
 
@@ -298,18 +284,26 @@ describe('createChatsSocketClient', () => {
 			expect(MockWebSocket.instances).toHaveLength(2);
 		});
 
-		it('never waits longer than maxDelay, even for the first retry', async () => {
+		it.each([
+			0,
+			-5,
+			Number.NaN,
+			Number.POSITIVE_INFINITY,
+		])('falls back to 30s for maxDelay %s', async (maxDelay) => {
 			await connectedClient({
 				reconnect: {
-					initialDelay: 5_000,
-					maxDelay: 1_000,
+					initialDelay: 20_000,
+					maxDelay,
 				},
 			});
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(20_000);
 
 			drop(latestSocket());
-			await vi.advanceTimersByTimeAsync(1_000);
-
+			await vi.advanceTimersByTimeAsync(29_999);
 			expect(MockWebSocket.instances).toHaveLength(2);
+			await vi.advanceTimersByTimeAsync(1);
+			expect(MockWebSocket.instances).toHaveLength(3);
 		});
 
 		it('authenticates a retry with the current token', async () => {

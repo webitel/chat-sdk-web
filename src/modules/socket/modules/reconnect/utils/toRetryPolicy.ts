@@ -1,5 +1,3 @@
-import { MAX_TIMER_DELAY } from '../../../utils/maxTimerDelay';
-
 const DEFAULT_INITIAL_RETRY_DELAY = 1_000;
 const DEFAULT_MAX_RETRY_DELAY = 30_000;
 
@@ -8,10 +6,13 @@ export type RetryPolicy = {
 	maxDelay: number;
 };
 
+const positiveOr = (value: number | undefined, fallback: number): number =>
+	value !== undefined && Number.isFinite(value) && value > 0 ? value : fallback;
+
 /**
- * Unusable delays (NaN, Infinity, `maxDelay` <= 0) fall back to the defaults.
- * The first delay is kept between 1ms and `maxDelay`, so a failing server is
- * never retried in a hot loop.
+ * A delay that is not a positive number (0, negative, NaN, Infinity) falls
+ * back to its default: a zero delay would never grow, retrying a failing
+ * server in a hot loop.
  */
 export function toRetryPolicy({
 	initialDelay,
@@ -20,16 +21,8 @@ export function toRetryPolicy({
 	initialDelay?: number;
 	maxDelay?: number;
 }): RetryPolicy {
-	const usableMaxDelay =
-		maxDelay !== undefined && Number.isFinite(maxDelay) && maxDelay > 0
-			? Math.min(maxDelay, MAX_TIMER_DELAY)
-			: DEFAULT_MAX_RETRY_DELAY;
-	const usableInitialDelay =
-		initialDelay !== undefined && Number.isFinite(initialDelay)
-			? initialDelay
-			: DEFAULT_INITIAL_RETRY_DELAY;
 	return {
-		initialDelay: Math.min(Math.max(usableInitialDelay, 1), usableMaxDelay),
-		maxDelay: usableMaxDelay,
+		initialDelay: positiveOr(initialDelay, DEFAULT_INITIAL_RETRY_DELAY),
+		maxDelay: positiveOr(maxDelay, DEFAULT_MAX_RETRY_DELAY),
 	};
 }

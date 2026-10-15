@@ -13,7 +13,7 @@
 ### New features
 
 - ADDED automatic reconnect in `ChatsSocketClient`: retry after 1s, doubling up to 30s, reset once the server answers, no give-up — also after a failed first `connect()`. Only `disconnect()` stops it (until the next `connect()` / `reconnect()`)
-- ADDED `createChatsSocketClient({ reconnect })` — `false`, or `{ initialDelay, maxDelay }` to tune the backoff; unusable values fall back to the defaults and the first delay stays between 1ms and `maxDelay`
+- ADDED `createChatsSocketClient({ reconnect })` — `false`, or `{ initialDelay, maxDelay }` to tune the backoff; a delay that is not a positive number falls back to its default
 - ADDED `createChatsSocketClient({ connectTimeout })` — an attempt the server has not answered with `connectedEvent` within it (default 10s, including resolving an `accessToken` getter) fails and is retried; `0` or `Infinity` turns it off
 - ADDED `ChatsSocketClient.onReconnected(callback)` — fires with `{ attempt }` each time the server answers again after a drop, and after every answered `reconnect()`; never for `connect()`. A throwing subscriber is logged and does not affect the others
 - ADDED `ChatsSocketClient.reconnect()` — connects again right away, cancelling a pending retry (used to throw `Not implemented`)
