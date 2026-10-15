@@ -1240,21 +1240,9 @@ describe('createChatsSocketClient', () => {
 	describe('followBrowserNetwork', () => {
 		let browserWindow: EventTarget;
 
-		// a page's (or worker's) global scope fires online/offline; Node's has none
 		beforeEach(() => {
 			browserWindow = new EventTarget();
-			vi.stubGlobal(
-				'addEventListener',
-				(...args: Parameters<EventTarget['addEventListener']>) => {
-					browserWindow.addEventListener(...args);
-				},
-			);
-			vi.stubGlobal(
-				'removeEventListener',
-				(...args: Parameters<EventTarget['removeEventListener']>) => {
-					browserWindow.removeEventListener(...args);
-				},
-			);
+			vi.stubGlobal('window', browserWindow);
 		});
 
 		const goOffline = () => browserWindow.dispatchEvent(new Event('offline'));
@@ -1458,9 +1446,17 @@ describe('createChatsSocketClient', () => {
 			);
 		});
 
-		it('connects where the global scope has no network events', async () => {
-			vi.stubGlobal('addEventListener', undefined);
-			vi.stubGlobal('window', {});
+		it.each([
+			[
+				'no window',
+				undefined,
+			],
+			[
+				'a window without addEventListener',
+				{},
+			],
+		])('connects where there is %s', async (_where, stubbedWindow) => {
+			vi.stubGlobal('window', stubbedWindow);
 
 			const client = await connectedClient({
 				followBrowserNetwork: true,

@@ -34,18 +34,6 @@ function notifySafely(notify: () => void): void {
 }
 
 /**
- * The scope that fires `online` / `offline`: `window` in a page, `self` in a
- * worker. Null in Node, SSR or React Native.
- */
-function networkEventsTarget(): EventTarget | null {
-	const scope = globalThis as Partial<EventTarget>;
-	return typeof scope.addEventListener === 'function' &&
-		typeof scope.removeEventListener === 'function'
-		? (globalThis as unknown as EventTarget)
-		: null;
-}
-
-/**
  * `0` and `Infinity` turn the timeout off; other unusable values (NaN,
  * negative) fall back to the default.
  */
@@ -133,8 +121,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	/** attempts made for the current outage */
 	private attempt = 0;
 	private followBrowserNetwork: boolean;
-	/** where the online/offline listeners are, while following */
-	private networkEvents: EventTarget | null = null;
+	private followingBrowserNetwork = false;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
@@ -425,26 +412,26 @@ class ChatsSocketClient implements IChatsSocketClient {
 	};
 
 	private startFollowingBrowserNetwork(): void {
-		if (!this.followBrowserNetwork || this.networkEvents) {
+		// no window in Node / SSR; React Native has one without addEventListener
+		if (
+			!this.followBrowserNetwork ||
+			this.followingBrowserNetwork ||
+			typeof window?.addEventListener !== 'function'
+		) {
 			return;
 		}
-		const target = networkEventsTarget();
-		if (!target) {
-			return;
-		}
-		target.addEventListener('offline', this.handleBrowserOffline);
-		target.addEventListener('online', this.handleBrowserOnline);
-		this.networkEvents = target;
+		window.addEventListener('offline', this.handleBrowserOffline);
+		window.addEventListener('online', this.handleBrowserOnline);
+		this.followingBrowserNetwork = true;
 	}
 
 	private stopFollowingBrowserNetwork(): void {
-		const target = this.networkEvents;
-		if (!target) {
+		if (!this.followingBrowserNetwork) {
 			return;
 		}
-		target.removeEventListener('offline', this.handleBrowserOffline);
-		target.removeEventListener('online', this.handleBrowserOnline);
-		this.networkEvents = null;
+		window.removeEventListener('offline', this.handleBrowserOffline);
+		window.removeEventListener('online', this.handleBrowserOnline);
+		this.followingBrowserNetwork = false;
 	}
 
 	private clearConnectTimer(): void {
