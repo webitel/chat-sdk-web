@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# agent working docs (design specs, implementation plans)
+docs/superpowers/
