@@ -7,6 +7,7 @@ import mitt from 'mitt';
 import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import { RetryScheduler } from '../modules/reconnect/classes/RetryScheduler.class';
 import { toRetryPolicy } from '../modules/reconnect/utils/toRetryPolicy';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
 import type { ChatsSocketClientOptions } from '../types/ChatsSocketClientOptions.types';
@@ -60,12 +61,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	/** null: no timeout */
 	private connectTimeout: number | null;
 	private connectTimer: ReturnType<typeof setTimeout> | null = null;
-	private retryPolicy: {
-		initialDelay: number;
-		maxDelay: number;
-	} | null;
-	private retryTimer: ReturnType<typeof setTimeout> | null = null;
-	private retryDelay: number;
+	private retries: RetryScheduler;
 	/** attempts made for the current outage */
 	private attempt = 0;
 	private followBrowserNetwork: boolean;
@@ -85,9 +81,13 @@ class ChatsSocketClient implements IChatsSocketClient {
 		this.serviceConfig = serviceConfig;
 		this.followBrowserNetwork = followBrowserNetwork;
 		this.connectTimeout = toConnectTimeout(connectTimeout);
-		this.retryPolicy =
-			reconnect === false ? null : toRetryPolicy(reconnect ?? {});
-		this.retryDelay = this.retryPolicy?.initialDelay ?? 0;
+		this.retries = new RetryScheduler(
+			reconnect === false ? null : toRetryPolicy(reconnect ?? {}),
+			() => {
+				this.attempt += 1;
+				void this.retry();
+			},
+		);
 	}
 
 	get connectionState(): ChatsSocketConnectionStatus {
@@ -135,7 +135,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	 * loop does), so every state change is emitted after the bookkeeping.
 	 */
 	private openSocket({ isRetry }: { isRetry: boolean }): Promise<void> {
-		this.clearRetryTimer();
+		this.retries.cancel();
 		this.dropSocket(new Error('socket connect superseded'));
 
 		return new Promise((resolve, reject) => {
@@ -163,7 +163,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 					return;
 				}
 				this.rejectPendingAttempt(new Error('failed to connect to socket'));
-				this.scheduleRetry();
+				this.retries.schedule();
 				this.setConnectionState(ChatsSocketConnectionStatus.Error);
 			};
 			socket.onclose = () => {
@@ -279,7 +279,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private markAnswered(): void {
 		this.clearConnectTimer();
 		this.rejectAttempt = null;
-		this.resetRetryDelay();
+		this.retries.restart();
 		this.attempt = 0;
 	}
 
@@ -298,30 +298,13 @@ class ChatsSocketClient implements IChatsSocketClient {
 
 	private failAttempt(error: Error): void {
 		this.dropSocket(error);
-		this.scheduleRetry();
+		this.retries.schedule();
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
 	}
 
 	private rejectPendingAttempt(error: Error): void {
 		this.rejectAttempt?.(error);
 		this.rejectAttempt = null;
-	}
-
-	/** One retry per drop: a drop reports both `error` and `disconnected`. */
-	private scheduleRetry(): void {
-		if (!this.retryPolicy || this.retryTimer) {
-			return;
-		}
-		this.retryTimer = setTimeout(() => {
-			this.runRetry();
-		}, this.retryDelay);
-		this.retryDelay = Math.min(this.retryDelay * 2, this.retryPolicy.maxDelay);
-	}
-
-	private runRetry(): void {
-		this.clearRetryTimer();
-		this.attempt += 1;
-		void this.retry();
 	}
 
 	private async retry(): Promise<void> {
@@ -332,13 +315,6 @@ class ChatsSocketClient implements IChatsSocketClient {
 		} catch {
 			// a failed attempt schedules the next one itself
 		}
-	}
-
-	private clearRetryTimer(): void {
-		if (this.retryTimer) {
-			clearTimeout(this.retryTimer);
-		}
-		this.retryTimer = null;
 	}
 
 	// the TCP stack often notices a dead network late
@@ -352,9 +328,10 @@ class ChatsSocketClient implements IChatsSocketClient {
 	// returning network is a fresh start — `online` often fires before DNS or a
 	// VPN is up, and a failed first try must not wait out the grown backoff.
 	private readonly handleBrowserOnline = (): void => {
-		if (this.retryTimer) {
-			this.resetRetryDelay();
-			this.runRetry();
+		if (this.retries.isPending) {
+			this.retries.runNow({
+				restart: true,
+			});
 		}
 	};
 
@@ -388,16 +365,12 @@ class ChatsSocketClient implements IChatsSocketClient {
 		this.connectTimer = null;
 	}
 
-	private resetRetryDelay(): void {
-		this.retryDelay = this.retryPolicy?.initialDelay ?? 0;
-	}
-
 	async disconnect(): Promise<void> {
 		this.stopFollowingBrowserNetwork();
 		// the dropped socket's handlers read as stale, so only a pending retry
 		// can still reconnect it
-		this.clearRetryTimer();
-		this.resetRetryDelay();
+		this.retries.cancel();
+		this.retries.restart();
 		this.attempt = 0;
 		this.dropSocket(new Error('socket disconnected'));
 		this.setConnectionState(ChatsSocketConnectionStatus.Disconnected);
