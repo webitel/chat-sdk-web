@@ -26,6 +26,10 @@
 - FIX calling `connect()` again closes the previous socket instead of leaking it; state goes `connected` → `connecting` without a `disconnected` in between
 - FIX connection state is reported after the client's own bookkeeping, so a state subscriber may call `connect()` / `disconnect()` safely
 
+### Internals
+
+- REFACTOR `ChatsSocketClient` split by feature: retry backoff in `socket/modules/reconnect` (`RetryScheduler`, `toRetryPolicy`), browser offline/online listening in `socket/modules/browserNetwork` (`BrowserNetworkWatcher`), `toConnectTimeout` / `notifySafely` in `socket/utils`; client tests split by topic with shared helpers
+
 ## [0.0.19] - 2026-05-20
 
 ### Fixes
