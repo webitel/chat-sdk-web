@@ -11,6 +11,14 @@ export type ChatsSocketClientOptions = {
 	 */
 	connectTimeout?: number;
 	/**
+	 * Follow the browser's `offline` / `online` events (default `false`): going
+	 * offline drops the socket right away — the TCP stack often notices a dead
+	 * network late — and coming back online runs a pending retry immediately,
+	 * with the backoff started over. Has no effect without a browser `window`
+	 * (Node, SSR, workers, React Native). Listeners stay until `disconnect()`.
+	 */
+	followBrowserNetwork?: boolean;
+	/**
 	 * A dropped socket — or a first `connect()` that failed — is connected again
 	 * after `initialDelay` (default 1s), doubling up to `maxDelay` (default 30s)
 	 * while attempts fail. Retries never give up on their own: call
