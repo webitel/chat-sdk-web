@@ -1240,9 +1240,21 @@ describe('createChatsSocketClient', () => {
 	describe('followBrowserNetwork', () => {
 		let browserWindow: EventTarget;
 
+		// a page's (or worker's) global scope fires online/offline; Node's has none
 		beforeEach(() => {
 			browserWindow = new EventTarget();
-			vi.stubGlobal('window', browserWindow);
+			vi.stubGlobal(
+				'addEventListener',
+				(...args: Parameters<EventTarget['addEventListener']>) => {
+					browserWindow.addEventListener(...args);
+				},
+			);
+			vi.stubGlobal(
+				'removeEventListener',
+				(...args: Parameters<EventTarget['removeEventListener']>) => {
+					browserWindow.removeEventListener(...args);
+				},
+			);
 		});
 
 		const goOffline = () => browserWindow.dispatchEvent(new Event('offline'));
@@ -1349,6 +1361,91 @@ describe('createChatsSocketClient', () => {
 			expect(addListener).toHaveBeenCalledTimes(2);
 		});
 
+		it('starts the backoff over when the browser is back online', async () => {
+			await connectedClient({
+				followBrowserNetwork: true,
+			});
+			goOffline();
+			for (const delay of [
+				1_000,
+				2_000,
+				4_000,
+			]) {
+				await vi.advanceTimersByTimeAsync(delay);
+				drop(latestSocket());
+			}
+			expect(MockWebSocket.instances).toHaveLength(4);
+
+			goOnline();
+			drop(latestSocket());
+			await vi.advanceTimersByTimeAsync(999);
+			expect(MockWebSocket.instances).toHaveLength(5);
+			await vi.advanceTimersByTimeAsync(1);
+
+			expect(MockWebSocket.instances).toHaveLength(6);
+		});
+
+		it('follows the network again after disconnect() and connect()', async () => {
+			const client = await connectedClient({
+				followBrowserNetwork: true,
+			});
+			await client.disconnect();
+			const connecting = client.connect();
+			await answer(latestSocket());
+			await connecting;
+			const socket = latestSocket();
+
+			goOffline();
+
+			expect(socket.close).toHaveBeenCalled();
+		});
+
+		it('follows the network when reconnect() is the first call', async () => {
+			const client = createChatsSocketClient({
+				...clientConfigs(),
+				followBrowserNetwork: true,
+			});
+			const reconnecting = client.reconnect();
+			await answer(latestSocket());
+			await reconnecting;
+			const socket = latestSocket();
+
+			goOffline();
+
+			expect(socket.close).toHaveBeenCalled();
+		});
+
+		it('keeps following when a Disconnected subscriber connects during disconnect()', async () => {
+			const client = await connectedClient({
+				followBrowserNetwork: true,
+			});
+			let connecting: Promise<void> | null = null;
+			client.onState(ChatsSocketConnectionStatus.Disconnected, () => {
+				connecting ??= client.connect();
+			});
+			await client.disconnect();
+			await answer(latestSocket());
+			await connecting;
+			const socket = latestSocket();
+
+			goOffline();
+
+			expect(socket.close).toHaveBeenCalled();
+		});
+
+		it('does not reconnect on online when reconnect is false', async () => {
+			await connectedClient({
+				followBrowserNetwork: true,
+				reconnect: false,
+			});
+
+			goOffline();
+			goOnline();
+			await vi.advanceTimersByTimeAsync(60_000);
+
+			expect(MockWebSocket.instances).toHaveLength(1);
+		});
+
 		it('ignores the browser network by default', async () => {
 			const client = await connectedClient();
 			const socket = latestSocket();
@@ -1361,8 +1458,9 @@ describe('createChatsSocketClient', () => {
 			);
 		});
 
-		it('connects where there is no window', async () => {
-			vi.stubGlobal('window', undefined);
+		it('connects where the global scope has no network events', async () => {
+			vi.stubGlobal('addEventListener', undefined);
+			vi.stubGlobal('window', {});
 
 			const client = await connectedClient({
 				followBrowserNetwork: true,

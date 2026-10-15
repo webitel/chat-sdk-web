@@ -34,6 +34,18 @@ function notifySafely(notify: () => void): void {
 }
 
 /**
+ * The scope that fires `online` / `offline`: `window` in a page, `self` in a
+ * worker. Null in Node, SSR or React Native.
+ */
+function networkEventsTarget(): EventTarget | null {
+	const scope = globalThis as Partial<EventTarget>;
+	return typeof scope.addEventListener === 'function' &&
+		typeof scope.removeEventListener === 'function'
+		? (globalThis as unknown as EventTarget)
+		: null;
+}
+
+/**
  * `0` and `Infinity` turn the timeout off; other unusable values (NaN,
  * negative) fall back to the default.
  */
@@ -121,7 +133,8 @@ class ChatsSocketClient implements IChatsSocketClient {
 	/** attempts made for the current outage */
 	private attempt = 0;
 	private followBrowserNetwork: boolean;
-	private followingBrowserNetwork = false;
+	/** where the online/offline listeners are, while following */
+	private networkEvents: EventTarget | null = null;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
@@ -401,33 +414,37 @@ class ChatsSocketClient implements IChatsSocketClient {
 		}
 	};
 
-	// a pending retry means the client still wants the socket: run it now
+	// a pending retry means the client still wants the socket: run it now. A
+	// returning network is a fresh start — `online` often fires before DNS or a
+	// VPN is up, and a failed first try must not wait out the grown backoff.
 	private readonly handleBrowserOnline = (): void => {
 		if (this.retryTimer) {
+			this.resetRetryDelay();
 			this.runRetry();
 		}
 	};
 
 	private startFollowingBrowserNetwork(): void {
-		if (
-			!this.followBrowserNetwork ||
-			this.followingBrowserNetwork ||
-			typeof window === 'undefined'
-		) {
+		if (!this.followBrowserNetwork || this.networkEvents) {
 			return;
 		}
-		window.addEventListener('offline', this.handleBrowserOffline);
-		window.addEventListener('online', this.handleBrowserOnline);
-		this.followingBrowserNetwork = true;
+		const target = networkEventsTarget();
+		if (!target) {
+			return;
+		}
+		target.addEventListener('offline', this.handleBrowserOffline);
+		target.addEventListener('online', this.handleBrowserOnline);
+		this.networkEvents = target;
 	}
 
 	private stopFollowingBrowserNetwork(): void {
-		if (!this.followingBrowserNetwork || typeof window === 'undefined') {
+		const target = this.networkEvents;
+		if (!target) {
 			return;
 		}
-		window.removeEventListener('offline', this.handleBrowserOffline);
-		window.removeEventListener('online', this.handleBrowserOnline);
-		this.followingBrowserNetwork = false;
+		target.removeEventListener('offline', this.handleBrowserOffline);
+		target.removeEventListener('online', this.handleBrowserOnline);
+		this.networkEvents = null;
 	}
 
 	private clearConnectTimer(): void {
