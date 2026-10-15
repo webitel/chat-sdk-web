@@ -36,6 +36,7 @@ const socketClient = createChatsSocketClient({
     serviceConfig,
     connectTimeout: 10_000, // optional; `0` turns it off
     reconnect: { initialDelay: 1_000, maxDelay: 30_000 }, // optional; `false` turns it off
+    followBrowserNetwork: true, // optional; drop on `offline`, retry at once on `online`
 });
 
 // anything sent while the socket was down was not pushed: fetch it again

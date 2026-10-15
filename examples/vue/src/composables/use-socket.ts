@@ -78,6 +78,8 @@ export function useSocket() {
 		const c = createChatsSocketClient({
 			socketConfig: wc,
 			serviceConfig: sc,
+			// demo: react to DevTools / OS offline right away (TCP alone often lags)
+			followBrowserNetwork: true,
 		});
 		attachHandlers(c);
 		client.value = c;
