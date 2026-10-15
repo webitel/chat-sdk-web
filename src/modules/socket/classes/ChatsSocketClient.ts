@@ -7,6 +7,7 @@ import mitt from 'mitt';
 import type { ServiceConfig, SocketConfig } from '../../configs';
 import { ChatsSocketConnectionStatus } from '../enums/ChatsSocketConnectionStatus.enum';
 import { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
+import { BrowserNetworkWatcher } from '../modules/browserNetwork/classes/BrowserNetworkWatcher.class';
 import { RetryScheduler } from '../modules/reconnect/classes/RetryScheduler.class';
 import { toRetryPolicy } from '../modules/reconnect/utils/toRetryPolicy';
 import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClientEventsPayload.types';
@@ -64,8 +65,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	private retries: RetryScheduler;
 	/** attempts made for the current outage */
 	private attempt = 0;
-	private followBrowserNetwork: boolean;
-	private followingBrowserNetwork = false;
+	private network: BrowserNetworkWatcher | null;
 
 	private wsConnectionState: ChatsSocketConnectionStatus =
 		ChatsSocketConnectionStatus.Idle;
@@ -79,7 +79,27 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}: ChatsSocketClientOptions) {
 		this.socketConfig = socketConfig;
 		this.serviceConfig = serviceConfig;
-		this.followBrowserNetwork = followBrowserNetwork;
+		this.network = followBrowserNetwork
+			? new BrowserNetworkWatcher({
+					// the TCP stack often notices a dead network late
+					onOffline: () => {
+						if (this.ws) {
+							this.failAttempt(new Error('browser went offline'));
+						}
+					},
+					// a pending retry means the client still wants the socket: run it
+					// now. A returning network is a fresh start — `online` often fires
+					// before DNS or a VPN is up, and a failed first try must not wait
+					// out the grown backoff.
+					onOnline: () => {
+						if (this.retries.isPending) {
+							this.retries.runNow({
+								restart: true,
+							});
+						}
+					},
+				})
+			: null;
 		this.connectTimeout = toConnectTimeout(connectTimeout);
 		this.retries = new RetryScheduler(
 			reconnect === false ? null : toRetryPolicy(reconnect ?? {}),
@@ -108,7 +128,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async connect(): Promise<void> {
-		this.startFollowingBrowserNetwork();
+		this.network?.start();
 		return this.openSocket({
 			isRetry: false,
 		});
@@ -120,7 +140,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	 * `reconnect: false` a failed call just rejects and nothing retries.
 	 */
 	async reconnect(): Promise<void> {
-		this.startFollowingBrowserNetwork();
+		this.network?.start();
 		this.attempt += 1;
 		return this.openSocket({
 			isRetry: true,
@@ -317,47 +337,6 @@ class ChatsSocketClient implements IChatsSocketClient {
 		}
 	}
 
-	// the TCP stack often notices a dead network late
-	private readonly handleBrowserOffline = (): void => {
-		if (this.ws) {
-			this.failAttempt(new Error('browser went offline'));
-		}
-	};
-
-	// a pending retry means the client still wants the socket: run it now. A
-	// returning network is a fresh start — `online` often fires before DNS or a
-	// VPN is up, and a failed first try must not wait out the grown backoff.
-	private readonly handleBrowserOnline = (): void => {
-		if (this.retries.isPending) {
-			this.retries.runNow({
-				restart: true,
-			});
-		}
-	};
-
-	private startFollowingBrowserNetwork(): void {
-		// no window in Node / SSR; React Native has one without addEventListener
-		if (
-			!this.followBrowserNetwork ||
-			this.followingBrowserNetwork ||
-			typeof window?.addEventListener !== 'function'
-		) {
-			return;
-		}
-		window.addEventListener('offline', this.handleBrowserOffline);
-		window.addEventListener('online', this.handleBrowserOnline);
-		this.followingBrowserNetwork = true;
-	}
-
-	private stopFollowingBrowserNetwork(): void {
-		if (!this.followingBrowserNetwork) {
-			return;
-		}
-		window.removeEventListener('offline', this.handleBrowserOffline);
-		window.removeEventListener('online', this.handleBrowserOnline);
-		this.followingBrowserNetwork = false;
-	}
-
 	private clearConnectTimer(): void {
 		if (this.connectTimer) {
 			clearTimeout(this.connectTimer);
@@ -366,7 +345,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 	}
 
 	async disconnect(): Promise<void> {
-		this.stopFollowingBrowserNetwork();
+		this.network?.stop();
 		// the dropped socket's handlers read as stale, so only a pending retry
 		// can still reconnect it
 		this.retries.cancel();
