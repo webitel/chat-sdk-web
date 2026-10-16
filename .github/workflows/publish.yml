@@ -1,0 +1,83 @@
+name: Chat Web SDK publish
+
+on:
+#  https://docs.github.com/en/actions/managing-workflow-runs-and-deployments/managing-workflow-runs/manually-running-a-workflow
+  workflow_dispatch:
+    inputs:
+      bump:
+        # Releases are versioned by hand in a release PR (package.json + CHANGELOG),
+        # so the default publishes the version already on the branch.
+        description: Version bump before publishing
+        required: false
+        default: none
+        type: choice
+        options:
+          - none
+          - patch
+          - minor
+          - major
+      version_tag:
+        description: npm dist-tag
+        required: false
+        default: latest
+        type: choice
+        options:
+          - latest
+          - next
+
+jobs:
+  publish:
+    permissions:
+      id-token: write  # Required for OIDC, https://docs.npmjs.com/trusted-publishers#github-actions-configuration
+      contents: write
+
+    outputs:
+      version: ${{ steps.publish_release.outputs.version }}
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Use Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: lts/*
+          registry-url: 'https://registry.npmjs.org'
+          package-manager-cache: false
+
+      - name: Publish release
+        id: publish_release
+        run: |
+          npm ci
+          if [ "${{ inputs.bump }}" != "none" ]; then
+            npm version "${{ inputs.bump }}" --git-tag-version false >/dev/null
+          fi
+          # Read the version out of package.json rather than off npm's stdout:
+          # that output is not reliably a bare version.
+          version="$(jq -r .version package.json)"
+          echo "VERSION=v$version" >> "$GITHUB_ENV"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if npm view "@webitel/chat-web-sdk@$version" version >/dev/null 2>&1; then
+            echo "::error::@webitel/chat-web-sdk@$version is already published; bump the version first"
+            exit 1
+          fi
+          if ! grep -q "^## \[$version\]" CHANGELOG.md; then
+            echo "::error::CHANGELOG.md has no '## [$version]' entry"
+            exit 1
+          fi
+
+          # tests, typecheck and the library build
+          npm run build
+          # --ignore-scripts: the package's own "publish" npm script would
+          # otherwise run as a lifecycle hook and publish a second time
+          npm publish --access public --tag "${{ inputs.version_tag }}" --ignore-scripts
+
+      # Commit the bumped version back, only when this run bumped it
+      - if: inputs.bump != 'none'
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: 'chore(release): publish @webitel/chat-web-sdk ${{ env.VERSION }}'
+          commit_options: '--no-verify'
+          file_pattern: 'package.json package-lock.json'
