@@ -14,6 +14,10 @@ export default defineConfig({
 			include: [
 				'src',
 			],
+			// tests are not part of the published package
+			exclude: [
+				'src/**/__tests__/**',
+			],
 		}),
 	],
 	build: {

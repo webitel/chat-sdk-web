@@ -29,6 +29,8 @@
 ### Internals
 
 - REFACTOR `ChatsSocketClient` split by feature: retry backoff in `socket/modules/reconnect` (`RetryScheduler`, `toRetryPolicy`), browser offline/online listening in `socket/modules/browserNetwork` (`BrowserNetworkWatcher`), `toConnectTimeout` / `notifySafely` in `socket/utils`; client tests split by topic with shared helpers
+- TEST integration tests run `ChatsSocketClient` against a real local WebSocket server (Node's built-in `WebSocket` + `ws`, real timers): server restart, clean close, silent server, token rotation, `disconnect()`
+- BUILD the published `dist` no longer ships `.d.ts` files for the SDK's own tests
 
 ## [0.0.19] - 2026-05-20
 
