@@ -5,6 +5,9 @@
 	"workspaces": [
 		"../../webitel-ui-sdk/packages/api-services"
 	],
+	"repository": {
+		"url": "https://github.com/webitel/chat-sdk-web"
+	},
 	"scripts": {
 		"dev": "vite",
 		"build": "npm run test && vue-tsc --noEmit && vite build",
