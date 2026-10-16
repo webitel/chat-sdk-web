@@ -28,6 +28,8 @@ export const socketConfig = createSocketConfig({
 
 ## socket reconnect
 
+> Full guide: [docs/socket.md](../docs/socket.md).
+
 A dropped socket — or a first `connect()` that failed — is connected again automatically: after 1s, doubling up to 30s while attempts fail, until the server answers. It never gives up on its own: call `disconnect()` when the socket is no longer needed. An attempt the server does not answer within 10s (including resolving an `accessToken` getter) fails and is retried.
 
 ```js
