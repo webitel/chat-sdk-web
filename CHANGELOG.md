@@ -17,6 +17,7 @@
 - ADDED `createChatsSocketClient({ connectTimeout })` — an attempt the server has not answered with `connectedEvent` within it (default 10s, including resolving an `accessToken` getter) fails and is retried; `0` or `Infinity` turns it off
 - ADDED `ChatsSocketClient.onReconnected(callback)` — fires with `{ attempt }` each time the server answers again after a drop, and after every answered `reconnect()`; never for `connect()`. A throwing subscriber is logged and does not affect the others
 - ADDED `ChatsSocketClient.reconnect()` — connects again right away, cancelling a pending retry (used to throw `Not implemented`)
+- ADDED `createChatsSocketClient({ followBrowserNetwork: true })` — opt-in: the browser's `offline` event drops the socket right away (the TCP stack often notices late; a pending `connect()` / `reconnect()` rejects with `browser went offline`), and `online` runs a pending retry immediately with the backoff started over. Listeners stay until `disconnect()`
 - ADDED `ChatsSocketClientOptions` / `ChatsSocketReconnectedPayload` types — re-exported from the package root
 
 ### Fixes
