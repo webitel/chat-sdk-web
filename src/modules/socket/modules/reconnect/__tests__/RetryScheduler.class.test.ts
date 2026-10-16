@@ -84,16 +84,14 @@ describe('RetryScheduler', () => {
 		expect(onRetry).toHaveBeenCalledTimes(2);
 	});
 
-	it('runs the pending retry now, optionally with the delay started over', () => {
+	it('runs the pending retry now, with the delay started over', () => {
 		const onRetry = vi.fn();
 		const retries = new RetryScheduler(policy, onRetry);
 		retries.schedule();
 		vi.advanceTimersByTime(1_000);
 		retries.schedule();
 
-		retries.runNow({
-			restart: true,
-		});
+		retries.runNow();
 		expect(onRetry).toHaveBeenCalledTimes(2);
 		expect(retries.isPending).toBe(false);
 
