@@ -79,6 +79,16 @@ describe('BrowserNetworkWatcher', () => {
 		expect(onOffline).toHaveBeenCalledOnce();
 	});
 
+	it('does nothing where window is not declared at all (Node, SSR)', () => {
+		vi.unstubAllGlobals();
+		const { watcher } = createWatcher();
+
+		expect(() => {
+			watcher.start();
+			watcher.stop();
+		}).not.toThrow();
+	});
+
 	it.each([
 		[
 			'no window',
