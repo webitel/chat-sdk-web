@@ -29,7 +29,7 @@ jobs:
   publish:
     permissions:
       id-token: write  # Required for OIDC, https://docs.npmjs.com/trusted-publishers#github-actions-configuration
-      contents: write
+      contents: read
 
     outputs:
       version: ${{ steps.publish_release.outputs.version }}
