@@ -10,6 +10,15 @@ on:
       - "package.json"
       - "package-lock.json"
       - ".github/workflows/**"
+  push:
+    branches:
+      - main
+    paths:
+      - "src/**"
+      - "vitest.config.*"
+      - "package.json"
+      - "package-lock.json"
+      - ".github/workflows/**"
   workflow_dispatch:
 
 concurrency:
