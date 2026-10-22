@@ -30,6 +30,9 @@ function getSocketMessageNameFromEvent(
 	if (sourceEvent.memberLeftEvent) {
 		return ChatsSocketMessage.MemberLeft;
 	}
+	if (sourceEvent.threadTagsChangedEvent) {
+		return ChatsSocketMessage.ThreadTagsChanged;
+	}
 	if (sourceEvent.ackEvent) {
 		return ChatsSocketMessage.Ack;
 	}
@@ -58,6 +61,8 @@ function extractRawPayload(
 			return sourceEvent.memberAddedEvent;
 		case ChatsSocketMessage.MemberLeft:
 			return sourceEvent.memberLeftEvent;
+		case ChatsSocketMessage.ThreadTagsChanged:
+			return sourceEvent.threadTagsChangedEvent;
 		case ChatsSocketMessage.Ack:
 			return sourceEvent.ackEvent;
 		case ChatsSocketMessage.Ping:
@@ -132,6 +137,15 @@ function processEventPayload(
 					serviceConfig,
 				},
 			);
+		case ChatsSocketMessage.ThreadTagsChanged: {
+			const changed = payload as NonNullable<
+				EventPayload['threadTagsChangedEvent']
+			>;
+			return {
+				...changed,
+				tags: changed.tags ?? [],
+			};
+		}
 		case ChatsSocketMessage.Connected:
 		case ChatsSocketMessage.Disconnected:
 		case ChatsSocketMessage.Error:

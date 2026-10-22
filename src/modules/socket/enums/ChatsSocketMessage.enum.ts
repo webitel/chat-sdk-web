@@ -9,6 +9,7 @@ export const ChatsSocketMessage = {
 	ThreadCreated: 'threadCreatedEvent',
 	MemberAdded: 'memberAddedEvent',
 	MemberLeft: 'memberLeftEvent',
+	ThreadTagsChanged: 'threadTagsChangedEvent',
 	Ack: 'ackEvent',
 	Ping: 'pingEvent',
 } as const;

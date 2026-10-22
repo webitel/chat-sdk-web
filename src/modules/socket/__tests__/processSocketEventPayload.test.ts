@@ -35,4 +35,36 @@ describe('processSocketEventPayload', () => {
 			eventPayload: connected,
 		});
 	});
+	it('maps threadTagsChangedEvent to ThreadTagsChanged with that payload', () => {
+		const changed: EventPayload['threadTagsChangedEvent'] = {
+			threadId: 't-1',
+			tags: [
+				'snoozed',
+			],
+			updatesCursor: 'cursor',
+		};
+		const payload: EventPayload = {
+			threadTagsChangedEvent: changed,
+		};
+
+		expect(processSocketEventPayload(payload, testCtx())).toEqual({
+			eventName: ChatsSocketMessage.ThreadTagsChanged,
+			eventPayload: changed,
+		});
+	});
+
+	it('reads omitted tags as none, since protobuf JSON drops an empty list', () => {
+		const payload: EventPayload = {
+			threadTagsChangedEvent: {
+				threadId: 't-1',
+				updatesCursor: 'cursor',
+			},
+		};
+
+		expect(processSocketEventPayload(payload, testCtx()).eventPayload).toEqual({
+			threadId: 't-1',
+			tags: [],
+			updatesCursor: 'cursor',
+		});
+	});
 });
