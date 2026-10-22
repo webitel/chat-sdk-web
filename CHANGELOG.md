@@ -1,6 +1,6 @@
 # `@webitel/chat-web-sdk` Changlelog
 
-## [Unreleased]
+## [0.0.21] - 2026-10-22
 
 ### New features
 
