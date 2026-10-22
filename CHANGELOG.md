@@ -14,6 +14,13 @@
 
 - FIX `thread_tags_changed_event` from the server no longer reaches subscribers as an `Error` message ("SDK failed to parse incoming socket event")
 
+### Internals
+
+- REFACTOR snooze lives in its own `threads/modules/tags` module (`ThreadTags.api`, `snooze` / `unsnooze` utils, `ThreadTag` enum), the way `members` and `variables` do
+- CHANGED `ThreadSearchParams` is now the generated `ThreadManagementSearchParams` plus `tags` / `excludeTags`, declared in the SDK: `@webitel/api-services` has them only on its 26.8 line, which needs an `axios ^1.15.2` peer this package does not take yet. Drop the two fields once it moves
+- CHANGED the socket's wire payload types `threadTagsChangedEvent.tags` as optional (protobuf JSON leaves out an empty list); `processSocketEventPayload` fills it with `[]` before subscribers see it
+- TEST `GET /v1/threads` sends `tags` / `exclude_tags` in snake_case, `snooze` / `unsnooze` hit `POST` / `DELETE /v1/threads/{id}/snooze`, and the tags-changed event maps with and without `tags`
+
 ## [0.0.20] - 2026-10-06
 
 ### Breaking changes
