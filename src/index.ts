@@ -39,6 +39,7 @@ export {
 	createChatsSocketClient,
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,
+	type SocketThreadTagsChangedEventPayload,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
 	// type SocketContactModel,
@@ -58,6 +59,7 @@ export {
 	type ThreadSearchVariablesParams,
 	type ThreadSearchVariablesResponse,
 	type ThreadSetVariablesParams,
+	ThreadTag, // enum for tags the backend gives meaning to (snoozed)
 	type ThreadTransferParams,
 	type ThreadVariablesModel,
 	type ThreadVariablesResponse,

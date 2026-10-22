@@ -1,5 +1,19 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [Unreleased]
+
+### New features
+
+- ADDED `threadsService.snooze(threadId)` / `unsnooze(threadId)` — `POST` / `DELETE /v1/threads/{id}/snooze`. Snoozing is the caller's own `snoozed` tag; the backend clears it when anyone but the caller writes to the thread, or when the caller leaves it. Both succeed when there is nothing to change
+- ADDED `ThreadSearchParams.tags` / `excludeTags` — filter `fetchThreads` on the caller's tags, e.g. `{ tags: [ThreadTag.Snoozed] }`
+- ADDED `ThreadTag` enum (`Snoozed`), re-exported from the package root
+- ADDED `ChatsSocketMessage.ThreadTagsChanged` socket event — `{ threadId, tags, updatesCursor }`, sent to the tag owner only; `tags` is the full current set (never missing: an empty list arrives as `[]`)
+- ADDED `SocketThreadTagsChangedEventPayload` type — re-exported from the package root
+
+### Fixes
+
+- FIX `thread_tags_changed_event` from the server no longer reaches subscribers as an `Error` message ("SDK failed to parse incoming socket event")
+
 ## [0.0.20] - 2026-10-06
 
 ### Breaking changes

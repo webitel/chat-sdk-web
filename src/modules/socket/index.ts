@@ -4,6 +4,7 @@ import { ChatsSocketMessage } from './enums/ChatsSocketMessage.enum';
 import type {
 	SocketMemberAddedEventPayload,
 	SocketMemberLeftEventPayload,
+	SocketThreadTagsChangedEventPayload,
 } from './types/ChatsSocketClientEventsPayload.types';
 import type { ChatsSocketClientOptions } from './types/ChatsSocketClientOptions.types';
 import type { ChatsSocketReconnectedPayload } from './types/ChatsSocketConnectionState.types';
@@ -22,4 +23,5 @@ export {
 	type SocketMemberLeftEventPayload,
 	type SocketMessageModel,
 	type SocketThreadModel,
+	type SocketThreadTagsChangedEventPayload,
 };

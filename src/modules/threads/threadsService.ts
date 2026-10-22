@@ -2,6 +2,7 @@ import type { ServiceConfig } from '../configs';
 import { addMember } from './modules/members/utils/addMember';
 import { removeMember } from './modules/members/utils/removeMember';
 import { transfer } from './modules/members/utils/transfer';
+import { snooze, unsnooze } from './modules/tags';
 import { flushVariables } from './modules/variables/utils/flushVariables';
 import { locateVariables } from './modules/variables/utils/locateVariables';
 import { searchVariables } from './modules/variables/utils/searchVariables';
@@ -51,6 +52,8 @@ interface IThreadsService {
 	searchVariables: (
 		params?: ThreadSearchVariablesParams,
 	) => Promise<ThreadSearchVariablesResponse>;
+	snooze: (threadId: string) => Promise<void>;
+	unsnooze: (threadId: string) => Promise<void>;
 }
 
 export function createThreadsService(config: ServiceConfig): IThreadsService {
@@ -70,5 +73,7 @@ export function createThreadsService(config: ServiceConfig): IThreadsService {
 			flushVariables(config)(threadId, params),
 		searchVariables: (params?: ThreadSearchVariablesParams) =>
 			searchVariables(config)(params),
+		snooze: (threadId: string) => snooze(config)(threadId),
+		unsnooze: (threadId: string) => unsnooze(config)(threadId),
 	};
 }

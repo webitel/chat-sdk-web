@@ -1,6 +1,6 @@
 import type {
+	ThreadManagementSearchParams,
 	WebitelImApiGatewayV1Thread as ThreadRawModel,
-	ThreadManagementSearchParams as ThreadSearchParams,
 	WebitelImApiGatewayV1SearchThreadResponse as ThreadSearchRawResult,
 } from '@webitel/api-services/gen/models';
 
@@ -64,6 +64,18 @@ interface IThread
 		params: ThreadFlushVariablesParams,
 	) => Promise<ThreadVariablesResponse>;
 }
+
+/**
+ * `tags` / `excludeTags` are on the gateway since WS-56 but not in the
+ * `@webitel/api-services` line this SDK builds against; drop them once it moves
+ * to one that has them.
+ */
+type ThreadSearchParams = ThreadManagementSearchParams & {
+	/** only threads the caller has tagged so (tags are the caller's own) */
+	tags?: string[];
+	/** leave out threads carrying any of these tags */
+	excludeTags?: string[];
+};
 
 type ThreadSearchResult = Omit<ThreadSearchRawResult, 'items'> & {
 	items: IThread[];
