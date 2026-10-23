@@ -45,6 +45,7 @@ export {
 	// type SocketContactModel,
 } from './modules/socket';
 export {
+	createLeftThread, // builds an ILeftThread from a raw thread
 	createThreadsService, // fetch + instantiate threads (service wrapper)
 	type ILeftThread, // read-only thread the agent has left
 	type IThread, // Thread class

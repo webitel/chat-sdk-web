@@ -142,4 +142,19 @@ describe('findLeftThread', () => {
 		expect(thread).toBeNull();
 		expect(get).toHaveBeenCalledTimes(3);
 	});
+
+	it('stops on an empty page even when the backend still says next', async () => {
+		const serviceConfig = setup();
+		const get = mockPages(serviceConfig, [
+			{
+				ids: [],
+				next: true,
+			},
+		]);
+
+		const thread = await findLeftThread(serviceConfig)('t-1');
+
+		expect(thread).toBeNull();
+		expect(get).toHaveBeenCalledTimes(1);
+	});
 });
