@@ -9,6 +9,7 @@ import type {
 	MessageSendTextParams,
 	MessageSendTextRawResponse,
 } from './types/Message.types';
+import { fetchLeftThreadMessageHistory } from './utils/fetchLeftThreadMessageHistory';
 import { fetchMessageHistory } from './utils/fetchMessageHistory';
 import { sendDocumentMessage } from './utils/sendDocumentMessage';
 import { sendImageMessage } from './utils/sendImageMessage';
@@ -16,6 +17,10 @@ import { sendTextMessage } from './utils/sendTextMessage';
 
 export interface IMessagesService {
 	fetchMessageHistory: (
+		threadId: string,
+		params?: MessageHistorySearchParams,
+	) => Promise<MessageHistorySearchResult>;
+	fetchLeftThreadMessageHistory: (
 		threadId: string,
 		params?: MessageHistorySearchParams,
 	) => Promise<MessageHistorySearchResult>;
@@ -36,6 +41,10 @@ export function createMessagesService(config: ServiceConfig): IMessagesService {
 			threadId: string,
 			params?: MessageHistorySearchParams,
 		) => fetchMessageHistory(config, threadId, params),
+		fetchLeftThreadMessageHistory: (
+			threadId: string,
+			params?: MessageHistorySearchParams,
+		) => fetchLeftThreadMessageHistory(config, threadId, params),
 		sendTextMessage: (params: MessageSendTextParams) =>
 			sendTextMessage(config, params),
 		sendDocumentMessage: (params: MessageSendDocumentParams) =>

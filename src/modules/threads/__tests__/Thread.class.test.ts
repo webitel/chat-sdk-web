@@ -27,6 +27,7 @@ const rawThread = {
 beforeEach(() => {
 	vi.mocked(createMessagesService).mockReturnValue({
 		fetchMessageHistory: mockFetchMessageHistory,
+		fetchLeftThreadMessageHistory: vi.fn(),
 		sendTextMessage: mockSendTextMessage,
 		sendDocumentMessage: mockSendDocumentMessage,
 		sendImageMessage: mockSendImageMessage,

@@ -19,6 +19,7 @@ const serviceConfig = createServiceConfig({
 beforeEach(() => {
 	vi.mocked(getMessagesService).mockReturnValue({
 		getMessageHistory: vi.fn(),
+		getLeftThreadMessageHistory: vi.fn(),
 		sendTextMessage: mockSendTextMessage,
 		uploadFiles: vi.fn(),
 		sendDocumentMessage: vi.fn(),

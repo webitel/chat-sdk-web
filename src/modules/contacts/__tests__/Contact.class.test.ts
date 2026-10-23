@@ -27,6 +27,7 @@ const rawContact = {
 beforeEach(() => {
 	vi.mocked(createMessagesService).mockReturnValue({
 		fetchMessageHistory: vi.fn(),
+		fetchLeftThreadMessageHistory: vi.fn(),
 		sendTextMessage: mockSendTextMessage,
 		sendDocumentMessage: mockSendDocumentMessage,
 		sendImageMessage: mockSendImageMessage,
