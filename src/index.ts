@@ -46,8 +46,11 @@ export {
 } from './modules/socket';
 export {
 	createThreadsService, // fetch + instantiate threads (service wrapper)
+	type ILeftThread, // read-only thread the agent has left
 	type IThread, // Thread class
 	type IThreadMember, // ThreadMember class
+	type LeftThreadSearchParams, // query of the left threads list
+	type LeftThreadSearchResult, // page of left threads
 	type ThreadAddMemberParams,
 	type ThreadFlushVariablesParams,
 	type ThreadMemberModel,
