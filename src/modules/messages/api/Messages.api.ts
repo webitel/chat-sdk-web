@@ -25,6 +25,10 @@ interface IMessagesApiService {
 		threadId: string,
 		params?: MessageHistorySearchParams,
 	) => Promise<MessageHistorySearchRawResponse>;
+	getLeftThreadMessageHistory: (
+		threadId: string,
+		params?: MessageHistorySearchParams,
+	) => Promise<MessageHistorySearchRawResponse>;
 	sendTextMessage: (
 		params: MessageSendTextParams,
 	) => Promise<MessageSendTextRawResponse>;
@@ -54,6 +58,30 @@ export const getMessagesService = ({
 		const response = await axiosInstance.get(`/v1/${threadId}/messages`, {
 			params: transformedParams,
 		});
+		return applyTransform(response.data, [
+			snakeToCamel(),
+		]);
+	}
+
+	/**
+	 * Messages of the periods the user has left in a thread:
+	 * `GET /v1/threads/{threadId}/left_threads/messages`
+	 * Same params and response shape as `getMessageHistory`.
+	 */
+	async function getLeftThreadMessageHistory(
+		threadId: string,
+		params: MessageHistorySearchParams = {},
+	): Promise<MessageHistorySearchRawResponse> {
+		const transformedParams = applyTransform(params, [
+			camelToSnake(),
+		]);
+
+		const response = await axiosInstance.get(
+			`/v1/threads/${threadId}/left_threads/messages`,
+			{
+				params: transformedParams,
+			},
+		);
 		return applyTransform(response.data, [
 			snakeToCamel(),
 		]);
@@ -148,6 +176,7 @@ export const getMessagesService = ({
 
 	return {
 		getMessageHistory,
+		getLeftThreadMessageHistory,
 		sendTextMessage,
 		uploadFiles,
 		sendDocumentMessage,
