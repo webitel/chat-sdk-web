@@ -1,5 +1,20 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.22] - 2026-10-23
+
+### New features
+
+- ADDED `threadsService.searchLeft(params?)` — `GET /v1/threads/left`, the threads the caller has left, as read-only `ILeftThread`. They can read history but cannot send, manage members, transfer or set variables; their `members` are plain data
+- ADDED `threadsService.findLeftThread(threadId)` — pages `/v1/threads/left` (100 per page) until it finds the thread; `null` when the caller never left it. An empty page ends the search even if the backend still says there is a next one
+- ADDED `ILeftThread.fetchMessageHistory(params?)` / `messagesService.fetchLeftThreadMessageHistory(threadId, params?)` — `GET /v1/threads/{id}/left_threads/messages`, the messages of the caller's closed membership periods only
+- ADDED `createLeftThread`, `ILeftThread`, `LeftThreadSearchParams` and `LeftThreadSearchResult` — re-exported from the package root
+
+### Internals
+
+- CHANGED `LeftThreadSearchParams` and the raw search result are declared in the SDK: `@webitel/api-services` on this line has no generated `/threads/left` types. Swap them for the generated ones once it moves, as with `tags` / `excludeTags` in 0.0.21
+- REFACTOR `instantiateMessages` is exported from `fetchMessageHistory` and reused by `fetchLeftThreadMessageHistory`
+- TEST `searchLeft` sends `page` / `size` to `GET /v1/threads/left` and returns threads without action methods; `findLeftThread` pages until it finds the thread, returns `null` when the pages run out and stops on an empty page; `fetchLeftThreadMessageHistory` hits `GET /v1/threads/{id}/left_threads/messages` with snake_case params, wraps items in `Message` instances and normalises missing items to an empty list
+
 ## [0.0.21] - 2026-10-22
 
 ### New features
