@@ -1,4 +1,10 @@
 export { createThread } from './classes/Thread.class';
+export {
+	createLeftThread,
+	type ILeftThread,
+	type LeftThreadSearchParams,
+	type LeftThreadSearchResult,
+} from './modules/left';
 export { ThreadMemberRole } from './modules/members';
 export { ThreadTag } from './modules/tags';
 export { createThreadsService } from './threadsService';

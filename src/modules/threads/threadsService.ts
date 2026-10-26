@@ -1,4 +1,11 @@
 import type { ServiceConfig } from '../configs';
+import {
+	findLeftThread,
+	type ILeftThread,
+	type LeftThreadSearchParams,
+	type LeftThreadSearchResult,
+	searchLeft,
+} from './modules/left';
 import { addMember } from './modules/members/utils/addMember';
 import { removeMember } from './modules/members/utils/removeMember';
 import { transfer } from './modules/members/utils/transfer';
@@ -52,6 +59,10 @@ interface IThreadsService {
 	searchVariables: (
 		params?: ThreadSearchVariablesParams,
 	) => Promise<ThreadSearchVariablesResponse>;
+	searchLeft: (
+		params?: LeftThreadSearchParams,
+	) => Promise<LeftThreadSearchResult>;
+	findLeftThread: (threadId: string) => Promise<ILeftThread | null>;
 	snooze: (threadId: string) => Promise<void>;
 	unsnooze: (threadId: string) => Promise<void>;
 }
@@ -73,6 +84,8 @@ export function createThreadsService(config: ServiceConfig): IThreadsService {
 			flushVariables(config)(threadId, params),
 		searchVariables: (params?: ThreadSearchVariablesParams) =>
 			searchVariables(config)(params),
+		searchLeft: (params?: LeftThreadSearchParams) => searchLeft(config)(params),
+		findLeftThread: (threadId: string) => findLeftThread(config)(threadId),
 		snooze: (threadId: string) => snooze(config)(threadId),
 		unsnooze: (threadId: string) => unsnooze(config)(threadId),
 	};
