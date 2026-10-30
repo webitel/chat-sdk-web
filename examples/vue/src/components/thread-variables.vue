@@ -144,8 +144,14 @@
   setup
   lang="ts"
 >
-import type { IThread, ThreadVariablesModel } from '@webitel/chat-web-sdk';
-import { computed, ref, watch } from 'vue';
+import {
+	ChatsSocketMessage,
+	type IThread,
+	type ThreadVariablesModel,
+} from '@webitel/chat-web-sdk';
+import { computed, onBeforeUnmount, ref, watch } from 'vue';
+
+import { useSocket } from '../composables/use-socket';
 
 const props = defineProps<{
 	thread: IThread;
@@ -267,6 +273,17 @@ watch(
 		if (expanded.value) fetchVars();
 	},
 );
+
+// the event does not say which thread: re-read the open one
+const { onSocketEvent } = useSocket();
+const refetchIfOpen = () => {
+	if (expanded.value && !fetching.value) fetchVars();
+};
+const stopVariableListeners = [
+	onSocketEvent(ChatsSocketMessage.VariableSet, refetchIfOpen),
+	onSocketEvent(ChatsSocketMessage.VariableFlush, refetchIfOpen),
+];
+onBeforeUnmount(() => stopVariableListeners.forEach((stop) => stop()));
 </script>
 
 <style scoped>

@@ -24,6 +24,8 @@
           :messages-error="messagesError"
           :send-error="sendError"
           :is-sending="isSending"
+          :reactions="reactions"
+          :typing="Object.values(typing)"
           @send="sendMessage"
         />
       </div>
@@ -36,7 +38,10 @@
   setup
   lang="ts"
 >
-import { ChatsSocketConnectionStatus } from '@webitel/chat-web-sdk';
+import {
+	ChatsSocketConnectionStatus,
+	ChatsSocketMessage,
+} from '@webitel/chat-web-sdk';
 import { computed, onBeforeUnmount, ref } from 'vue';
 
 import AppHeader from './components/app-header.vue';
@@ -47,8 +52,14 @@ import MyMembershipEvents from './components/my-membership-events.vue';
 import { useActiveChat } from './composables/use-active-chat';
 import { useSocket } from './composables/use-socket';
 
-const { socketStatus, connect, disconnect, onThreadMessage, onMemberLeft } =
-	useSocket();
+const {
+	socketStatus,
+	connect,
+	disconnect,
+	onThreadMessage,
+	onMemberLeft,
+	onSocketEvent,
+} = useSocket();
 const {
 	activeChat,
 	messages,
@@ -60,6 +71,13 @@ const {
 	selectContact,
 	clearActiveThread,
 	appendSocketMessage,
+	reactions,
+	typing,
+	applyMessageEdited,
+	applyMessageDeleted,
+	applyReaction,
+	applyTyping,
+	resync,
 	sendMessage,
 } = useActiveChat();
 
@@ -77,6 +95,15 @@ const stopMsgListener = onThreadMessage(appendSocketMessage);
 const stopMemberLeftListener = onMemberLeft((payload) => {
 	clearActiveThread(payload.threadId);
 });
+const stopLiveListeners = [
+	onSocketEvent(ChatsSocketMessage.MessageEdited, applyMessageEdited),
+	onSocketEvent(ChatsSocketMessage.MessageDeleted, applyMessageDeleted),
+	onSocketEvent(ChatsSocketMessage.MessageReaction, applyReaction),
+	onSocketEvent(ChatsSocketMessage.Typing, applyTyping),
+	onSocketEvent(ChatsSocketMessage.Resync, () => {
+		void resync();
+	}),
+];
 
 async function handleConnect(wsUrl: string, httpUrl: string, token: string) {
 	connectError.value = null;
@@ -94,6 +121,7 @@ async function handleDisconnect() {
 onBeforeUnmount(() => {
 	stopMsgListener();
 	stopMemberLeftListener();
+	stopLiveListeners.forEach((stop) => stop());
 	disconnect();
 });
 </script>
