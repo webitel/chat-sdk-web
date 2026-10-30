@@ -1,5 +1,11 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [0.0.23] - 2026-10-30
+
+### New features
+
+- ADDED `ILeftThread.queue` — the queue the caller received a left thread through (`{ id?, name? }`), as `GET /v1/threads/left` now returns it; unset when the backend does not know it
+
 ## [0.0.22] - 2026-10-23
 
 ### New features
