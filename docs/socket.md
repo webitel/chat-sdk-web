@@ -1,10 +1,12 @@
 # Chats socket
 
-Real-time chat events (new messages, new threads, membership changes) arrive
+Real-time chat events (new, edited and deleted messages, read receipts,
+reactions, typing, new threads, membership changes) arrive
 over one WebSocket per user. `createChatsSocketClient` opens it, keeps it
 connected, and hands you typed events.
 
 - [Quick start](#quick-start)
+- [Events](#events)
 - [Options](#options)
 - [Connection states](#connection-states)
 - [Reconnecting](#reconnecting)
@@ -57,31 +59,64 @@ await socket.disconnect();
 `connect()` resolves once the server has accepted the connection (its
 `connectedEvent`), not merely when the socket opens.
 
+## Events
+
+Subscribe with `socket.onMessage(ChatsSocketMessage.X, callback)`. Payload
+fields are camelCased; each payload type is exported from the package root.
+
+| `ChatsSocketMessage`            | Payload                                                          | What to do                                                                                            |
+| ------------------------------- | ---------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| `Connected`                     | `{ ok, connectionId, serverVersion, updatesCursor? }`            | The server accepted the socket. `updatesCursor` equal to your saved one means nothing was missed.     |
+| `Disconnected`                  | `{ code, reason, status }`                                       | Sent right before the server closes the socket.                                                       |
+| `Resync`                        | `SocketResyncEventPayload`                                       | Live events were dropped: catch up via `GET /v1/updates` from `cursor` (your saved one when missing). |
+| `ThreadMessage`                 | `IMessage`                                                       | A new message.                                                                                        |
+| `MessageEdited`                 | `SocketMessageEditedEventPayload`                                | Replace the message's content, matched by `id`; ignore an older `version`.                            |
+| `MessageDeleted`                | `SocketMessageDeletedEventPayload`                               | Remove the message, matched by `id`.                                                                  |
+| `MessageStatus`                 | `SocketMessageStatusEventPayload`                                | `delivered` / `read` up to `upToSeq`, or `failed` for `messageId`.                                    |
+| `MessageReaction`               | `SocketMessageReactionEventPayload`                              | Replace the message's whole reaction bar; `[]` means none left.                                       |
+| `Typing`                        | `SocketTypingEventPayload`                                       | Show "…is typing", hide it after `timeoutMs`.                                                         |
+| `ThreadCreated`                 | `IThread`                                                        | A thread the user is in was created.                                                                  |
+| `MemberAdded` / `MemberLeft`    | `SocketMemberAddedEventPayload` / `SocketMemberLeftEventPayload` | Someone joined or left a thread.                                                                      |
+| `ThreadTagsChanged`             | `SocketThreadTagsChangedEventPayload`                            | The user's own tags on a thread (e.g. snooze); replaces what you hold.                                |
+| `InteractiveCallback`           | `SocketInteractiveCallbackEventPayload`                          | A participant pressed an interactive button.                                                          |
+| `VariableSet` / `VariableFlush` | `SocketVariablesEventPayload`                                    | Thread variables changed. Names are kept as sent; the server does not say which thread.               |
+| `Error`                         | `{ code, message, details }`                                     | A server error, or a frame the SDK failed to parse (`code: -1`).                                      |
+
+`Ack` and `Ping` are reserved: the current server does not send them. An event
+this SDK does not know yet is dropped silently.
+
+```ts
+socket.onMessage(ChatsSocketMessage.MessageEdited, (data) => {
+	const edit = data as SocketMessageEditedEventPayload;
+	messages.replace(edit.id, edit.body);
+});
+```
+
 ## Options
 
 Everything besides the two configs is optional.
 
-| Option | Default | What it does |
-|---|---|---|
-| `socketConfig` | — | `createSocketConfig({ baseUrl, accessToken })`. `accessToken` is a string, a getter, or an async getter. |
-| `serviceConfig` | — | `createServiceConfig(...)`; used to turn socket payloads into SDK entities (`IMessage`, `IThread`). |
-| `reconnect` | on | `false` turns automatic reconnect off. `{ initialDelay, maxDelay }` tunes the backoff (ms). A delay that is not a positive number falls back to its default. |
-| `reconnect.initialDelay` | `1000` | Wait before the first retry after a drop. |
-| `reconnect.maxDelay` | `30000` | The wait doubles per failed attempt, up to this. |
-| `connectTimeout` | `10000` | An attempt the server has not accepted within this many ms fails (and is retried). Includes resolving the token getter. `0` or `Infinity` turns it off. |
-| `followBrowserNetwork` | `false` | React to the browser's `offline` / `online` events right away. See [below](#browser-offline--online). |
+| Option                   | Default | What it does                                                                                                                                                 |
+| ------------------------ | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `socketConfig`           | —       | `createSocketConfig({ baseUrl, accessToken })`. `accessToken` is a string, a getter, or an async getter.                                                     |
+| `serviceConfig`          | —       | `createServiceConfig(...)`; used to turn socket payloads into SDK entities (`IMessage`, `IThread`).                                                          |
+| `reconnect`              | on      | `false` turns automatic reconnect off. `{ initialDelay, maxDelay }` tunes the backoff (ms). A delay that is not a positive number falls back to its default. |
+| `reconnect.initialDelay` | `1000`  | Wait before the first retry after a drop.                                                                                                                    |
+| `reconnect.maxDelay`     | `30000` | The wait doubles per failed attempt, up to this.                                                                                                             |
+| `connectTimeout`         | `10000` | An attempt the server has not accepted within this many ms fails (and is retried). Includes resolving the token getter. `0` or `Infinity` turns it off.      |
+| `followBrowserNetwork`   | `false` | React to the browser's `offline` / `online` events right away. See [below](#browser-offline--online).                                                        |
 
 ## Connection states
 
 `socket.connectionState` holds the current state; `onState(state, callback)`
 is called when the client enters it, with `{ previous }`.
 
-| State | Meaning |
-|---|---|
-| `idle` | Created, never connected. |
-| `connecting` | A socket is being opened. |
-| `connected` | The socket is open. (`connect()` still waits for the server to accept it.) |
-| `error` | The socket reported an error; `disconnected` usually follows. |
+| State          | Meaning                                                                      |
+| -------------- | ---------------------------------------------------------------------------- |
+| `idle`         | Created, never connected.                                                    |
+| `connecting`   | A socket is being opened.                                                    |
+| `connected`    | The socket is open. (`connect()` still waits for the server to accept it.)   |
+| `error`        | The socket reported an error; `disconnected` usually follows.                |
 | `disconnected` | No socket. A retry may be pending — check whether you called `disconnect()`. |
 
 ```ts
@@ -174,18 +209,19 @@ Native) the option has no effect.
 
 `connect()` and `reconnect()` reject with an `Error`:
 
-| Message | Cause |
-|---|---|
-| `failed to connect to socket` | The socket reported an error (server down, network, TLS…). |
-| `socket disconnected` | The socket closed before the server accepted it, or you called `disconnect()`. |
-| `socket connect timed out` | No `connectedEvent` within `connectTimeout`. |
-| `socket connect superseded` | Another `connect()` / `reconnect()` replaced this attempt. |
-| `browser went offline` | `followBrowserNetwork` saw the browser go offline. |
-| *(your getter's error)* | The `accessToken` getter threw or rejected. |
+| Message                       | Cause                                                                          |
+| ----------------------------- | ------------------------------------------------------------------------------ |
+| `failed to connect to socket` | The socket reported an error (server down, network, TLS…).                     |
+| `socket disconnected`         | The socket closed before the server accepted it, or you called `disconnect()`. |
+| `socket connect timed out`    | No `connectedEvent` within `connectTimeout`.                                   |
+| `socket connect superseded`   | Another `connect()` / `reconnect()` replaced this attempt.                     |
+| `browser went offline`        | `followBrowserNetwork` saw the browser go offline.                             |
+| _(your getter's error)_       | The `accessToken` getter threw or rejected.                                    |
 
 With reconnect on, a rejected call is not the end: the client keeps retrying.
-Server-side errors arrive as `ChatsSocketMessage.Error` messages;
-subscriber exceptions are logged, not reported there.
+Server-side errors arrive as `ChatsSocketMessage.Error` messages, as do frames
+the SDK fails to parse; events it does not know are dropped, and subscriber
+exceptions are logged, not reported there.
 
 ## Upgrading from 0.0.19
 
