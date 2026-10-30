@@ -1,11 +1,14 @@
-import type { ThreadModel } from '../../../threads/types/Thread.types';
-import type { SocketContactModel } from './SocketContactModel.types';
+import type { SocketPeerModel } from './SocketPeerModel.types';
 
 /**
- * @see https://github.com/webitel/im-delivery-service/blob/main/api/asyncapi/asyncapi.yaml#L154-L165
+ * @see https://github.com/webitel/im-delivery-service/blob/main/api/asyncapi/asyncapi.yaml `WSThread`
  */
-export interface SocketThreadModel
-	extends Pick<ThreadModel, 'id' | 'createdAt' | 'subject' | 'type'> {
-	domainId: unknown; // no need
-	members: SocketContactModel[];
+export interface SocketThreadModel {
+	id: string;
+	domainId: number;
+	/** Unix ms */
+	createdAt: number;
+	subject: string;
+	type: string;
+	members?: SocketPeerModel[];
 }

@@ -9,7 +9,11 @@ import type {
 import type { ChatsSocketClientOptions } from './types/ChatsSocketClientOptions.types';
 import type { ChatsSocketReconnectedPayload } from './types/ChatsSocketConnectionState.types';
 import type { SocketContactModel } from './types/models/SocketContactModel.types';
-import type { SocketMessageModel } from './types/models/SocketMessageModel.types';
+import type {
+	SocketMessageModel,
+	SocketMessageType,
+} from './types/models/SocketMessageModel.types';
+import type { SocketPeerModel } from './types/models/SocketPeerModel.types';
 import type { SocketThreadModel } from './types/models/SocketThreadModel.types';
 
 export {
@@ -22,6 +26,8 @@ export {
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,
 	type SocketMessageModel,
+	type SocketMessageType,
+	type SocketPeerModel,
 	type SocketThreadModel,
 	type SocketThreadTagsChangedEventPayload,
 };

@@ -6,6 +6,14 @@
 
 - CHANGED a server event this SDK does not know is dropped silently instead of reaching `ChatsSocketMessage.Error` subscribers as "SDK failed to parse incoming socket event", as the server's AsyncAPI 1.1.0 asks of clients. `Error` now carries server `errorEvent`s and frames that fail to parse
 
+### New features
+
+- ADDED `SocketPeerModel`, `SocketContactModel`, `SocketMessageType` types — re-exported from the package root
+
+### Fixes
+
+- FIX `SocketMessageModel` / `SocketThreadModel` describe what the server sends: `sender` and `members` are peers (`{ id, contact, role }`), `to` is a list, and the message carries its attachments, reply, forward origin, `seq` and `updatesCursor`
+
 ### Internals
 
 - REFACTOR `processSocketEventPayload` finds the event by the `ChatsSocketMessage` values (they are the camelCased payload keys) instead of an `if` per event, and returns `null` for an unknown one
