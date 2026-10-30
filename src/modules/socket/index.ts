@@ -5,6 +5,7 @@ import type {
 	SocketMemberAddedEventPayload,
 	SocketMemberLeftEventPayload,
 	SocketThreadTagsChangedEventPayload,
+	SocketThreadUnreadChangedEventPayload,
 } from './types/ChatsSocketClientEventsPayload.types';
 import type { ChatsSocketClientOptions } from './types/ChatsSocketClientOptions.types';
 import type { ChatsSocketReconnectedPayload } from './types/ChatsSocketConnectionState.types';
@@ -24,4 +25,5 @@ export {
 	type SocketMessageModel,
 	type SocketThreadModel,
 	type SocketThreadTagsChangedEventPayload,
+	type SocketThreadUnreadChangedEventPayload,
 };

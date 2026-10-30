@@ -67,4 +67,32 @@ describe('processSocketEventPayload', () => {
 			updatesCursor: 'cursor',
 		});
 	});
+
+	it('maps threadUnreadChangedEvent to ThreadUnreadChanged with that payload', () => {
+		const changed: EventPayload['threadUnreadChangedEvent'] = {
+			threadId: 't-1',
+			unreadCount: 3,
+		};
+		const payload: EventPayload = {
+			threadUnreadChangedEvent: changed,
+		};
+
+		expect(processSocketEventPayload(payload, testCtx())).toEqual({
+			eventName: ChatsSocketMessage.ThreadUnreadChanged,
+			eventPayload: changed,
+		});
+	});
+
+	it('reads an omitted count as zero, since protobuf JSON drops a zero', () => {
+		const payload: EventPayload = {
+			threadUnreadChangedEvent: {
+				threadId: 't-1',
+			},
+		};
+
+		expect(processSocketEventPayload(payload, testCtx()).eventPayload).toEqual({
+			threadId: 't-1',
+			unreadCount: 0,
+		});
+	});
 });

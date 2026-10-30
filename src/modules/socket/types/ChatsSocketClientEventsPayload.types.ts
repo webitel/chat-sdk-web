@@ -35,6 +35,16 @@ export type SocketThreadTagsChangedEventPayload = {
 	updatesCursor: string;
 };
 
+/**
+ * How many messages the caller has not read in a thread changed: a message
+ * arrived, or the caller (on any device) read the thread. Sent to the caller only.
+ */
+export type SocketThreadUnreadChangedEventPayload = {
+	threadId: string;
+	/** the caller's unread messages in the thread now; replaces what you hold */
+	unreadCount: number;
+};
+
 /** Emitted payloads: message/thread socket events are upgraded to SDK entities. */
 export type ChatsSocketClientEventPayloadMap = {
 	[ChatsSocketMessage.ThreadMessage]: IMessage;
@@ -57,6 +67,7 @@ export type ChatsSocketClientEventPayloadMap = {
 	[ChatsSocketMessage.MemberAdded]: SocketMemberAddedEventPayload;
 	[ChatsSocketMessage.MemberLeft]: SocketMemberLeftEventPayload;
 	[ChatsSocketMessage.ThreadTagsChanged]: SocketThreadTagsChangedEventPayload;
+	[ChatsSocketMessage.ThreadUnreadChanged]: SocketThreadUnreadChangedEventPayload;
 	[ChatsSocketMessage.Ack]: {
 		id: string;
 		status: string;

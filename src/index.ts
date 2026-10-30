@@ -40,6 +40,7 @@ export {
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,
 	type SocketThreadTagsChangedEventPayload,
+	type SocketThreadUnreadChangedEventPayload,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
 	// type SocketContactModel,
