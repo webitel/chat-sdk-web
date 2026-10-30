@@ -37,12 +37,14 @@ export {
 	ChatsSocketMessage, // enum for socket message types
 	type ChatsSocketReconnectedPayload, // payload of onReconnected
 	createChatsSocketClient,
+	type SocketContactModel, // contact inside a SocketPeerModel
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,
+	type SocketMessageType,
+	type SocketPeerModel, // sender / editor / member / typer in socket events
 	type SocketThreadTagsChangedEventPayload,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
-	// type SocketContactModel,
 } from './modules/socket';
 export {
 	createLeftThread, // builds an ILeftThread from a raw thread
