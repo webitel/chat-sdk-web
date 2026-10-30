@@ -83,6 +83,31 @@ describe('searchLeft', () => {
 		]);
 	});
 
+	it('keeps the queue the caller received the thread through', async () => {
+		const serviceConfig = setup();
+		vi.spyOn(serviceConfig.axiosInstance, 'get').mockResolvedValueOnce({
+			data: {
+				items: [
+					{
+						id: 't-1',
+						queue: {
+							id: '12',
+							name: 'Sales',
+						},
+					},
+				],
+				next: false,
+			},
+		});
+
+		const [thread] = (await searchLeft(serviceConfig)()).items;
+
+		expect(thread.queue).toEqual({
+			id: '12',
+			name: 'Sales',
+		});
+	});
+
 	it('returns threads that can read history but cannot act', async () => {
 		const serviceConfig = setup();
 		mockPages(serviceConfig, [
