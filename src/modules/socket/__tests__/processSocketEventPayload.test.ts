@@ -12,12 +12,16 @@ const testCtx = () => ({
 });
 
 describe('processSocketEventPayload', () => {
-	it('throws when no recognised branch is set on the payload', () => {
-		const payload: EventPayload = {};
-
-		expect(() => processSocketEventPayload(payload, testCtx())).toThrow(
-			/^Unknown event:/,
-		);
+	it('returns null when no known key is set, so new server events are ignored', () => {
+		expect(processSocketEventPayload({}, testCtx())).toBeNull();
+		expect(
+			processSocketEventPayload(
+				{
+					someFutureEvent: {},
+				} as EventPayload,
+				testCtx(),
+			),
+		).toBeNull();
 	});
 
 	it('maps connectedEvent to Connected with that payload', () => {
@@ -61,10 +65,12 @@ describe('processSocketEventPayload', () => {
 			},
 		};
 
-		expect(processSocketEventPayload(payload, testCtx()).eventPayload).toEqual({
-			threadId: 't-1',
-			tags: [],
-			updatesCursor: 'cursor',
-		});
+		expect(processSocketEventPayload(payload, testCtx())?.eventPayload).toEqual(
+			{
+				threadId: 't-1',
+				tags: [],
+				updatesCursor: 'cursor',
+			},
+		);
 	});
 });

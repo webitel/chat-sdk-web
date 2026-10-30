@@ -265,7 +265,7 @@ class ChatsSocketClient implements IChatsSocketClient {
 			: accessToken;
 	}
 
-	/** Parse failures are reported as an SDK `Error` message and dropped. */
+	/** Unknown events are dropped; parse failures are reported as an SDK `Error` message and dropped. */
 	private parseMessage(
 		event: MessageEvent,
 	): ReturnType<typeof processSocketEventPayload> | null {

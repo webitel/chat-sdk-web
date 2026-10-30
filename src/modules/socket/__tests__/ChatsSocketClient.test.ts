@@ -238,4 +238,24 @@ describe('createChatsSocketClient', () => {
 			await expect(connecting).resolves.toBeUndefined();
 		});
 	});
+
+	describe('server events', () => {
+		it('drops an event it does not know without reporting an Error', async () => {
+			const client = await connectedClient();
+			const error = vi.fn();
+			client.onMessage(ChatsSocketMessage.Error, error);
+
+			latestSocket().onmessage?.({
+				data: JSON.stringify({
+					payload: {
+						some_future_event: {
+							id: 'x',
+						},
+					},
+				}),
+			});
+
+			expect(error).not.toHaveBeenCalled();
+		});
+	});
 });
