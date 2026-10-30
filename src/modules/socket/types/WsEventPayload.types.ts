@@ -17,6 +17,13 @@ export interface EventPayload {
 	> & {
 		tags?: string[];
 	};
+	// protobuf JSON leaves out a zero, so `unreadCount` may be missing
+	threadUnreadChangedEvent?: Omit<
+		ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.ThreadUnreadChanged],
+		'unreadCount'
+	> & {
+		unreadCount?: number;
+	};
 	ackEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ack];
 	errorEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Error];
 	pingEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ping];

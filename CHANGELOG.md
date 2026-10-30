@@ -1,5 +1,16 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [Unreleased]
+
+### New features
+
+- ADDED `ChatsSocketMessage.ThreadUnreadChanged` (`threadUnreadChangedEvent`) and `SocketThreadUnreadChangedEventPayload` — the caller's unread count in a thread changed, because a message arrived or the caller read the thread on any device. The payload is `{ threadId, unreadCount }`; the count replaces what the app holds. An omitted count is read as `0`, since protobuf JSON drops a zero
+
+### Internals
+
+- NOTE the event name and payload follow the backend's request on WS-55 and are not yet confirmed against the asyncapi; adjust them if the backend names them differently
+- TEST `processSocketEventPayload` maps `threadUnreadChangedEvent` and reads an omitted count as zero
+
 ## [0.0.23] - 2026-10-30
 
 ### New features
