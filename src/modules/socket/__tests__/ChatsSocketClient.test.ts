@@ -257,5 +257,71 @@ describe('createChatsSocketClient', () => {
 
 			expect(error).not.toHaveBeenCalled();
 		});
+
+		it('keeps variable names as sent and camelCases the rest', async () => {
+			const client = await connectedClient();
+			const variableSet = vi.fn();
+			client.onMessage(ChatsSocketMessage.VariableSet, variableSet);
+
+			latestSocket().onmessage?.({
+				data: JSON.stringify({
+					payload: {
+						variable_set_event: {
+							action: 'set',
+							variables: {
+								customer_name: {
+									value: {
+										order_id: 1,
+									},
+									set_by: 'u-1',
+									set_at: '1',
+								},
+							},
+						},
+					},
+				}),
+			});
+
+			expect(variableSet).toHaveBeenCalledWith({
+				action: 'set',
+				variables: {
+					customer_name: {
+						value: {
+							order_id: 1,
+						},
+						setBy: 'u-1',
+						setAt: '1',
+					},
+				},
+			});
+		});
+
+		it('emits a message status change with camelCased fields', async () => {
+			const client = await connectedClient();
+			const status = vi.fn();
+			client.onMessage(ChatsSocketMessage.MessageStatus, status);
+
+			latestSocket().onmessage?.({
+				data: JSON.stringify({
+					payload: {
+						message_status_event: {
+							thread_id: 't-1',
+							status: 'read',
+							up_to_seq: 7,
+							unread_count: 0,
+							occurred_at: 2,
+						},
+					},
+				}),
+			});
+
+			expect(status).toHaveBeenCalledWith({
+				threadId: 't-1',
+				status: 'read',
+				upToSeq: 7,
+				unreadCount: 0,
+				occurredAt: 2,
+			});
+		});
 	});
 });

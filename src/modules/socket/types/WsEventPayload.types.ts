@@ -2,9 +2,22 @@ import type { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
 import type {
 	ChatsSocketClientEventPayloadMap,
 	SocketThreadTagsChangedEventPayload,
+	SocketVariablesEventPayload,
 } from './ChatsSocketClientEventsPayload.types';
 import type { SocketMessageModel } from './models/SocketMessageModel.types';
 import type { SocketThreadModel } from './models/SocketThreadModel.types';
+
+/** `variables` skips the camelCase transform, so variable names stay as sent. */
+type WsVariablesPayload = Pick<SocketVariablesEventPayload, 'action'> & {
+	variables?: Record<
+		string,
+		{
+			value: unknown;
+			set_by: string;
+			set_at: string;
+		}
+	>;
+};
 
 /** Wire shapes that differ from what subscribers get. */
 type WsPayloadOverrides = {
@@ -17,6 +30,8 @@ type WsPayloadOverrides = {
 	> & {
 		tags?: string[];
 	};
+	[ChatsSocketMessage.VariableSet]: WsVariablesPayload;
+	[ChatsSocketMessage.VariableFlush]: WsVariablesPayload;
 };
 
 /** The server frame's camelCased `payload`: exactly one key is set. */
