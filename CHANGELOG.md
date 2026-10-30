@@ -1,5 +1,17 @@
 # `@webitel/chat-web-sdk` Changlelog
 
+## [Unreleased]
+
+### Breaking changes
+
+- CHANGED a server event this SDK does not know is dropped silently instead of reaching `ChatsSocketMessage.Error` subscribers as "SDK failed to parse incoming socket event", as the server's AsyncAPI 1.1.0 asks of clients. `Error` now carries server `errorEvent`s and frames that fail to parse
+
+### Internals
+
+- REFACTOR `processSocketEventPayload` finds the event by the `ChatsSocketMessage` values (they are the camelCased payload keys) instead of an `if` per event, and returns `null` for an unknown one
+- CHANGED the socket's wire payload type `EventPayload` is derived from `ChatsSocketClientEventPayloadMap`, overriding only the shapes that differ on the wire
+- TEST unknown events are dropped without an `Error`
+
 ## [0.0.23] - 2026-10-30
 
 ### New features

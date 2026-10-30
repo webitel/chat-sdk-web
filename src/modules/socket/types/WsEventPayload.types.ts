@@ -1,23 +1,27 @@
 import type { ChatsSocketMessage } from '../enums/ChatsSocketMessage.enum';
-import type { ChatsSocketClientEventPayloadMap } from './ChatsSocketClientEventsPayload.types';
+import type {
+	ChatsSocketClientEventPayloadMap,
+	SocketThreadTagsChangedEventPayload,
+} from './ChatsSocketClientEventsPayload.types';
 import type { SocketMessageModel } from './models/SocketMessageModel.types';
 import type { SocketThreadModel } from './models/SocketThreadModel.types';
 
-export interface EventPayload {
-	connectedEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Connected];
-	disconnectedEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Disconnected];
-	messageEvent?: SocketMessageModel;
-	threadCreatedEvent?: SocketThreadModel;
-	memberAddedEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.MemberAdded];
-	memberLeftEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.MemberLeft];
+/** Wire shapes that differ from what subscribers get. */
+type WsPayloadOverrides = {
+	[ChatsSocketMessage.ThreadMessage]: SocketMessageModel;
+	[ChatsSocketMessage.ThreadCreated]: SocketThreadModel;
 	// protobuf JSON leaves out an empty list, so `tags` may be missing
-	threadTagsChangedEvent?: Omit<
-		ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.ThreadTagsChanged],
+	[ChatsSocketMessage.ThreadTagsChanged]: Omit<
+		SocketThreadTagsChangedEventPayload,
 		'tags'
 	> & {
 		tags?: string[];
 	};
-	ackEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ack];
-	errorEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Error];
-	pingEvent?: ChatsSocketClientEventPayloadMap[typeof ChatsSocketMessage.Ping];
-}
+};
+
+/** The server frame's camelCased `payload`: exactly one key is set. */
+export type EventPayload = {
+	[Name in ChatsSocketMessage]?: Name extends keyof WsPayloadOverrides
+		? WsPayloadOverrides[Name]
+		: ChatsSocketClientEventPayloadMap[Name];
+};

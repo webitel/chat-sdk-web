@@ -6,74 +6,19 @@ import type { ChatsSocketClientEventPayloadMap } from '../types/ChatsSocketClien
 import type { EventPayload } from '../types/WsEventPayload.types';
 import { instantiateSocketEventEntities } from './instantiateSocketEventEntities';
 
+const socketMessages = Object.values(ChatsSocketMessage);
+
+/** The enum values are the payload keys; `null` for a key this SDK does not know. */
 function getSocketMessageNameFromEvent(
 	sourceEvent: EventPayload,
-): ChatsSocketMessage {
-	if (sourceEvent.connectedEvent) {
-		return ChatsSocketMessage.Connected;
-	}
-	if (sourceEvent.disconnectedEvent) {
-		return ChatsSocketMessage.Disconnected;
-	}
-	if (sourceEvent.errorEvent) {
-		return ChatsSocketMessage.Error;
-	}
-	if (sourceEvent.messageEvent) {
-		return ChatsSocketMessage.ThreadMessage;
-	}
-	if (sourceEvent.threadCreatedEvent) {
-		return ChatsSocketMessage.ThreadCreated;
-	}
-	if (sourceEvent.memberAddedEvent) {
-		return ChatsSocketMessage.MemberAdded;
-	}
-	if (sourceEvent.memberLeftEvent) {
-		return ChatsSocketMessage.MemberLeft;
-	}
-	if (sourceEvent.threadTagsChangedEvent) {
-		return ChatsSocketMessage.ThreadTagsChanged;
-	}
-	if (sourceEvent.ackEvent) {
-		return ChatsSocketMessage.Ack;
-	}
-	if (sourceEvent.pingEvent) {
-		return ChatsSocketMessage.Ping;
-	}
-	throw new Error(`Unknown event: ${JSON.stringify(sourceEvent)}`);
+): ChatsSocketMessage | null {
+	return socketMessages.find((name) => sourceEvent[name] != null) ?? null;
 }
 
-function extractRawPayload(
-	sourceEvent: EventPayload,
-	eventName: ChatsSocketMessage,
-): unknown {
-	switch (eventName) {
-		case ChatsSocketMessage.Connected:
-			return sourceEvent.connectedEvent;
-		case ChatsSocketMessage.Disconnected:
-			return sourceEvent.disconnectedEvent;
-		case ChatsSocketMessage.Error:
-			return sourceEvent.errorEvent;
-		case ChatsSocketMessage.ThreadMessage:
-			return sourceEvent.messageEvent;
-		case ChatsSocketMessage.ThreadCreated:
-			return sourceEvent.threadCreatedEvent;
-		case ChatsSocketMessage.MemberAdded:
-			return sourceEvent.memberAddedEvent;
-		case ChatsSocketMessage.MemberLeft:
-			return sourceEvent.memberLeftEvent;
-		case ChatsSocketMessage.ThreadTagsChanged:
-			return sourceEvent.threadTagsChangedEvent;
-		case ChatsSocketMessage.Ack:
-			return sourceEvent.ackEvent;
-		case ChatsSocketMessage.Ping:
-			return sourceEvent.pingEvent;
-		default: {
-			const _exhaustive: never = eventName;
-			return _exhaustive;
-		}
-	}
-}
-
+/**
+ * `null` when the event is unknown to this SDK: the server may add events, and
+ * clients are to ignore keys they do not know.
+ */
 export function processSocketEventPayload(
 	sourceEvent: EventPayload,
 	{
@@ -84,13 +29,15 @@ export function processSocketEventPayload(
 ): {
 	eventName: ChatsSocketMessage;
 	eventPayload: ChatsSocketClientEventPayloadMap[ChatsSocketMessage];
-} {
+} | null {
 	const eventName = getSocketMessageNameFromEvent(sourceEvent);
-	const rawPayload = extractRawPayload(sourceEvent, eventName);
+	if (!eventName) {
+		return null;
+	}
 	const eventPayload = processEventPayload(
 		{
 			name: eventName,
-			payload: rawPayload,
+			payload: sourceEvent[eventName],
 		},
 		{
 			serviceConfig,
@@ -139,7 +86,7 @@ function processEventPayload(
 			);
 		case ChatsSocketMessage.ThreadTagsChanged: {
 			const changed = payload as NonNullable<
-				EventPayload['threadTagsChangedEvent']
+				EventPayload[typeof ChatsSocketMessage.ThreadTagsChanged]
 			>;
 			return {
 				...changed,
