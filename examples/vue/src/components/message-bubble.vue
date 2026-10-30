@@ -3,6 +3,10 @@
     <div class="meta">
       <span class="sender">{{ senderName }}</span>
       <span class="time">{{ formattedTime }}</span>
+      <span
+        v-if="message.editedAt && message.editedAt !== '0'"
+        class="time"
+      >edited</span>
     </div>
     <div
       v-if="message.body"
@@ -69,6 +73,17 @@
         </li>
       </ul>
     </div>
+    <div
+      v-if="reactions?.length"
+      class="reactions"
+    >
+      <span
+        v-for="r in reactions"
+        :key="r.emoji"
+        class="reaction"
+        :class="{ mine: r.reactedByMe }"
+      >{{ r.emoji }} {{ r.count }}</span>
+    </div>
   </div>
 </template>
 
@@ -76,11 +91,15 @@
   setup
   lang="ts"
 >
-import type { IMessage } from '@webitel/chat-web-sdk';
+import type {
+	IMessage,
+	SocketMessageReactionAggregate,
+} from '@webitel/chat-web-sdk';
 import { computed } from 'vue';
 
 const props = defineProps<{
 	message: IMessage;
+	reactions?: SocketMessageReactionAggregate[];
 }>();
 
 const senderName = computed(
@@ -106,6 +125,25 @@ function formatSize(bytes: number | string) {
 </script>
 
 <style scoped>
+.reactions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.reaction {
+  padding: 1px 8px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  font-size: 12px;
+}
+
+.reaction.mine {
+  border-color: #93c5fd;
+  background: #eff6ff;
+}
+
 .bubble {
   display: flex;
   flex-direction: column;

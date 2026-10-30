@@ -9,6 +9,12 @@ import type {
 	IThread,
 	SocketMemberAddedEventPayload,
 	SocketMemberLeftEventPayload,
+	SocketMessageDeletedEventPayload,
+	SocketMessageEditedEventPayload,
+	SocketMessageReactionEventPayload,
+	SocketResyncEventPayload,
+	SocketTypingEventPayload,
+	SocketVariablesEventPayload,
 } from '@webitel/chat-web-sdk';
 import { makeServiceConfig, makeSocketConfig } from '../configs';
 
@@ -20,14 +26,39 @@ const socketStatus = ref<ChatsSocketConnectionStatus>(
 );
 const currentServiceConfig = shallowRef(makeServiceConfig('', ''));
 
-const messageHandlers = new Set<(msg: IMessage) => void>();
-const threadCreatedHandlers = new Set<(thread: IThread) => void>();
-const memberAddedHandlers = new Set<
-	(payload: SocketMemberAddedEventPayload) => void
->();
-const memberLeftHandlers = new Set<
-	(payload: SocketMemberLeftEventPayload) => void
->();
+/** Payload per socket event, as the SDK emits it (its `onMessage` hands out `unknown`). */
+export type SocketEventPayloads = {
+	[ChatsSocketMessage.ThreadMessage]: IMessage;
+	[ChatsSocketMessage.ThreadCreated]: IThread;
+	[ChatsSocketMessage.MemberAdded]: SocketMemberAddedEventPayload;
+	[ChatsSocketMessage.MemberLeft]: SocketMemberLeftEventPayload;
+	[ChatsSocketMessage.Resync]: SocketResyncEventPayload;
+	[ChatsSocketMessage.MessageEdited]: SocketMessageEditedEventPayload;
+	[ChatsSocketMessage.MessageDeleted]: SocketMessageDeletedEventPayload;
+	[ChatsSocketMessage.MessageReaction]: SocketMessageReactionEventPayload;
+	[ChatsSocketMessage.Typing]: SocketTypingEventPayload;
+	[ChatsSocketMessage.VariableSet]: SocketVariablesEventPayload;
+	[ChatsSocketMessage.VariableFlush]: SocketVariablesEventPayload;
+};
+
+type SocketEventName = keyof SocketEventPayloads;
+
+const socketEventNames: Record<SocketEventName, true> = {
+	[ChatsSocketMessage.ThreadMessage]: true,
+	[ChatsSocketMessage.ThreadCreated]: true,
+	[ChatsSocketMessage.MemberAdded]: true,
+	[ChatsSocketMessage.MemberLeft]: true,
+	[ChatsSocketMessage.Resync]: true,
+	[ChatsSocketMessage.MessageEdited]: true,
+	[ChatsSocketMessage.MessageDeleted]: true,
+	[ChatsSocketMessage.MessageReaction]: true,
+	[ChatsSocketMessage.Typing]: true,
+	[ChatsSocketMessage.VariableSet]: true,
+	[ChatsSocketMessage.VariableFlush]: true,
+};
+
+// survive reconnecting with another client: handlers live here, not on the client
+const handlers = new Map<SocketEventName, Set<(data: never) => void>>();
 
 export function useSocket() {
 	function attachHandlers(c: SocketClient) {
@@ -41,25 +72,11 @@ export function useSocket() {
 			});
 		});
 
-		c.onMessage(ChatsSocketMessage.ThreadMessage, (data) => {
-			messageHandlers.forEach((h) => h(data as IMessage));
-		});
-
-		c.onMessage(ChatsSocketMessage.ThreadCreated, (data) => {
-			threadCreatedHandlers.forEach((h) => h(data as IThread));
-		});
-
-		c.onMessage(ChatsSocketMessage.MemberAdded, (data) => {
-			memberAddedHandlers.forEach((h) =>
-				h(data as SocketMemberAddedEventPayload),
-			);
-		});
-
-		c.onMessage(ChatsSocketMessage.MemberLeft, (data) => {
-			memberLeftHandlers.forEach((h) =>
-				h(data as SocketMemberLeftEventPayload),
-			);
-		});
+		for (const event of Object.keys(socketEventNames) as SocketEventName[]) {
+			c.onMessage(event, (data) => {
+				handlers.get(event)?.forEach((h) => h(data as never));
+			});
+		}
 	}
 
 	async function connect(
@@ -101,29 +118,28 @@ export function useSocket() {
 		client.value = null;
 	}
 
-	function onThreadMessage(cb: (msg: IMessage) => void): () => void {
-		messageHandlers.add(cb);
-		return () => messageHandlers.delete(cb);
+	function onSocketEvent<Event extends SocketEventName>(
+		event: Event,
+		cb: (payload: SocketEventPayloads[Event]) => void,
+	): () => void {
+		const set = handlers.get(event) ?? new Set();
+		handlers.set(event, set);
+		set.add(cb);
+		return () => set.delete(cb);
 	}
 
-	function onThreadCreated(cb: (thread: IThread) => void): () => void {
-		threadCreatedHandlers.add(cb);
-		return () => threadCreatedHandlers.delete(cb);
-	}
+	const onThreadMessage = (cb: (msg: IMessage) => void) =>
+		onSocketEvent(ChatsSocketMessage.ThreadMessage, cb);
 
-	function onMemberAdded(
+	const onThreadCreated = (cb: (thread: IThread) => void) =>
+		onSocketEvent(ChatsSocketMessage.ThreadCreated, cb);
+
+	const onMemberAdded = (
 		cb: (payload: SocketMemberAddedEventPayload) => void,
-	): () => void {
-		memberAddedHandlers.add(cb);
-		return () => memberAddedHandlers.delete(cb);
-	}
+	) => onSocketEvent(ChatsSocketMessage.MemberAdded, cb);
 
-	function onMemberLeft(
-		cb: (payload: SocketMemberLeftEventPayload) => void,
-	): () => void {
-		memberLeftHandlers.add(cb);
-		return () => memberLeftHandlers.delete(cb);
-	}
+	const onMemberLeft = (cb: (payload: SocketMemberLeftEventPayload) => void) =>
+		onSocketEvent(ChatsSocketMessage.MemberLeft, cb);
 
 	return {
 		socketStatus,
@@ -134,5 +150,6 @@ export function useSocket() {
 		onThreadCreated,
 		onMemberAdded,
 		onMemberLeft,
+		onSocketEvent,
 	};
 }

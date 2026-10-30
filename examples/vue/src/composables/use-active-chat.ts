@@ -3,6 +3,11 @@ import {
 	type IContact,
 	type IMessage,
 	type IThread,
+	type SocketMessageDeletedEventPayload,
+	type SocketMessageEditedEventPayload,
+	type SocketMessageReactionAggregate,
+	type SocketMessageReactionEventPayload,
+	type SocketTypingEventPayload,
 } from '@webitel/chat-web-sdk';
 import { ref, shallowRef } from 'vue';
 
@@ -26,6 +31,27 @@ const messagesLoading = ref(false);
 const messagesError = ref<string | null>(null);
 const sendError = ref<string | null>(null);
 const isSending = ref(false);
+/** live reaction bars by message id; history does not carry them */
+const reactions = ref<Record<string, SocketMessageReactionAggregate[]>>({});
+/** who is typing in the active thread, by member id */
+const typing = ref<Record<string, string>>({});
+const typingTimers = new Map<string, ReturnType<typeof setTimeout>>();
+/** edit `version` applied per message id */
+const editVersions = new Map<string, number>();
+
+function resetLiveState() {
+	reactions.value = {};
+	typing.value = {};
+	typingTimers.forEach(clearTimeout);
+	typingTimers.clear();
+	editVersions.clear();
+}
+
+/** the event belongs to the open thread */
+function isActiveThread(threadId: string) {
+	const chat = activeChat.value;
+	return chat?.kind === 'thread' && chat.item.id === threadId;
+}
 
 export function useActiveChat() {
 	const { serviceConfig } = useSocket();
@@ -38,6 +64,7 @@ export function useActiveChat() {
 		messages.value = [];
 		messagesError.value = null;
 		sendError.value = null;
+		resetLiveState();
 
 		try {
 			const { fetchThread } = createThreadsService(serviceConfig.value);
@@ -60,6 +87,7 @@ export function useActiveChat() {
 		messages.value = [];
 		messagesError.value = null;
 		sendError.value = null;
+		resetLiveState();
 	}
 
 	async function loadHistory(thread: IThread) {
@@ -81,6 +109,7 @@ export function useActiveChat() {
 		messages.value = [];
 		messagesError.value = null;
 		sendError.value = null;
+		resetLiveState();
 	}
 
 	function appendSocketMessage(msg: IMessage) {
@@ -92,6 +121,59 @@ export function useActiveChat() {
 			...messages.value,
 			msg,
 		];
+	}
+
+	function applyMessageEdited(edit: SocketMessageEditedEventPayload) {
+		if (!isActiveThread(edit.threadId)) return;
+		// edits can arrive out of order: keep the newest
+		if ((edit.version ?? 0) < (editVersions.get(edit.id) ?? 0)) return;
+		editVersions.set(edit.id, edit.version ?? 0);
+		const msg = messages.value.find(({ id }) => id === edit.id);
+		if (!msg) return;
+		msg.body = edit.body;
+		msg.editedAt = String(edit.editedAt);
+	}
+
+	function applyMessageDeleted(deleted: SocketMessageDeletedEventPayload) {
+		if (!isActiveThread(deleted.threadId)) return;
+		messages.value = messages.value.filter(({ id }) => id !== deleted.id);
+	}
+
+	function applyReaction(change: SocketMessageReactionEventPayload) {
+		if (!isActiveThread(change.threadId)) return;
+		// the event is the whole bar: replace, do not merge
+		reactions.value = {
+			...reactions.value,
+			[change.messageId]: change.reactions,
+		};
+	}
+
+	function applyTyping({
+		threadId,
+		from,
+		timeoutMs,
+	}: SocketTypingEventPayload) {
+		if (!isActiveThread(threadId) || !from) return;
+		typing.value = {
+			...typing.value,
+			[from.id]: from.contact?.name || from.contact?.username || 'Someone',
+		};
+		clearTimeout(typingTimers.get(from.id));
+		typingTimers.set(
+			from.id,
+			setTimeout(() => {
+				const { [from.id]: _, ...rest } = typing.value;
+				typing.value = rest;
+				typingTimers.delete(from.id);
+			}, timeoutMs),
+		);
+	}
+
+	/** live events were dropped: re-read the open thread */
+	async function resync() {
+		const chat = activeChat.value;
+		if (chat?.kind !== 'thread') return;
+		await loadHistory(chat.item);
 	}
 
 	async function sendMessage(params: ChatSendParams) {
@@ -119,6 +201,13 @@ export function useActiveChat() {
 		selectContact,
 		clearActiveThread,
 		appendSocketMessage,
+		reactions,
+		typing,
+		applyMessageEdited,
+		applyMessageDeleted,
+		applyReaction,
+		applyTyping,
+		resync,
 		sendMessage,
 	};
 }

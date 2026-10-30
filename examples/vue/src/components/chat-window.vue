@@ -71,8 +71,16 @@
             v-for="msg in messages"
             :key="msg.id"
             :message="msg"
+            :reactions="reactions[msg.id]"
           />
         </template>
+      </div>
+
+      <div
+        v-if="typing.length"
+        class="typing"
+      >
+        {{ typing.join(', ') }} {{ typing.length === 1 ? 'is' : 'are' }} typing…
       </div>
 
       <MessageInput
@@ -90,7 +98,11 @@
 >
 import { computed, nextTick, ref, watch } from 'vue';
 
-import type { IMessage, IThread } from '@webitel/chat-web-sdk';
+import type {
+	IMessage,
+	IThread,
+	SocketMessageReactionAggregate,
+} from '@webitel/chat-web-sdk';
 import type {
 	ChatSendParams,
 	ChatTarget,
@@ -107,6 +119,10 @@ const props = defineProps<{
 	messagesError: string | null;
 	sendError: string | null;
 	isSending: boolean;
+	/** live reaction bars by message id */
+	reactions: Record<string, SocketMessageReactionAggregate[]>;
+	/** names of who is typing */
+	typing: string[];
 }>();
 
 defineEmits<{
@@ -169,6 +185,13 @@ watch(
 </script>
 
 <style scoped>
+.typing {
+  padding: 4px 20px;
+  font-size: 12px;
+  font-style: italic;
+  color: #6b7280;
+}
+
 .window {
   flex: 1;
   display: flex;
