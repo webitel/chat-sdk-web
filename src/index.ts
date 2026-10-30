@@ -38,11 +38,22 @@ export {
 	type ChatsSocketReconnectedPayload, // payload of onReconnected
 	createChatsSocketClient,
 	type SocketContactModel, // contact inside a SocketPeerModel
+	type SocketInteractiveCallbackEventPayload,
+	type SocketInteractiveCallbackPeer,
 	type SocketMemberAddedEventPayload,
 	type SocketMemberLeftEventPayload,
+	type SocketMessageDeletedEventPayload,
+	type SocketMessageEditedEventPayload,
+	type SocketMessageReactionAggregate,
+	type SocketMessageReactionEventPayload,
+	type SocketMessageStatusEventPayload,
 	type SocketMessageType,
 	type SocketPeerModel, // sender / editor / member / typer in socket events
+	type SocketResyncEventPayload,
 	type SocketThreadTagsChangedEventPayload,
+	type SocketThreadVariable,
+	type SocketTypingEventPayload,
+	type SocketVariablesEventPayload,
 	// type SocketMessageModel,
 	// type SocketThreadModel,
 } from './modules/socket';

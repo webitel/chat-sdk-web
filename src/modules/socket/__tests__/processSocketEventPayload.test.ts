@@ -73,4 +73,99 @@ describe('processSocketEventPayload', () => {
 			},
 		);
 	});
+
+	it.each([
+		[
+			ChatsSocketMessage.Resync,
+			{
+				cursor: 'c-1',
+			},
+		],
+		[
+			ChatsSocketMessage.MessageDeleted,
+			{
+				id: 'm-1',
+				threadId: 't-1',
+				createdAt: 1,
+				deletedAt: 2,
+			},
+		],
+		[
+			ChatsSocketMessage.MessageReaction,
+			{
+				messageId: 'm-1',
+				threadId: 't-1',
+				reactions: [],
+			},
+		],
+		[
+			ChatsSocketMessage.Typing,
+			{
+				threadId: 't-1',
+				timeoutMs: 5000,
+			},
+		],
+		[
+			ChatsSocketMessage.InteractiveCallback,
+			{
+				threadId: 't-1',
+				buttonCode: 'yes',
+			},
+		],
+	])('maps %s to that event with its payload', (eventName, body) => {
+		const payload = {
+			[eventName]: body,
+		} as EventPayload;
+
+		expect(processSocketEventPayload(payload, testCtx())).toEqual({
+			eventName,
+			eventPayload: body,
+		});
+	});
+
+	it.each([
+		ChatsSocketMessage.VariableSet,
+		ChatsSocketMessage.VariableFlush,
+	])('%s keeps variable names and camelCases each entry', (eventName) => {
+		const payload = {
+			[eventName]: {
+				action: 'set',
+				variables: {
+					customer_name: {
+						value: 'Ann',
+						set_by: 'u-1',
+						set_at: '1',
+					},
+				},
+			},
+		} as EventPayload;
+
+		expect(processSocketEventPayload(payload, testCtx())?.eventPayload).toEqual(
+			{
+				action: 'set',
+				variables: {
+					customer_name: {
+						value: 'Ann',
+						setBy: 'u-1',
+						setAt: '1',
+					},
+				},
+			},
+		);
+	});
+
+	it('reads omitted variables as none', () => {
+		const payload: EventPayload = {
+			variableFlushEvent: {
+				action: 'flush',
+			},
+		};
+
+		expect(processSocketEventPayload(payload, testCtx())?.eventPayload).toEqual(
+			{
+				action: 'flush',
+				variables: {},
+			},
+		);
+	});
 });

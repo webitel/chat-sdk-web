@@ -93,11 +93,37 @@ function processEventPayload(
 				tags: changed.tags ?? [],
 			};
 		}
+		case ChatsSocketMessage.VariableSet:
+		case ChatsSocketMessage.VariableFlush: {
+			const { variables = {}, action } = payload as NonNullable<
+				EventPayload[typeof ChatsSocketMessage.VariableSet]
+			>;
+			return {
+				action,
+				variables: Object.fromEntries(
+					Object.entries(variables).map(([key, variable]) => [
+						key,
+						{
+							value: variable.value,
+							setBy: variable.set_by,
+							setAt: variable.set_at,
+						},
+					]),
+				),
+			};
+		}
 		case ChatsSocketMessage.Connected:
 		case ChatsSocketMessage.Disconnected:
+		case ChatsSocketMessage.Resync:
 		case ChatsSocketMessage.Error:
+		case ChatsSocketMessage.MessageEdited:
+		case ChatsSocketMessage.MessageDeleted:
+		case ChatsSocketMessage.MessageStatus:
+		case ChatsSocketMessage.MessageReaction:
+		case ChatsSocketMessage.Typing:
 		case ChatsSocketMessage.MemberAdded:
 		case ChatsSocketMessage.MemberLeft:
+		case ChatsSocketMessage.InteractiveCallback:
 		case ChatsSocketMessage.Ack:
 		case ChatsSocketMessage.Ping:
 			return payload as ChatsSocketClientEventPayloadMap[typeof name];

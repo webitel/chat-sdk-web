@@ -270,8 +270,11 @@ class ChatsSocketClient implements IChatsSocketClient {
 		event: MessageEvent,
 	): ReturnType<typeof processSocketEventPayload> | null {
 		try {
+			// variable names are the user's own: keep them as sent
 			const eventData = applyTransform(JSON.parse(event.data), [
-				snakeToCamel(),
+				snakeToCamel([
+					'variables',
+				]),
 			]) as {
 				payload: EventPayload;
 			};

@@ -8,17 +8,29 @@
 
 ### New features
 
-- ADDED `SocketPeerModel`, `SocketContactModel`, `SocketMessageType` types — re-exported from the package root
+- ADDED socket events the server already pushes (AsyncAPI 1.1.0), each with a typed payload re-exported from the package root:
+  - `ChatsSocketMessage.Resync` — `SocketResyncEventPayload`: live events for this connection were dropped; catch up via `GET /v1/updates` from `cursor` (or your saved cursor when it is missing)
+  - `ChatsSocketMessage.MessageEdited` — `SocketMessageEditedEventPayload`: match the message by `id` and replace its content; ignore a `version` older than the one you applied
+  - `ChatsSocketMessage.MessageDeleted` — `SocketMessageDeletedEventPayload`: match the message by `id` and remove it
+  - `ChatsSocketMessage.MessageStatus` — `SocketMessageStatusEventPayload`: `delivered` / `read` up to `upToSeq`, or `failed` for `messageId`
+  - `ChatsSocketMessage.MessageReaction` — `SocketMessageReactionEventPayload`: the message's whole reaction bar after the change (`[]` when none are left)
+  - `ChatsSocketMessage.Typing` — `SocketTypingEventPayload`: hide the indicator after `timeoutMs`
+  - `ChatsSocketMessage.InteractiveCallback` — `SocketInteractiveCallbackEventPayload`: a participant pressed an interactive button
+  - `ChatsSocketMessage.VariableSet` / `VariableFlush` — `SocketVariablesEventPayload`: variable names are kept as sent (not camelCased); the server does not say which thread
+- ADDED `updatesCursor` to the `Connected`, `MemberAdded` and `MemberLeft` payloads, and `action` (`joined` / `left`) to the member payloads
+- ADDED `SocketPeerModel`, `SocketContactModel`, `SocketMessageType`, `SocketMessageReactionAggregate`, `SocketInteractiveCallbackPeer`, `SocketThreadVariable` types — re-exported from the package root
 
 ### Fixes
 
+- FIX `message_edited_event`, `message_deleted_event`, `message_status_event`, `message_reaction_event`, `typing_event`, `resync_event`, `interactive_callback`, `variable_set_event` and `variable_flush_event` from the server no longer reach subscribers as an `Error` message
 - FIX `SocketMessageModel` / `SocketThreadModel` describe what the server sends: `sender` and `members` are peers (`{ id, contact, role }`), `to` is a list, and the message carries its attachments, reply, forward origin, `seq` and `updatesCursor`
 
 ### Internals
 
 - REFACTOR `processSocketEventPayload` finds the event by the `ChatsSocketMessage` values (they are the camelCased payload keys) instead of an `if` per event, and returns `null` for an unknown one
 - CHANGED the socket's wire payload type `EventPayload` is derived from `ChatsSocketClientEventPayloadMap`, overriding only the shapes that differ on the wire
-- TEST unknown events are dropped without an `Error`
+- CHANGED the socket frame's camelCase transform skips `variables`; `processSocketEventPayload` camelCases each entry's `set_by` / `set_at` itself
+- TEST unknown events are dropped without an `Error`, every new event maps to its name and payload, variable names survive the wire transform, and omitted `variables` read as `{}`
 
 ## [0.0.23] - 2026-10-30
 
